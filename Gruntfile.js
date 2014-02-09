@@ -15,7 +15,7 @@ module.exports = function(grunt)
   {
     clean:
     {
-      lib: ['lib/haeckel.d.ts', 'lib/haeckel.js']
+      lib: ['lib/haeckel.d.ts', 'lib/*.js', 'lib/**/*.js']
     },
     nodeunit:
     {

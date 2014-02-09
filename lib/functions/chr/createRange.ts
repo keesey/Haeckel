@@ -12,7 +12,7 @@
 ///<reference path="../../interfaces/WeightedStates.ts" />
 module Haeckel.chr
 {
-	function averageRanges(statesList: WeightedStates<Range>[]): Range
+	function average(statesList: WeightedStates<Range>[]): Range
 	{
         var n = statesList.length;
         if (n === 0)
@@ -51,18 +51,18 @@ module Haeckel.chr
 		if (distance)
 		{
 			var ratio = 1 / domain.size;
-			c.distance = function(a: Range, b: Range)
+			c.distance = (a: Range, b: Range) =>
 			{
 				if (!a || !b || a.empty || b.empty)
 				{
 					return RANGE_0_TO_1;
 				}
 				return rng.multiply(rng.distance(a, b), ratio);
-			}
+			};
 		}
 		if (inferrable)
 		{
-			c.inferrer = Object.freeze({ average: averageRanges });
+			c.inferrer = Object.freeze({ average: average });
 		}
 		return Object.freeze(c);
 	}
