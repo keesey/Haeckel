@@ -1,4 +1,8 @@
 node_modules/
 npm-debug.log
-lib/*.js
+lib/builders/*.js
+lib/constants/*.js
+lib/functions/*.js
+lib/interfaces/*.js
+lib/solvers/*.js
 test/*.js

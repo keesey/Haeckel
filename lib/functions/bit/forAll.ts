@@ -6,7 +6,7 @@ module Haeckel.bit
 	{
 		for (var i = 0; i <= BIT_MEMBER_MAX; ++i)
 		{
-			if ((s.bits & (1 << i)) !== 0)
+			if (s.bits & (1 << i))
 			{
 				if (!f.call(thisObject, i))
 				{

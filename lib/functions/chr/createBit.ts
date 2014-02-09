@@ -9,7 +9,7 @@
 ///<reference path="../../interfaces/BitSet.ts" />
 ///<reference path="../../interfaces/Character.ts" />
 ///<reference path="../../interfaces/WeightedStates.ts" />
-module Haekel.chr
+module Haeckel.chr
 {
 	function average(statesList: WeightedStates<BitSet>[]): BitSet
 	{

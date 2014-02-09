@@ -9,7 +9,7 @@
 ///<reference path="../../interfaces/Character.ts" />
 ///<reference path="../../interfaces/ExtSet.ts" />
 ///<reference path="../../interfaces/WeightedStates.ts" />
-module Haekel.chr
+module Haeckel.chr
 {
 	function average<T>(statesList: WeightedStates<ExtSet<T>>[]): ExtSet<T>
 	{

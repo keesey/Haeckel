@@ -711,6 +711,33 @@ declare module Haeckel.bit {
 declare module Haeckel.bit {
     function write(set: Haeckel.BitSet): any;
 }
+declare module Haeckel {
+    function combiner<S extends Set>(union: (sets: S[]) => S): (sets: S[]) => S;
+}
+declare module Haeckel.chr {
+    function createBit(domain: Haeckel.BitSet, inferrable?: boolean, distance?: boolean): Haeckel.Character<Haeckel.BitSet>;
+}
+declare module Haeckel.ext {
+    function distance<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): Haeckel.Range;
+}
+declare module Haeckel.ext {
+    function read<T>(data: any): Haeckel.ExtSet<T>;
+}
+declare module Haeckel.chr {
+    function createExt<T>(domain: Haeckel.ExtSet<T>, inferrable?: boolean, distance?: boolean): Haeckel.Character<Haeckel.ExtSet<T>>;
+}
+declare module Haeckel.ist {
+    function create<T>(criterion: (element: T) => boolean): Haeckel.IntSet<T>;
+}
+declare module Haeckel.chr {
+    function createInt<T>(criterion: (element: T) => boolean, combine?: (sets: Haeckel.IntSet<T>[]) => Haeckel.IntSet<T>, readStates?: (data: any) => Haeckel.IntSet<T>, writeStates?: (states: Haeckel.IntSet<T>) => any): Haeckel.Character<Haeckel.IntSet<T>>;
+}
+declare module Haeckel.rng {
+    function sum(ranges: Haeckel.Range[]): Haeckel.Range;
+}
+declare module Haeckel.chr {
+    function toDistanceMatrix(matrix: Haeckel.CharacterMatrix<Haeckel.Set>, anchors?: Haeckel.Taxic): Haeckel.DistanceMatrix<Haeckel.Taxic>;
+}
 declare module Haeckel.clr {
     function create(r: number, g: number, b: number): Haeckel.Color;
 }
@@ -729,6 +756,9 @@ declare module Haeckel.geo {
 }
 declare module Haeckel.geo {
     function project(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>, projector: (coords: Haeckel.GeoCoords) => Haeckel.Point): Haeckel.Point[][];
+}
+declare module Haeckel.ist {
+    function union<T>(sets: Haeckel.IntSet<T>[]): Haeckel.IntSet<T>;
 }
 declare module Haeckel.occ {
     function create(count?: Haeckel.Range, geo?: Haeckel.ExtSet<Haeckel.GeoCoords[]>, time?: Haeckel.Range): Haeckel.Occurrence;
