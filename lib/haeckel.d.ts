@@ -504,6 +504,76 @@ declare module Haeckel.chr {
 declare module Haeckel {
     var COUNT_CHARACTER: Character<Range>;
 }
+declare module Haeckel.pt {
+    function create(x: number, y: number): Haeckel.Point;
+}
+declare module Haeckel {
+    interface GeoCoords extends Haeckel.Model {
+        lat: number;
+        lon: number;
+    }
+    function isGeoCoords(o: GeoCoords): boolean;
+}
+declare module Haeckel {
+    function DEFAULT_PROJECTOR(coords: GeoCoords): Point;
+}
+declare module Haeckel {
+    var DEG_TO_RAD: number;
+}
+declare module Haeckel {
+    var EMPTY_CHARACTER_MATRIX: CharacterMatrix<Set>;
+}
+declare module Haeckel.ext {
+    function domain<T>(hash: string): Haeckel.ExtSet<T>;
+}
+declare module Haeckel.chr {
+    function createDomain<T>(hash: string, readStates?: (data: any) => Haeckel.ExtSet<T>, writeStates?: (states: Haeckel.ExtSet<T>) => any): Haeckel.Character<Haeckel.ExtSet<T>>;
+}
+declare module Haeckel.geo {
+    function createCoords(lat: number, lon: number): Haeckel.GeoCoords;
+}
+declare module Haeckel.geo {
+    function readCoords(data: number[]): Haeckel.GeoCoords;
+}
+declare module Haeckel.geo {
+    function readRegion(data: number[][]): Haeckel.GeoCoords[];
+}
+declare module Haeckel {
+    interface GeoData {
+        [regionName: string]: number[][];
+    }
+}
+declare module Haeckel.geo {
+    function readRegions(data: Haeckel.GeoData): Haeckel.ExtSet<Haeckel.GeoCoords[]>;
+    function readRegions(data: number[][][]): Haeckel.ExtSet<Haeckel.GeoCoords[]>;
+}
+declare module Haeckel {
+    var GEO_CHARACTER: Character<ExtSet<GeoCoords[]>>;
+}
+declare module Haeckel {
+    interface OccurrenceData {
+        count?: any;
+        geo?: Haeckel.GeoData;
+        time?: any;
+    }
+}
+declare module Haeckel {
+    interface Occurrence extends Haeckel.Model {
+        count: Haeckel.Range;
+        geo: Haeckel.ExtSet<Haeckel.GeoCoords[]>;
+        time: Haeckel.Range;
+    }
+    function isOccurrence(o: any): boolean;
+}
+declare module Haeckel.occ {
+    function readOccurrences(data: Haeckel.OccurrenceData[]): Haeckel.ExtSet<Haeckel.Occurrence>;
+    function readOccurrences(data: {
+        [key: string]: Haeckel.OccurrenceData;
+    }): Haeckel.ExtSet<Haeckel.Occurrence>;
+}
+declare module Haeckel {
+    var OCCURRENCE_CHARACTER: Character<ExtSet<Occurrence>>;
+}
 declare module Haeckel {
     var TIME_CHARACTER: Character<Range>;
 }
@@ -512,6 +582,31 @@ declare module Haeckel.clr {
 }
 declare module Haeckel.ext {
     function includes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
+}
+declare module Haeckel {
+    interface Point3D extends Haeckel.Point {
+        z: number;
+    }
+    function isPoint3D(o: Point3D): boolean;
+}
+declare module Haeckel.geo {
+    function toPoint3D(coords: Haeckel.GeoCoords, radius?: number): Haeckel.Point3D;
+}
+declare module Haeckel.geo {
+    function center(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>): Haeckel.GeoCoords;
+    function center(region: Haeckel.GeoCoords[]): Haeckel.GeoCoords;
+}
+declare module Haeckel.geo {
+    function project(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>, projector: (coords: Haeckel.GeoCoords) => Haeckel.Point): Haeckel.Point[][];
+}
+declare module Haeckel.occ {
+    function create(count?: Haeckel.Range, geo?: Haeckel.ExtSet<Haeckel.GeoCoords[]>, time?: Haeckel.Range): Haeckel.Occurrence;
+}
+declare module Haeckel.occ {
+    function read(data: Haeckel.OccurrenceData): Haeckel.Occurrence;
+}
+declare module Haeckel.pt {
+    function create3D(x: number, y: number, z: number): Haeckel.Point3D;
 }
 declare module Haeckel.tax {
     function includes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
@@ -604,31 +699,10 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    interface GeoCoords extends Haeckel.Model {
-        lat: number;
-        lon: number;
-    }
-    function isGeoCoords(o: GeoCoords): boolean;
-}
-declare module Haeckel {
     interface Inferrer<S extends Haeckel.Set> {
         average: (statesList: Haeckel.WeightedStates<S>[]) => S;
     }
     function isInferrer(o: any): boolean;
-}
-declare module Haeckel {
-    interface Occurrence extends Haeckel.Model {
-        count: Haeckel.Range;
-        geo: Haeckel.ExtSet<Haeckel.GeoCoords[]>;
-        time: Haeckel.Range;
-    }
-    function isOccurrence(o: any): boolean;
-}
-declare module Haeckel {
-    interface Point3D extends Haeckel.Point {
-        z: number;
-    }
-    function isPoint3D(o: Point3D): boolean;
 }
 declare module Haeckel {
     interface Renderer {

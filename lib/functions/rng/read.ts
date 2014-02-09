@@ -4,8 +4,8 @@
 ///<reference path="../../interfaces/Range.ts" />
 module Haeckel.rng
 {
-	export function read(data: number): Range
-	export function read(data: number[]): Range
+	export function read(data: number): Range;
+	export function read(data: number[]): Range;
 	export function read(data: any): Range
 	{
 		if (data === null || data === undefined)
