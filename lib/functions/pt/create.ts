@@ -1,3 +1,4 @@
+///<reference path='../../constants/ORIGIN.ts' />
 ///<reference path='../../interfaces/Point.ts' />
 module Haeckel.pt
 {
@@ -10,6 +11,10 @@ module Haeckel.pt
 		if (!isFinite(y))
 		{
 			y = 0;
+		}
+		if (x === 0 && y === 0)
+		{
+			return ORIGIN;
 		}
 		return Object.freeze({
 			hash: "(" + x + ":" + y + ")",

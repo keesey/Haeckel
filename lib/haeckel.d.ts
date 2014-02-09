@@ -504,6 +504,9 @@ declare module Haeckel.chr {
 declare module Haeckel {
     var COUNT_CHARACTER: Character<Range>;
 }
+declare module Haeckel {
+    var ORIGIN: Point;
+}
 declare module Haeckel.pt {
     function create(x: number, y: number): Haeckel.Point;
 }
@@ -522,6 +525,63 @@ declare module Haeckel {
 }
 declare module Haeckel {
     var EMPTY_CHARACTER_MATRIX: CharacterMatrix<Set>;
+}
+declare module Haeckel {
+    var EMPTY_DAG_SOLVER: DAGSolver<any>;
+}
+declare module Haeckel {
+    var EMPTY_DISTANCE_MATRIX: DistanceMatrix<any>;
+}
+declare module Haeckel {
+    var EMPTY_MAP: (value: any) => any;
+}
+declare module Haeckel {
+    var EMPTY_NOMENCLATURE: Nomenclature;
+}
+declare module Haeckel.ext {
+    function includes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
+}
+declare module Haeckel.tax {
+    function includes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
+}
+declare module Haeckel.tax {
+    function intersect(a: Haeckel.Taxic, b: Haeckel.Taxic): Haeckel.Taxic;
+}
+declare module Haeckel.tax {
+    function setDiff(minuend: Haeckel.Taxic, subtrahend: Haeckel.Taxic): Haeckel.Taxic;
+}
+declare module Haeckel {
+    class PhyloSolver {
+        private _cache;
+        private _dagSolver;
+        private _graph;
+        private _taxonBuilder;
+        public dagSolver : Haeckel.DAGSolver<Haeckel.Taxic>;
+        public graph : Haeckel.Digraph<Haeckel.Taxic>;
+        public universal : Haeckel.Taxic;
+        constructor(graph: Haeckel.Digraph<Haeckel.Taxic>);
+        constructor(builder: Haeckel.DAGBuilder<Haeckel.Taxic>);
+        constructor(solver: Haeckel.DAGSolver<Haeckel.Taxic>);
+        public branch(internal: Haeckel.Taxic, external: Haeckel.Taxic): Haeckel.Taxic;
+        public clade(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public cladogen(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public crown(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
+        public distance(x: Haeckel.Taxic, y: Haeckel.Taxic): number;
+        public isCladogen(taxon: Haeckel.Taxic): boolean;
+        public max(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public min(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public prcIntersect(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public prcUnion(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public subgraph(taxon: Haeckel.Taxic): Haeckel.Digraph<Haeckel.Taxic>;
+        public subgraphSolver(taxon: Haeckel.Taxic): PhyloSolver;
+        public sucIntersect(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public sucUnion(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public synPrc(apomorphic: Haeckel.Taxic, representative: Haeckel.Taxic): Haeckel.Taxic;
+        public total(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
+    }
+}
+declare module Haeckel {
+    var EMPTY_PHYLO_SOLVER: PhyloSolver;
 }
 declare module Haeckel.ext {
     function domain<T>(hash: string): Haeckel.ExtSet<T>;
@@ -577,11 +637,18 @@ declare module Haeckel {
 declare module Haeckel {
     var TIME_CHARACTER: Character<Range>;
 }
+declare module Haeckel {
+    interface Vector extends Haeckel.Model {
+        angle: number;
+        distance: number;
+    }
+    function isVector(o: any): boolean;
+}
+declare module Haeckel {
+    var VECTOR_0: Vector;
+}
 declare module Haeckel.clr {
     function create(r: number, g: number, b: number): Haeckel.Color;
-}
-declare module Haeckel.ext {
-    function includes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
 }
 declare module Haeckel {
     interface Point3D extends Haeckel.Point {
@@ -607,15 +674,6 @@ declare module Haeckel.occ {
 }
 declare module Haeckel.pt {
     function create3D(x: number, y: number, z: number): Haeckel.Point3D;
-}
-declare module Haeckel.tax {
-    function includes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
-}
-declare module Haeckel.tax {
-    function intersect(a: Haeckel.Taxic, b: Haeckel.Taxic): Haeckel.Taxic;
-}
-declare module Haeckel.tax {
-    function setDiff(minuend: Haeckel.Taxic, subtrahend: Haeckel.Taxic): Haeckel.Taxic;
 }
 declare module Haeckel {
     interface Axis {
@@ -707,42 +765,5 @@ declare module Haeckel {
 declare module Haeckel {
     interface Renderer {
         render(svg: SVGSVGElement): SVGElement;
-    }
-}
-declare module Haeckel {
-    interface Vector extends Haeckel.Model {
-        angle: number;
-        distance: number;
-    }
-    function isVector(o: any): boolean;
-}
-declare module Haeckel {
-    class PhyloSolver {
-        private _cache;
-        private _dagSolver;
-        private _graph;
-        private _taxonBuilder;
-        public dagSolver : Haeckel.DAGSolver<Haeckel.Taxic>;
-        public graph : Haeckel.Digraph<Haeckel.Taxic>;
-        public universal : Haeckel.Taxic;
-        constructor(graph: Haeckel.Digraph<Haeckel.Taxic>);
-        constructor(builder: Haeckel.DAGBuilder<Haeckel.Taxic>);
-        constructor(solver: Haeckel.DAGSolver<Haeckel.Taxic>);
-        public branch(internal: Haeckel.Taxic, external: Haeckel.Taxic): Haeckel.Taxic;
-        public clade(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public cladogen(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public crown(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
-        public distance(x: Haeckel.Taxic, y: Haeckel.Taxic): number;
-        public isCladogen(taxon: Haeckel.Taxic): boolean;
-        public max(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public min(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public prcIntersect(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public prcUnion(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public subgraph(taxon: Haeckel.Taxic): Haeckel.Digraph<Haeckel.Taxic>;
-        public subgraphSolver(taxon: Haeckel.Taxic): PhyloSolver;
-        public sucIntersect(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public sucUnion(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public synPrc(apomorphic: Haeckel.Taxic, representative: Haeckel.Taxic): Haeckel.Taxic;
-        public total(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
     }
 }
