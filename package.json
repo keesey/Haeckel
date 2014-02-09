@@ -1,0 +1,57 @@
+{
+  "name": "Haeckel",
+  "version": "0.0.0",
+  "main": "lib/haeckel.js",
+  "description": "Models data related to biological evolution and provides ways to chart it (SVG).",
+  "homepage": "user/repo",
+  "bugs": "user/repo/issues",
+  "author": {
+    "name": "Mike Keesey",
+    "email": "keesey@gmail.com",
+    "url": "http://tmkeesey.net/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "user/repo"
+  },
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ],
+  "files": [
+    "lib/haeckel.js",
+    "lib/haeckel.d.ts"
+  ],
+  "keywords": [
+    "biology",
+    "taxonomy",
+    "systematics",
+    "character matrix",
+    "stratigraphy",
+    "evolution",
+    "chronology",
+    "taxa",
+    "organisms",
+    "nomenclature",
+    "SVG",
+    "charts",
+    "vector"
+  ],
+  "devDependencies": {
+    "grunt-contrib-nodeunit": "~0.3.0",
+    "grunt-contrib-watch": "~0.5.3",
+    "load-grunt-tasks": "~0.2.0",
+    "time-grunt": "~0.2.0",
+    "jshint-stylish": "~0.1.3",
+    "grunt": "~0.4.2",
+    "grunt-typescript": "~0.2.7"
+  },
+  "scripts": {
+    "test": "grunt"
+  },
+  "dependencies": {
+    "time-grunt": "~0.2.9",
+    "load-grunt-tasks": "~0.3.0"
+  }
+}
