@@ -647,6 +647,21 @@ declare module Haeckel {
 declare module Haeckel {
     var VECTOR_0: Vector;
 }
+declare module Haeckel.arr {
+    function contains<T>(list: T[], element: T): boolean;
+}
+declare module Haeckel.arr {
+    function forAll<T>(list: T[], f: (element: T) => boolean, thisObject?: any): boolean;
+}
+declare module Haeckel.arr {
+    function forSome<T>(list: T[], f: (element: T) => boolean, thisObject?: any): boolean;
+}
+declare module Haeckel.arr {
+    function map<A, B>(list: A[], f: (element: A) => B, thisObject?: any): B[];
+}
+declare module Haeckel.arr {
+    function where<T>(list: T[], f: (element: T) => boolean, thisObject?: any): T[];
+}
 declare module Haeckel.clr {
     function create(r: number, g: number, b: number): Haeckel.Color;
 }
