@@ -1,4 +1,4 @@
-# haeckel [![Build Status](https://secure.travis-ci.org/keesey/haeckel.png?branch=master)](http://travis-ci.org/keesey/haeckel)
+# Haeckel [![Build Status](https://secure.travis-ci.org/keesey/haeckel.png?branch=master)](http://travis-ci.org/keesey/haeckel)
 
 Models data related to biological evolution and provides ways to chart it.
 
