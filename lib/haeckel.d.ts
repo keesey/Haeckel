@@ -473,6 +473,9 @@ declare module Haeckel {
         public reset(): TaxonBuilder;
     }
 }
+declare module Haeckel {
+    var BIT_MEMBER_MAX: number;
+}
 declare module Haeckel.chr {
     function initiate<S extends Haeckel.Set>(domain: S): Haeckel.Character<S>;
 }
@@ -661,6 +664,52 @@ declare module Haeckel.arr {
 }
 declare module Haeckel.arr {
     function where<T>(list: T[], f: (element: T) => boolean, thisObject?: any): T[];
+}
+declare module Haeckel.bit {
+    function contains(s: Haeckel.BitSet, n: number): boolean;
+}
+declare module Haeckel.bit {
+    function createFromBits(bits: number): Haeckel.BitSet;
+}
+declare module Haeckel.bit {
+    function create(members: number[]): Haeckel.BitSet;
+}
+declare module Haeckel.bit {
+    function intersect(a: Haeckel.BitSet, b: Haeckel.BitSet): Haeckel.BitSet;
+}
+declare module Haeckel.bit {
+    function size(s: Haeckel.BitSet): number;
+}
+declare module Haeckel.bit {
+    function distance(a: Haeckel.BitSet, b: Haeckel.BitSet): Haeckel.Range;
+}
+declare module Haeckel.bit {
+    function each(s: Haeckel.BitSet, f: (value: number) => any, thisObject?: any): void;
+}
+declare module Haeckel.bit {
+    function forAll(s: Haeckel.BitSet, f: (value: number) => boolean, thisObject?: any): boolean;
+}
+declare module Haeckel.bit {
+    function forSome(s: Haeckel.BitSet, f: (value: number) => boolean, thisObject?: any): boolean;
+}
+declare module Haeckel.bit {
+    function includes(superset: Haeckel.BitSet, subset: Haeckel.BitSet): boolean;
+}
+declare module Haeckel.bit {
+    function prIncludes(superset: Haeckel.BitSet, subset: Haeckel.BitSet): boolean;
+}
+declare module Haeckel.bit {
+    function read(data: number): Haeckel.BitSet;
+    function read(data: number[]): Haeckel.BitSet;
+}
+declare module Haeckel.bit {
+    function setDiff(minuend: Haeckel.BitSet, subtrahend: Haeckel.BitSet): Haeckel.BitSet;
+}
+declare module Haeckel.bit {
+    function union(sets: Haeckel.BitSet[]): Haeckel.BitSet;
+}
+declare module Haeckel.bit {
+    function write(set: Haeckel.BitSet): any;
 }
 declare module Haeckel.clr {
     function create(r: number, g: number, b: number): Haeckel.Color;
