@@ -7,11 +7,16 @@ module.exports = function(grunt)
 
   // Load all grunt tasks
   require('load-grunt-tasks')(grunt);
+  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-typescript');
 
   // Project configuration.
   grunt.initConfig(
   {
+    clean:
+    {
+      lib: ['lib/haeckel.d.ts', 'lib/haeckel.js']
+    },
     nodeunit:
     {
       files: ['test/**/*_test.js']
@@ -50,7 +55,7 @@ module.exports = function(grunt)
       lib:
       {
         files: 'lib/**/*.ts',
-        tasks: ['typescript:lib', 'nodeunit']
+        tasks: ['clean:lib', 'typescript:lib', 'nodeunit']
       },
       test:
       {
@@ -61,7 +66,7 @@ module.exports = function(grunt)
   });
 
   // Default task.
-  grunt.registerTask('test', ['typescript', 'nodeunit']);
+  grunt.registerTask('test', ['clean', 'typescript', 'nodeunit']);
 
   grunt.registerTask('default', ['test']);
 };

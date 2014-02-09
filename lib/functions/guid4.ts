@@ -1,3 +1,4 @@
+///<reference path='seedRandom.ts' />
 module Haeckel
 {
 	var GUID4_RANDOM = seedRandom("UUID", 4);

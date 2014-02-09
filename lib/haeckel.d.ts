@@ -286,6 +286,21 @@ declare module Haeckel {
 declare module Haeckel {
     var PRECISION: number;
 }
+declare module Haeckel {
+    var RANGE_0_TO_1: Range;
+}
+declare module Haeckel {
+    var RANGE_1: Range;
+}
+declare module Haeckel {
+    var RANGE_INF: Range;
+}
+declare module Haeckel {
+    var RANGE_NEG_INF: Range;
+}
+declare module Haeckel {
+    var RANGE_POS_INF: Range;
+}
 declare module Haeckel.rng {
     function create(min: number, max?: number): Haeckel.Range;
 }
@@ -406,6 +421,9 @@ declare module Haeckel {
     function isNomenclature(o: any): boolean;
 }
 declare module Haeckel {
+    function seedRandom(...args: any[]): () => number;
+}
+declare module Haeckel {
     function guid4(): string;
 }
 declare module Haeckel.tax {
@@ -429,21 +447,6 @@ declare module Haeckel {
         public build(): string;
         public reset(): PathBuilder;
     }
-}
-declare module Haeckel {
-    var RANGE_0_TO_1: Range;
-}
-declare module Haeckel {
-    var RANGE_1: Range;
-}
-declare module Haeckel {
-    var RANGE_INF: Range;
-}
-declare module Haeckel {
-    var RANGE_NEG_INF: Range;
-}
-declare module Haeckel {
-    var RANGE_POS_INF: Range;
 }
 declare module Haeckel {
     class RangeBuilder implements Haeckel.Builder<Haeckel.Range> {
@@ -470,14 +473,45 @@ declare module Haeckel {
         public reset(): TaxonBuilder;
     }
 }
+declare module Haeckel.chr {
+    function initiate<S extends Haeckel.Set>(domain: S): Haeckel.Character<S>;
+}
+declare module Haeckel.chr {
+    function normalizeWeights<S extends Haeckel.Set>(statesList: Haeckel.WeightedStates<S>[]): Haeckel.WeightedStates<S>[];
+}
+declare module Haeckel.rng {
+    function combine(ranges: Haeckel.Range[]): Haeckel.Range;
+}
+declare module Haeckel.rng {
+    function overlap(a: Haeckel.Range, b: Haeckel.Range): boolean;
+}
+declare module Haeckel.rng {
+    function distance(a: Haeckel.Range, b: Haeckel.Range): Haeckel.Range;
+}
+declare module Haeckel.rng {
+    function multiply(r: Haeckel.Range, factor: number): Haeckel.Range;
+}
+declare module Haeckel.rng {
+    function read(data: number): Haeckel.Range;
+    function read(data: number[]): Haeckel.Range;
+}
+declare module Haeckel.rng {
+    function write(r: Haeckel.Range): any;
+}
+declare module Haeckel.chr {
+    function createRange(domain: Haeckel.Range, inferrable?: boolean, distance?: boolean): Haeckel.Character<Haeckel.Range>;
+}
+declare module Haeckel {
+    var COUNT_CHARACTER: Character<Range>;
+}
+declare module Haeckel {
+    var TIME_CHARACTER: Character<Range>;
+}
 declare module Haeckel.clr {
     function create(r: number, g: number, b: number): Haeckel.Color;
 }
 declare module Haeckel.ext {
     function includes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
-}
-declare module Haeckel {
-    function seedRandom(...args: any[]): () => number;
 }
 declare module Haeckel.tax {
     function includes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;

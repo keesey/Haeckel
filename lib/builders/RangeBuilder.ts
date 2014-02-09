@@ -1,10 +1,4 @@
 /// <reference path="../constants/EMPTY_SET.ts"/>
-/// <reference path="../constants/RANGE_0.ts"/>
-/// <reference path="../constants/RANGE_0_TO_1.ts"/>
-/// <reference path="../constants/RANGE_1.ts"/>
-/// <reference path="../constants/RANGE_INF.ts"/>
-/// <reference path="../constants/RANGE_NEG_INF.ts"/>
-/// <reference path="../constants/RANGE_POS_INF.ts"/>
 /// <reference path="../functions/rng/create.ts"/>
 /// <reference path="../interfaces/Builder.ts"/>
 /// <reference path="../interfaces/Range.ts"/>
@@ -55,36 +49,6 @@ module Haeckel
 			if (isNaN(min) || isNaN(max))
 			{
 				return EMPTY_SET;
-			}
-			if (min === 0)
-			{
-				if (max === 1)
-				{
-					return RANGE_0_TO_1;
-				}
-				if (max === 0)
-				{
-					return RANGE_0;
-				}
-			}
-			else if (min === 1 && max === 1)
-			{
-				return RANGE_1;
-			}
-			if (max === Infinity)
-			{
-				if (min === 0)
-				{
-					return RANGE_POS_INF;
-				}
-				if (min === -Infinity)
-				{
-					return RANGE_INF;
-				}
-			}
-			else if (min === -Infinity && max === 0)
-			{
-				return RANGE_NEG_INF;
 			}
 			return rng.create(min, max);
 		}
