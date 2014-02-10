@@ -927,6 +927,21 @@ declare module Haeckel.rec {
 declare module Haeckel.rec {
     function segments(rects: Haeckel.Rectangle[]): Haeckel.Point[][];
 }
+declare module Haeckel.rng {
+    function compare(a: Haeckel.Range, b: Haeckel.Range): number;
+}
+declare module Haeckel.rng {
+    function constrain(original: Haeckel.Range, constraint: Haeckel.Range): Haeckel.Range;
+}
+declare module Haeckel.rng {
+    function contains(r: Haeckel.Range, n: number): boolean;
+}
+declare module Haeckel.rng {
+    function includes(superset: Haeckel.Range, subset: Haeckel.Range): boolean;
+}
+declare module Haeckel.rng {
+    function prIncludes(superset: Haeckel.Range, subset: Haeckel.Range): boolean;
+}
 declare module Haeckel {
     interface Axis {
         labelFunction?: (value: number) => string;
