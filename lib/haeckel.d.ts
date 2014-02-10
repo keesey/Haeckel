@@ -846,7 +846,71 @@ declare module Haeckel.occ {
     function timeSlice(time: Haeckel.Range, occurrences: Haeckel.ExtSet<Haeckel.Occurrence>): Haeckel.ExtSet<Haeckel.Occurrence>;
 }
 declare module Haeckel.pt {
+    function add(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Point;
+}
+declare module Haeckel.pt {
+    function angle(a: Haeckel.Point, b: Haeckel.Point): number;
+}
+declare module Haeckel.pt {
+    function area(shape: Haeckel.Point[]): number;
+}
+declare module Haeckel.pt {
+    function contains(shape: Haeckel.Point[], p: Haeckel.Point): boolean;
+}
+declare module Haeckel.pt {
     function create3D(x: number, y: number, z: number): Haeckel.Point3D;
+}
+declare module Haeckel.pt {
+    function distance(a: Haeckel.Point, b: Haeckel.Point): number;
+}
+declare module Haeckel.pt {
+    function equal(a: Haeckel.Point, b: Haeckel.Point): boolean;
+}
+declare module Haeckel.pt {
+    function furthest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
+}
+declare module Haeckel.pt {
+    function nearest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
+}
+declare module Haeckel.rec {
+    function create(x: number, y: number, width: number, height: number): Haeckel.Rectangle;
+}
+declare module Haeckel.rec {
+    function createFromCoords(x1: number, y1: number, x2: number, y2: number): Haeckel.Rectangle;
+}
+declare module Haeckel.pt {
+    function rectangle(shape: Haeckel.Point[]): Haeckel.Rectangle;
+}
+declare module Haeckel.pt {
+    function weight(shape: Haeckel.Point[], area?: number): number;
+}
+declare module Haeckel.pt {
+    function weights(shapes: Haeckel.Point[][], areas?: number[]): number[];
+}
+declare module Haeckel.rec {
+    function random(r: Haeckel.Rectangle, random?: () => number): Haeckel.Point;
+}
+declare module Haeckel.pt {
+    function random(shapes: Haeckel.Point[][], weights?: number[], random?: () => number): Haeckel.Point;
+    function random(a: Haeckel.Point, b: Haeckel.Point, random?: () => number): Haeckel.Point;
+}
+declare module Haeckel.rec {
+    function combine(rectangles: Haeckel.Rectangle[]): Haeckel.Rectangle;
+}
+declare module Haeckel.rec {
+    function contains(r: Haeckel.Rectangle, p: Haeckel.Point): boolean;
+}
+declare module Haeckel.rec {
+    function createFromPoints(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Rectangle;
+}
+declare module Haeckel.rec {
+    function overlap(a: Haeckel.Rectangle, b: Haeckel.Rectangle): boolean;
+}
+declare module Haeckel.rec {
+    function intersect(a: Haeckel.Rectangle, b: Haeckel.Rectangle): Haeckel.Rectangle;
+}
+declare module Haeckel.rec {
+    function segments(rects: Haeckel.Rectangle[]): Haeckel.Point[][];
 }
 declare module Haeckel {
     interface Axis {
