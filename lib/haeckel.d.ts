@@ -781,6 +781,21 @@ declare module Haeckel.rng {
 declare module Haeckel.dst {
     function normalize<T>(matrix: Haeckel.DistanceMatrix<T>): Haeckel.DistanceMatrix<T>;
 }
+declare module Haeckel.ext {
+    function forAll<T>(set: Haeckel.ExtSet<T>, f: (element: T) => boolean, thisObject?: any): boolean;
+}
+declare module Haeckel.ext {
+    function forSome<T>(set: Haeckel.ExtSet<T>, f: (element: T) => boolean, thisObject?: any): boolean;
+}
+declare module Haeckel.ext {
+    function map<X, Y>(set: Haeckel.ExtSet<X>, f: (element: X) => Y, thisObject?: any): Haeckel.ExtSet<Y>;
+}
+declare module Haeckel.ext {
+    function prIncludes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
+}
+declare module Haeckel.ext {
+    function where<T>(set: Haeckel.ExtSet<T>, f: (element: T) => boolean, thisObject?: any): Haeckel.ExtSet<T>;
+}
 declare module Haeckel {
     interface Point3D extends Haeckel.Point {
         z: number;
