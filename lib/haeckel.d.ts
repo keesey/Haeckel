@@ -813,6 +813,15 @@ declare module Haeckel.geo {
     function project(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>, projector: (coords: Haeckel.GeoCoords) => Haeckel.Point): Haeckel.Point[][];
 }
 declare module Haeckel.ist {
+    function contains<T>(set: Haeckel.IntSet<T>, element: T): boolean;
+}
+declare module Haeckel.ist {
+    function intersect<T>(a: Haeckel.IntSet<T>, b: Haeckel.IntSet<T>): Haeckel.IntSet<T>;
+}
+declare module Haeckel.ist {
+    function setDiff<T>(minuend: Haeckel.IntSet<T>, subtrahend: Haeckel.IntSet<T>): Haeckel.IntSet<T>;
+}
+declare module Haeckel.ist {
     function union<T>(sets: Haeckel.IntSet<T>[]): Haeckel.IntSet<T>;
 }
 declare module Haeckel.occ {
