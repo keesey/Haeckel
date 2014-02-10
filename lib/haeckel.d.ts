@@ -951,6 +951,18 @@ declare module Haeckel.tax {
 declare module Haeckel.tax {
     function prIncludes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
 }
+declare module Haeckel.typ {
+    function contains<T>(set: Haeckel.TypeSet<T>, element: T): boolean;
+}
+declare module Haeckel.typ {
+    function create<T>(typeObject: any): Haeckel.TypeSet<T>;
+}
+declare module Haeckel.vec {
+    function create(radians: number, distance: number): Haeckel.Vector;
+}
+declare module Haeckel.vec {
+    function point(v: Haeckel.Vector): Haeckel.Point;
+}
 declare module Haeckel {
     interface Axis {
         labelFunction?: (value: number) => string;
