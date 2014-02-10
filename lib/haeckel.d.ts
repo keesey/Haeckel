@@ -1191,3 +1191,10 @@ declare module Haeckel {
         public readNomenclature(data: DataSourceData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
     }
 }
+declare module Haeckel {
+    class CharacterScoresWriter {
+        public nomenclature: Haeckel.Nomenclature;
+        private getName(taxon);
+        public write(matrix: Haeckel.CharacterMatrix<Haeckel.Set>): Haeckel.CharacterScoresData;
+    }
+}
