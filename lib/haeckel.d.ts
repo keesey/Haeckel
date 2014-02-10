@@ -942,6 +942,15 @@ declare module Haeckel.rng {
 declare module Haeckel.rng {
     function prIncludes(superset: Haeckel.Range, subset: Haeckel.Range): boolean;
 }
+declare module Haeckel.tax {
+    function byName(nomenclature: Haeckel.Nomenclature, name: string): Haeckel.Taxic;
+}
+declare module Haeckel.tax {
+    function distance(matrix: Haeckel.DistanceMatrix<Haeckel.Taxic>, focus: Haeckel.Taxic, taxon: Haeckel.Taxic): Haeckel.Range;
+}
+declare module Haeckel.tax {
+    function prIncludes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
+}
 declare module Haeckel {
     interface Axis {
         labelFunction?: (value: number) => string;
