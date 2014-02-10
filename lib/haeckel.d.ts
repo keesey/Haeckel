@@ -742,6 +742,16 @@ declare module Haeckel.clr {
     function create(r: number, g: number, b: number): Haeckel.Color;
 }
 declare module Haeckel {
+    interface Dating extends Haeckel.Model {
+        taxa: Haeckel.ExtSet<Haeckel.Taxic>;
+        time: Haeckel.Range;
+    }
+    function isDating(o: Dating): boolean;
+}
+declare module Haeckel.dat {
+    function toCharacterMatrixBuilder(datings: Haeckel.ExtSet<Haeckel.Dating>, phyloSolver: Haeckel.PhyloSolver): Haeckel.CharacterMatrixBuilder<Haeckel.Range>;
+}
+declare module Haeckel {
     interface Point3D extends Haeckel.Point {
         z: number;
     }
@@ -776,13 +786,6 @@ declare module Haeckel {
         step: number;
     }
     function isAxis(o: Axis): boolean;
-}
-declare module Haeckel {
-    interface Dating extends Haeckel.Model {
-        taxa: Haeckel.ExtSet<Haeckel.Taxic>;
-        time: Haeckel.Range;
-    }
-    function isDating(o: Dating): boolean;
 }
 declare module Haeckel {
     interface Stratum extends Haeckel.Model {
