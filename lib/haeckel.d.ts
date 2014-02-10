@@ -839,6 +839,12 @@ declare module Haeckel.occ {
 declare module Haeckel.occ {
     function read(data: Haeckel.OccurrenceData): Haeckel.Occurrence;
 }
+declare module Haeckel.rng {
+    function intersect(a: Haeckel.Range, b: Haeckel.Range): Haeckel.Range;
+}
+declare module Haeckel.occ {
+    function timeSlice(time: Haeckel.Range, occurrences: Haeckel.ExtSet<Haeckel.Occurrence>): Haeckel.ExtSet<Haeckel.Occurrence>;
+}
 declare module Haeckel.pt {
     function create3D(x: number, y: number, z: number): Haeckel.Point3D;
 }
