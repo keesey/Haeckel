@@ -845,6 +845,9 @@ declare module Haeckel.rng {
 declare module Haeckel.occ {
     function timeSlice(time: Haeckel.Range, occurrences: Haeckel.ExtSet<Haeckel.Occurrence>): Haeckel.ExtSet<Haeckel.Occurrence>;
 }
+declare module Haeckel {
+    function precisionEqual(a: number, b: number): boolean;
+}
 declare module Haeckel.pt {
     function add(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Point;
 }
@@ -893,6 +896,18 @@ declare module Haeckel.rec {
 declare module Haeckel.pt {
     function random(shapes: Haeckel.Point[][], weights?: number[], random?: () => number): Haeckel.Point;
     function random(a: Haeckel.Point, b: Haeckel.Point, random?: () => number): Haeckel.Point;
+}
+declare module Haeckel.ray {
+    function contains(ray: Haeckel.Ray, p: Haeckel.Point): boolean;
+}
+declare module Haeckel.ray {
+    function create(origin: Haeckel.Point, angle: number): Haeckel.Ray;
+}
+declare module Haeckel.ray {
+    function intersectSegment(ray: Haeckel.Ray, segment: Haeckel.Point[]): Haeckel.Point[];
+}
+declare module Haeckel.ray {
+    function intersectSegments(ray: Haeckel.Ray, segments: Haeckel.Point[][]): Haeckel.Point[];
 }
 declare module Haeckel.rec {
     function combine(rectangles: Haeckel.Rectangle[]): Haeckel.Rectangle;
