@@ -752,6 +752,36 @@ declare module Haeckel.dat {
     function toCharacterMatrixBuilder(datings: Haeckel.ExtSet<Haeckel.Dating>, phyloSolver: Haeckel.PhyloSolver): Haeckel.CharacterMatrixBuilder<Haeckel.Range>;
 }
 declare module Haeckel {
+    interface DistanceAxis {
+        distance: Haeckel.Range;
+        endpoints: Haeckel.ExtSet<number>;
+    }
+}
+declare module Haeckel.dst {
+    function axes<T>(matrix: Haeckel.DistanceMatrix<T>): Haeckel.DistanceAxis[];
+}
+declare module Haeckel {
+    interface DistanceItem<T> {
+        distance: Haeckel.Range;
+        item: T;
+    }
+}
+declare module Haeckel.dst {
+    function list<T>(matrix: Haeckel.DistanceMatrix<T>, focus: T): Haeckel.DistanceItem<T>[];
+}
+declare module Haeckel.dst {
+    function mapAround<T>(matrix: Haeckel.DistanceMatrix<T>, focus: T): (element: T) => Haeckel.Range;
+}
+declare module Haeckel.dst {
+    function max<T>(matrix: Haeckel.DistanceMatrix<T>): number;
+}
+declare module Haeckel.rng {
+    function add(r: Haeckel.Range, value: number): Haeckel.Range;
+}
+declare module Haeckel.dst {
+    function normalize<T>(matrix: Haeckel.DistanceMatrix<T>): Haeckel.DistanceMatrix<T>;
+}
+declare module Haeckel {
     interface Point3D extends Haeckel.Point {
         z: number;
     }
@@ -831,18 +861,6 @@ declare module Haeckel {
 declare module Haeckel {
     interface DataSources {
         [filename: string]: Haeckel.DataSource;
-    }
-}
-declare module Haeckel {
-    interface DistanceAxis {
-        distance: Haeckel.Range;
-        endpoints: Haeckel.ExtSet<number>;
-    }
-}
-declare module Haeckel {
-    interface DistanceItem<T> {
-        distance: Haeckel.Range;
-        item: T;
     }
 }
 declare module Haeckel {
