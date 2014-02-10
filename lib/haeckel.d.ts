@@ -824,6 +824,15 @@ declare module Haeckel.ist {
 declare module Haeckel.ist {
     function union<T>(sets: Haeckel.IntSet<T>[]): Haeckel.IntSet<T>;
 }
+declare module Haeckel.nom {
+    function forSubtaxa(nomenclature: Haeckel.Nomenclature, taxon: Haeckel.Taxic): Haeckel.ExtSet<string>;
+}
+declare module Haeckel.nom {
+    function forTaxon(nomenclature: Haeckel.Nomenclature, taxon: Haeckel.Taxic): Haeckel.ExtSet<string>;
+}
+declare module Haeckel.nom {
+    function read(data: any, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+}
 declare module Haeckel.occ {
     function create(count?: Haeckel.Range, geo?: Haeckel.ExtSet<Haeckel.GeoCoords[]>, time?: Haeckel.Range): Haeckel.Occurrence;
 }
