@@ -1198,3 +1198,10 @@ declare module Haeckel {
         public write(matrix: Haeckel.CharacterMatrix<Haeckel.Set>): Haeckel.CharacterScoresData;
     }
 }
+declare module Haeckel {
+    class DistanceMatrixWriter {
+        public nomenclature: Haeckel.Nomenclature;
+        private getName(taxon);
+        public write(matrix: Haeckel.DistanceMatrix<Haeckel.Taxic>): Haeckel.DistanceData[];
+    }
+}
