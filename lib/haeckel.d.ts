@@ -1036,3 +1036,39 @@ declare module Haeckel {
         render(svg: SVGSVGElement): SVGElement;
     }
 }
+declare module Haeckel {
+    interface CharacterMapData {
+        [name: string]: {
+            [characterKey: string]: any;
+        };
+    }
+    class CharacterMapReader<S extends Haeckel.Set> {
+        public characterMap: (key: string) => Haeckel.Character<S>;
+        public nomenclature: Haeckel.Nomenclature;
+        constructor();
+        public readCharacterMatrix(data: CharacterMapData, builder?: Haeckel.CharacterMatrixBuilder<S>): Haeckel.CharacterMatrixBuilder<S>;
+        public readNomenclature(data: any, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+    }
+}
+declare module Haeckel {
+    class TempNomenclature {
+        public nomenclature: Haeckel.Nomenclature;
+        public warn: boolean;
+        private _otherNameMap;
+        constructor(nomenclature?: Haeckel.Nomenclature);
+        public taxon(name: string): Haeckel.Taxic;
+    }
+}
+declare module Haeckel {
+    interface CharacterScoresData {
+        characterType?: string;
+        scores: {
+            [name: string]: any[];
+        };
+    }
+    class CharacterScoresReader {
+        public nomenclature: Haeckel.Nomenclature;
+        public readCharacterMatrix(data: CharacterScoresData, builder?: Haeckel.CharacterMatrixBuilder<Haeckel.Set>): Haeckel.CharacterMatrixBuilder<Haeckel.Set>;
+        public readNomenclature(data: CharacterScoresData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+    }
+}
