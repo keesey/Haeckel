@@ -1072,3 +1072,122 @@ declare module Haeckel {
         public readNomenclature(data: CharacterScoresData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
     }
 }
+declare module Haeckel {
+    interface DatingData {
+        taxa: string[];
+        time: number[];
+    }
+    class DatingReader {
+        public nomenclature: Haeckel.Nomenclature;
+        public readDatings(data: DatingData[], builder?: Haeckel.ExtSetBuilder<Haeckel.Dating>): Haeckel.ExtSetBuilder<Haeckel.Dating>;
+        public readNomenclature(data: DatingData[], builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+    }
+}
+declare module Haeckel {
+    interface DistanceData {
+        distance: any;
+        names: string[];
+    }
+    class DistanceMatrixReader {
+        public nomenclature: Haeckel.Nomenclature;
+        public readDistanceMatrix(data: DistanceData[], builder?: Haeckel.DistanceMatrixBuilder<Haeckel.Taxic>): Haeckel.DistanceMatrixBuilder<Haeckel.Taxic>;
+        public readNomenclature(data: DistanceData[], builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+    }
+}
+declare module Haeckel {
+    interface NomenclatureRelationsData {
+        hyponymies?: string[][];
+        synonymies?: string[][];
+    }
+    class NomenclatureRelationsReader {
+        public readNomenclature(data: NomenclatureRelationsData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+    }
+}
+declare module Haeckel {
+    interface OccurrencesData {
+        [name: string]: Haeckel.OccurrenceData;
+    }
+    class OccurrencesReader {
+        public nomenclature: Haeckel.Nomenclature;
+        public readCharacterMatrix(data: OccurrencesData, builder?: Haeckel.CharacterMatrixBuilder<Haeckel.Set>): Haeckel.CharacterMatrixBuilder<Haeckel.Set>;
+        public readNomenclature(data: OccurrencesData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+    }
+}
+declare module Haeckel {
+    class PhyloArcsReader {
+        public nomenclature: Haeckel.Nomenclature;
+        public readDAG(data: string[][], builder?: Haeckel.DAGBuilder<Haeckel.Taxic>): Haeckel.DAGBuilder<Haeckel.Taxic>;
+        public readNomenclature(data: string[][], builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+    }
+}
+declare module Haeckel {
+    interface StratData {
+        boundaries: {
+            [id: string]: any;
+        };
+        units: {
+            [name: string]: StratUnitData;
+        };
+    }
+    interface StratUnitData {
+        boundaries: string[];
+        type: string;
+    }
+    class StratReader {
+        private _boundaries;
+        public readStrata(data: StratData, builder?: Haeckel.ExtSetBuilder<Haeckel.Stratum>): Haeckel.ExtSetBuilder<Haeckel.Stratum>;
+    }
+}
+declare module Haeckel {
+    class TopologyReader {
+        public nomenclature: Haeckel.Nomenclature;
+        public readDAG(data: string, builder?: Haeckel.DAGBuilder<Haeckel.Taxic>): Haeckel.DAGBuilder<Haeckel.Taxic>;
+        public readDAG(data: any[], builder?: Haeckel.DAGBuilder<Haeckel.Taxic>): Haeckel.DAGBuilder<Haeckel.Taxic>;
+        public readNomenclature(data: string, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+        public readNomenclature(data: any[], builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+    }
+}
+declare module Haeckel {
+    interface SourceData {
+        characterMaps?: {
+            [name: string]: Haeckel.CharacterMapData;
+        };
+        characterScores?: {
+            [name: string]: Haeckel.CharacterScoresData;
+        };
+        datings?: {
+            [name: string]: Haeckel.DatingData[];
+        };
+        distances?: {
+            [name: string]: Haeckel.DistanceData[];
+        };
+        nomenclature?: Haeckel.NomenclatureRelationsData;
+        occurrences?: Haeckel.OccurrencesData;
+        phyloGraphs?: {
+            [name: string]: string[][];
+        };
+        stratigraphy?: Haeckel.StratData;
+        topologies?: {
+            [name: string]: any;
+        };
+    }
+    interface DataSourceData {
+        data: SourceData;
+        metadata: Haeckel.DataSourceMetadata;
+    }
+    class DataSourceReader {
+        private _nomenclature;
+        private characterMapReader;
+        private characterScoresReader;
+        private datingReader;
+        private distanceMatrixReader;
+        private nomenclatureRelationsReader;
+        private occurrencesReader;
+        private phyloArcsReader;
+        private stratReader;
+        private topologyReader;
+        public nomenclature : Haeckel.Nomenclature;
+        public readDataSource(data: DataSourceData): Haeckel.DataSource;
+        public readNomenclature(data: DataSourceData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+    }
+}
