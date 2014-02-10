@@ -68,5 +68,5 @@ module.exports = function(grunt)
   // Default task.
   grunt.registerTask('test', ['clean', 'typescript', 'nodeunit']);
 
-  grunt.registerTask('default', ['test']);
+  grunt.registerTask('default', ['clean', 'typescript']); // :TODO: change back to ['test']
 };
