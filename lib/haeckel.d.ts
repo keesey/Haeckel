@@ -538,6 +538,16 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    class AxisLabeler implements Haeckel.Renderer {
+        public area: Haeckel.Rectangle;
+        public axis: Haeckel.Axis;
+        public style: {
+            [style: string]: any;
+        };
+        public render(svg: SVGSVGElement): SVGGElement;
+    }
+}
+declare module Haeckel {
     var BIT_MEMBER_MAX: number;
 }
 declare module Haeckel.chr {

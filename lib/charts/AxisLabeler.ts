@@ -13,42 +13,45 @@ module Haeckel
 			step: 0.1
 		});
 
-	var LINE_STYLE: { [style: string]: any; } = {
-			"stroke-opacity": 1,
-			"stroke-linecap": "square"
-		};
+	var DEFAULT_LABEL_FUNCTION = (value: number) => String(value);
 
-	export class AxisChart implements Renderer
+	var STYLE: { [style: string]: any; } = {
+		"text-anchor": "middle"
+	};
+
+	export class AxisLabeler implements Renderer
 	{
 		area: Rectangle = EMPTY_SET;
 
 		axis: Axis = DEFAULT_AXIS;
 
-		lineStyle: { [style: string]: any; } = null;
+		style: { [style: string]: any; } = null;
 
 		render(svg: SVGSVGElement): SVGGElement
 		{
-			function vLine(x: number, top: number, bottom: number): ElementBuilder
+			function text(x: number, y: number, text: string): ElementBuilder
 			{
-				return g.child(SVG_NS, 'path')
-					.attr(SVG_NS, 'style', lineStyle)
-					.attr(SVG_NS, 'path', "M" + x + " " + top + "V " + bottom);
+				return g.child(SVG_NS, 'text')
+					.attr(SVG_NS, 'x', String(x) + 'px')
+					.attr(SVG_NS, 'y', String(y) + 'px')
+					.text(text);
 			}
 
 			var area = this.area.empty ? rec.createFromBoundingClientRect(svg) : this.area,
 				axis = this.axis,
-				lineStyle = ElementBuilder.style(this.lineStyle || LINE_STYLE),
+				style = ElementBuilder.style(this.style || STYLE),
 				g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g');
 			if (isAxis(axis) && !axis.range.empty && axis.step > 0 && isFinite(axis.step))
 			{
 				var factor = area.width / axis.range.size,
 					start = axis.range.min,
 					end = axis.range.max,
-					step = axis.step;
+					step = axis.step,
+					labelFunction = (axis.labelFunction === undefined) ? DEFAULT_LABEL_FUNCTION : axis.labelFunction;
 				for (var value = start; value <= end; value += step)
 				{
 					var x = (value - start) * factor + area.left;
-					vLine(x, area.top, area.bottom);
+					text(x, area.bottom, labelFunction(value));
 				}
 			}
 			return <SVGGElement> g.attach(svg).build();
