@@ -1,7 +1,8 @@
-/// <reference path="../interfaces/GradientEntry.ts"/>
 /// <reference path="../constants/BLACK.ts"/>
 /// <reference path="../constants/RAD_TO_DEG.ts"/>
 /// <reference path="../functions/trg/normalize.ts"/>
+/// <reference path="../interfaces/Builder.ts"/>
+/// <reference path="../interfaces/GradientEntry.ts"/>
 module Haeckel
 {
 	function compareGradientEntries(a: GradientEntry, b: GradientEntry)

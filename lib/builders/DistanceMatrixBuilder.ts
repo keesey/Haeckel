@@ -1,4 +1,5 @@
 /// <reference path="ExtSetBuilder.ts"/>
+/// <reference path="../interfaces/Builder.ts"/>
 /// <reference path="../interfaces/DistanceMatrix.ts"/>
 /// <reference path="../interfaces/Range.ts"/>
 /// <reference path="../functions/dst/hashMapDistance.ts"/>

@@ -1,0 +1,58 @@
+/// <reference path="../builders/ElementBuilder.ts"/>
+/// <reference path="../constants/EMPTY_SET.ts"/>
+/// <reference path="../constants/RANGE_0_TO_1.ts"/>
+/// <reference path="../constants/SVG_NS.ts"/>
+/// <reference path="../functions/rec/createFromBoundingClientRect.ts"/>
+/// <reference path="../interfaces/Axis.ts"/>
+/// <reference path="../interfaces/Rectangle.ts"/>
+/// <reference path="../interfaces/Renderer.ts"/>
+module Haeckel
+{
+	var DEFAULT_AXIS: Axis = Object.freeze({
+			range: RANGE_0_TO_1,
+			step: 0.1
+		});
+
+	var LINE_STYLE: { [style: string]: any; } = {
+			"stroke-opacity": 1,
+			"stroke-linecap": "square"
+		};
+
+	export class AxisChart implements Renderer
+	{
+		area: Rectangle = EMPTY_SET;
+
+		axis: Axis = DEFAULT_AXIS;
+
+		lineStyle: { [style: string]: any; } = null;
+
+		render(svg: SVGSVGElement): SVGGElement
+		{
+			function vLine(x: number, top: number, bottom: number): ElementBuilder
+			{
+				return g.child(SVG_NS, 'path')
+					.attr(SVG_NS, 'style', lineStyle)
+					.attr(SVG_NS, 'path', "M" + x + " " + top + "V " + bottom);
+			}
+
+			var area = this.area.empty ? rec.createFromBoundingClientRect(svg) : this.area,
+				axis = this.axis,
+				lineStyle = ElementBuilder.style(this.lineStyle || LINE_STYLE),
+				g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g'),
+				style = JSON.stringify(this.lineStyle);
+			if (isAxis(axis) && !axis.range.empty && axis.step > 0 && isFinite(axis.step))
+			{
+				var factor = area.width / axis.range.size,
+					start = axis.range.min,
+					end = axis.range.max,
+					step = axis.step;
+				for (var value = start; value <= end; value += step)
+				{
+					var x = (value - start) * factor + area.left;
+					vLine(x, area.top, area.bottom);
+				}
+			}
+			return <SVGGElement> g.attach(svg).build();
+		}
+	}
+}

@@ -372,18 +372,41 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    var XML_SERIALIZER: XMLSerializer;
+}
+declare module Haeckel {
+    class ElementBuilder implements Haeckel.Builder<Element> {
+        private document;
+        private element;
+        private _parent;
+        static style(attrs: {
+            [style: string]: any;
+        }): string;
+        constructor(document: Document, element: Element);
+        constructor(document: Document, uri: string, localName: string);
+        constructor(document: Document, name: string);
+        public attach(parent: Element): ElementBuilder;
+        public attr(name: string, value: string): ElementBuilder;
+        public attr(uri: string, localName: string, value: string): ElementBuilder;
+        public attrs(attrs: {
+            [name: string]: string;
+        }): ElementBuilder;
+        public build(): Element;
+        public buildString(): string;
+        public child(uri: string, localName: string): ElementBuilder;
+        public child(name: string): ElementBuilder;
+        public parent(): ElementBuilder;
+        public reset(): ElementBuilder;
+        public text(data: string): ElementBuilder;
+    }
+}
+declare module Haeckel {
     interface Color {
         b: number;
         error: boolean;
         g: number;
         hex: string;
         r: number;
-    }
-}
-declare module Haeckel {
-    interface GradientEntry {
-        color: Haeckel.Color;
-        ratio: number;
     }
 }
 declare module Haeckel {
@@ -397,6 +420,12 @@ declare module Haeckel {
 }
 declare module Haeckel.trg {
     function normalize(radians: number): number;
+}
+declare module Haeckel {
+    interface GradientEntry {
+        color: Haeckel.Color;
+        ratio: number;
+    }
 }
 declare module Haeckel {
     class LinearGradientBuilder implements Haeckel.Builder<string> {
@@ -471,6 +500,41 @@ declare module Haeckel {
         public remove(taxon: Haeckel.Taxic): TaxonBuilder;
         public removeSet(taxa: Haeckel.ExtSet<Haeckel.Taxic>): TaxonBuilder;
         public reset(): TaxonBuilder;
+    }
+}
+declare module Haeckel {
+    var SVG_NS: string;
+}
+declare module Haeckel.rec {
+    function create(x: number, y: number, width: number, height: number): Haeckel.Rectangle;
+}
+declare module Haeckel.rec {
+    interface BoundingClientRectElement extends SVGElement {
+        getBoundingClientRect(): ClientRect;
+    }
+    function createFromBoundingClientRect(svg: BoundingClientRectElement): Haeckel.Rectangle;
+}
+declare module Haeckel {
+    interface Axis {
+        labelFunction?: (value: number) => string;
+        range: Haeckel.Range;
+        step: number;
+    }
+    function isAxis(o: Axis): boolean;
+}
+declare module Haeckel {
+    interface Renderer {
+        render(svg: SVGSVGElement): SVGElement;
+    }
+}
+declare module Haeckel {
+    class AxisChart implements Haeckel.Renderer {
+        public area: Haeckel.Rectangle;
+        public axis: Haeckel.Axis;
+        public lineStyle: {
+            [style: string]: any;
+        };
+        public render(svg: SVGSVGElement): SVGGElement;
     }
 }
 declare module Haeckel {
@@ -876,9 +940,6 @@ declare module Haeckel.pt {
     function nearest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
 }
 declare module Haeckel.rec {
-    function create(x: number, y: number, width: number, height: number): Haeckel.Rectangle;
-}
-declare module Haeckel.rec {
     function createFromCoords(x1: number, y1: number, x2: number, y2: number): Haeckel.Rectangle;
 }
 declare module Haeckel.pt {
@@ -914,6 +975,12 @@ declare module Haeckel.rec {
 }
 declare module Haeckel.rec {
     function contains(r: Haeckel.Rectangle, p: Haeckel.Point): boolean;
+}
+declare module Haeckel.rec {
+    interface BBoxElement extends SVGElement {
+        getBBox(): SVGRect;
+    }
+    function createFromBBox(svg: BBoxElement): Haeckel.Rectangle;
 }
 declare module Haeckel.rec {
     function createFromPoints(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Rectangle;
@@ -962,14 +1029,6 @@ declare module Haeckel.vec {
 }
 declare module Haeckel.vec {
     function point(v: Haeckel.Vector): Haeckel.Point;
-}
-declare module Haeckel {
-    interface Axis {
-        labelFunction?: (value: number) => string;
-        range: Haeckel.Range;
-        step: number;
-    }
-    function isAxis(o: Axis): boolean;
 }
 declare module Haeckel {
     interface Stratum extends Haeckel.Model {
@@ -1030,11 +1089,6 @@ declare module Haeckel {
         average: (statesList: Haeckel.WeightedStates<S>[]) => S;
     }
     function isInferrer(o: any): boolean;
-}
-declare module Haeckel {
-    interface Renderer {
-        render(svg: SVGSVGElement): SVGElement;
-    }
 }
 declare module Haeckel {
     interface CharacterMapData {
