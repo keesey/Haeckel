@@ -548,7 +548,15 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    var BIT_MEMBER_MAX: number;
+    class ChronoChart {
+        public area: Haeckel.Rectangle;
+        public time: Haeckel.Range;
+        public copyFrom(chart: ChronoChart): ChronoChart;
+        public getTimeY(time: Haeckel.Range): Haeckel.Range;
+    }
+}
+declare module Haeckel {
+    var EMPTY_CHARACTER_MATRIX: CharacterMatrix<Set>;
 }
 declare module Haeckel.chr {
     function initiate<S extends Haeckel.Set>(domain: S): Haeckel.Character<S>;
@@ -579,6 +587,37 @@ declare module Haeckel.chr {
     function createRange(domain: Haeckel.Range, inferrable?: boolean, distance?: boolean): Haeckel.Character<Haeckel.Range>;
 }
 declare module Haeckel {
+    var TIME_CHARACTER: Character<Range>;
+}
+declare module Haeckel.rng {
+    function sum(ranges: Haeckel.Range[]): Haeckel.Range;
+}
+declare module Haeckel.chr {
+    function toDistanceMatrix(matrix: Haeckel.CharacterMatrix<Haeckel.Set>, anchors?: Haeckel.Taxic): Haeckel.DistanceMatrix<Haeckel.Taxic>;
+}
+declare module Haeckel.rec {
+    function createFromCoords(x1: number, y1: number, x2: number, y2: number): Haeckel.Rectangle;
+}
+declare module Haeckel.rng {
+    function add(r: Haeckel.Range, value: number): Haeckel.Range;
+}
+declare module Haeckel.rng {
+    function constrain(original: Haeckel.Range, constraint: Haeckel.Range): Haeckel.Range;
+}
+declare module Haeckel {
+    class ChronoCharChart extends Haeckel.ChronoChart {
+        public characterMatrix: Haeckel.CharacterMatrix<Haeckel.Set>;
+        public horizontalRatioMap: (taxon: Haeckel.Taxic) => Haeckel.Range;
+        public copyFrom(chart: Haeckel.ChronoChart): ChronoCharChart;
+        public getTaxonRect(taxon: Haeckel.Taxic): Haeckel.Rectangle;
+        public getTaxonX(taxon: Haeckel.Taxic): Haeckel.Range;
+        public useCharacterMatrixForHorizontal(leftTaxon: Haeckel.Taxic, rightTaxon: Haeckel.Taxic): ChronoCharChart;
+    }
+}
+declare module Haeckel {
+    var BIT_MEMBER_MAX: number;
+}
+declare module Haeckel {
     var COUNT_CHARACTER: Character<Range>;
 }
 declare module Haeckel {
@@ -599,9 +638,6 @@ declare module Haeckel {
 }
 declare module Haeckel {
     var DEG_TO_RAD: number;
-}
-declare module Haeckel {
-    var EMPTY_CHARACTER_MATRIX: CharacterMatrix<Set>;
 }
 declare module Haeckel {
     var EMPTY_DAG_SOLVER: DAGSolver<any>;
@@ -712,9 +748,6 @@ declare module Haeckel {
     var OCCURRENCE_CHARACTER: Character<ExtSet<Occurrence>>;
 }
 declare module Haeckel {
-    var TIME_CHARACTER: Character<Range>;
-}
-declare module Haeckel {
     interface Vector extends Haeckel.Model {
         angle: number;
         distance: number;
@@ -806,12 +839,6 @@ declare module Haeckel.ist {
 declare module Haeckel.chr {
     function createInt<T>(criterion: (element: T) => boolean, combine?: (sets: Haeckel.IntSet<T>[]) => Haeckel.IntSet<T>, readStates?: (data: any) => Haeckel.IntSet<T>, writeStates?: (states: Haeckel.IntSet<T>) => any): Haeckel.Character<Haeckel.IntSet<T>>;
 }
-declare module Haeckel.rng {
-    function sum(ranges: Haeckel.Range[]): Haeckel.Range;
-}
-declare module Haeckel.chr {
-    function toDistanceMatrix(matrix: Haeckel.CharacterMatrix<Haeckel.Set>, anchors?: Haeckel.Taxic): Haeckel.DistanceMatrix<Haeckel.Taxic>;
-}
 declare module Haeckel.clr {
     function create(r: number, g: number, b: number): Haeckel.Color;
 }
@@ -848,9 +875,6 @@ declare module Haeckel.dst {
 }
 declare module Haeckel.dst {
     function max<T>(matrix: Haeckel.DistanceMatrix<T>): number;
-}
-declare module Haeckel.rng {
-    function add(r: Haeckel.Range, value: number): Haeckel.Range;
 }
 declare module Haeckel.dst {
     function normalize<T>(matrix: Haeckel.DistanceMatrix<T>): Haeckel.DistanceMatrix<T>;
@@ -949,9 +973,6 @@ declare module Haeckel.pt {
 declare module Haeckel.pt {
     function nearest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
 }
-declare module Haeckel.rec {
-    function createFromCoords(x1: number, y1: number, x2: number, y2: number): Haeckel.Rectangle;
-}
 declare module Haeckel.pt {
     function rectangle(shape: Haeckel.Point[]): Haeckel.Rectangle;
 }
@@ -1006,9 +1027,6 @@ declare module Haeckel.rec {
 }
 declare module Haeckel.rng {
     function compare(a: Haeckel.Range, b: Haeckel.Range): number;
-}
-declare module Haeckel.rng {
-    function constrain(original: Haeckel.Range, constraint: Haeckel.Range): Haeckel.Range;
 }
 declare module Haeckel.rng {
     function contains(r: Haeckel.Range, n: number): boolean;
