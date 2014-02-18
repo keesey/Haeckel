@@ -984,6 +984,19 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    var VECTOR_0: Vector;
+}
+declare module Haeckel {
+    class VectorChronoLabeler implements Haeckel.Renderer {
+        public chart: Haeckel.ChronoCharChart;
+        public nameVectorMap: (name: string) => Haeckel.Vector;
+        public names: Haeckel.ExtSet<string>;
+        public nomenclature: Haeckel.Nomenclature;
+        public sizeMap: (area: number) => number;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+    }
+}
+declare module Haeckel {
     var BIT_MEMBER_MAX: number;
 }
 declare module Haeckel {
@@ -991,9 +1004,6 @@ declare module Haeckel {
 }
 declare module Haeckel {
     var EMPTY_PHYLO_SOLVER: PhyloSolver;
-}
-declare module Haeckel {
-    var VECTOR_0: Vector;
 }
 declare module Haeckel.arr {
     function contains<T>(list: T[], element: T): boolean;

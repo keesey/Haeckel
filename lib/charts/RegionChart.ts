@@ -272,15 +272,15 @@ module Haeckel
 									.attrs(SVG_NS, label.attrs),
 								box = (<SVGTextElement> text.build()).getBBox(),
 								rpx = (Math.min(box.width, box.height) / 2) + 'px';
-								textBox.attrs(SVG_NS, {
-										'height': box.height + 'px',
-										'rx': rpx,
-										'ry': rpx,
-										'stroke-opacity': '0',
-										'width': box.width + 'px',
-										'x': box.x + 'px',
-										'y': box.y + 'px'
-									});
+							textBox.attrs(SVG_NS, {
+									'height': box.height + 'px',
+									'rx': rpx,
+									'ry': rpx,
+									'stroke-opacity': '0',
+									'width': box.width + 'px',
+									'x': box.x + 'px',
+									'y': box.y + 'px'
+								});
 						}
 					}
 				}
