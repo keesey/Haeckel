@@ -615,12 +615,6 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    var BIT_MEMBER_MAX: number;
-}
-declare module Haeckel {
-    var COUNT_CHARACTER: Character<Range>;
-}
-declare module Haeckel {
     var ORIGIN: Point;
 }
 declare module Haeckel.pt {
@@ -635,6 +629,57 @@ declare module Haeckel {
 }
 declare module Haeckel {
     function DEFAULT_PROJECTOR(coords: GeoCoords): Point;
+}
+declare module Haeckel.geo {
+    function project(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>, projector: (coords: Haeckel.GeoCoords) => Haeckel.Point): Haeckel.Point[][];
+}
+declare module Haeckel.pt {
+    function contains(shape: Haeckel.Point[], p: Haeckel.Point): boolean;
+}
+declare module Haeckel.pt {
+    function rectangle(shape: Haeckel.Point[]): Haeckel.Rectangle;
+}
+declare module Haeckel.pt {
+    function area(shape: Haeckel.Point[]): number;
+}
+declare module Haeckel.pt {
+    function weight(shape: Haeckel.Point[], area?: number): number;
+}
+declare module Haeckel.pt {
+    function weights(shapes: Haeckel.Point[][], areas?: number[]): number[];
+}
+declare module Haeckel.rec {
+    function random(r: Haeckel.Rectangle, random?: () => number): Haeckel.Point;
+}
+declare module Haeckel.pt {
+    function random(shapes: Haeckel.Point[][], weights?: number[], random?: () => number): Haeckel.Point;
+    function random(a: Haeckel.Point, b: Haeckel.Point, random?: () => number): Haeckel.Point;
+}
+declare module Haeckel {
+    interface Occurrence extends Haeckel.Model {
+        count: Haeckel.Range;
+        geo: Haeckel.ExtSet<Haeckel.GeoCoords[]>;
+        time: Haeckel.Range;
+    }
+    function isOccurrence(o: any): boolean;
+}
+declare module Haeckel {
+    class GeoChart implements Haeckel.Renderer {
+        public area: Haeckel.Rectangle;
+        public color: Haeckel.Color;
+        public minThickness: number;
+        public occurrences: Haeckel.ExtSet<Haeckel.Occurrence>;
+        public projector: (coords: Haeckel.GeoCoords) => Haeckel.Point;
+        public random: () => number;
+        public project(coords: Haeckel.GeoCoords): Haeckel.Point;
+        public render(svg: SVGSVGElement): SVGGElement;
+    }
+}
+declare module Haeckel {
+    var BIT_MEMBER_MAX: number;
+}
+declare module Haeckel {
+    var COUNT_CHARACTER: Character<Range>;
 }
 declare module Haeckel {
     var DEG_TO_RAD: number;
@@ -729,14 +774,6 @@ declare module Haeckel {
         geo?: Haeckel.GeoData;
         time?: any;
     }
-}
-declare module Haeckel {
-    interface Occurrence extends Haeckel.Model {
-        count: Haeckel.Range;
-        geo: Haeckel.ExtSet<Haeckel.GeoCoords[]>;
-        time: Haeckel.Range;
-    }
-    function isOccurrence(o: any): boolean;
 }
 declare module Haeckel.occ {
     function readOccurrences(data: Haeckel.OccurrenceData[]): Haeckel.ExtSet<Haeckel.Occurrence>;
@@ -907,9 +944,6 @@ declare module Haeckel.geo {
     function center(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>): Haeckel.GeoCoords;
     function center(region: Haeckel.GeoCoords[]): Haeckel.GeoCoords;
 }
-declare module Haeckel.geo {
-    function project(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>, projector: (coords: Haeckel.GeoCoords) => Haeckel.Point): Haeckel.Point[][];
-}
 declare module Haeckel.ist {
     function contains<T>(set: Haeckel.IntSet<T>, element: T): boolean;
 }
@@ -953,12 +987,6 @@ declare module Haeckel.pt {
     function angle(a: Haeckel.Point, b: Haeckel.Point): number;
 }
 declare module Haeckel.pt {
-    function area(shape: Haeckel.Point[]): number;
-}
-declare module Haeckel.pt {
-    function contains(shape: Haeckel.Point[], p: Haeckel.Point): boolean;
-}
-declare module Haeckel.pt {
     function create3D(x: number, y: number, z: number): Haeckel.Point3D;
 }
 declare module Haeckel.pt {
@@ -972,22 +1000,6 @@ declare module Haeckel.pt {
 }
 declare module Haeckel.pt {
     function nearest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
-}
-declare module Haeckel.pt {
-    function rectangle(shape: Haeckel.Point[]): Haeckel.Rectangle;
-}
-declare module Haeckel.pt {
-    function weight(shape: Haeckel.Point[], area?: number): number;
-}
-declare module Haeckel.pt {
-    function weights(shapes: Haeckel.Point[][], areas?: number[]): number[];
-}
-declare module Haeckel.rec {
-    function random(r: Haeckel.Rectangle, random?: () => number): Haeckel.Point;
-}
-declare module Haeckel.pt {
-    function random(shapes: Haeckel.Point[][], weights?: number[], random?: () => number): Haeckel.Point;
-    function random(a: Haeckel.Point, b: Haeckel.Point, random?: () => number): Haeckel.Point;
 }
 declare module Haeckel.ray {
     function contains(ray: Haeckel.Ray, p: Haeckel.Point): boolean;
