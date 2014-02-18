@@ -749,10 +749,49 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    var BIT_MEMBER_MAX: number;
+    var COUNT_CHARACTER: Character<Range>;
 }
 declare module Haeckel {
-    var COUNT_CHARACTER: Character<Range>;
+    interface OccurrenceData {
+        count?: any;
+        geo?: Haeckel.GeoData;
+        time?: any;
+    }
+}
+declare module Haeckel.occ {
+    function readOccurrences(data: Haeckel.OccurrenceData[]): Haeckel.ExtSet<Haeckel.Occurrence>;
+    function readOccurrences(data: {
+        [key: string]: Haeckel.OccurrenceData;
+    }): Haeckel.ExtSet<Haeckel.Occurrence>;
+}
+declare module Haeckel {
+    var OCCURRENCE_CHARACTER: Character<ExtSet<Occurrence>>;
+}
+declare module Haeckel.occ {
+    function create(count?: Haeckel.Range, geo?: Haeckel.ExtSet<Haeckel.GeoCoords[]>, time?: Haeckel.Range): Haeckel.Occurrence;
+}
+declare module Haeckel.rec {
+    function contains(r: Haeckel.Rectangle, p: Haeckel.Point): boolean;
+}
+declare module Haeckel.rec {
+    function overlap(a: Haeckel.Rectangle, b: Haeckel.Rectangle): boolean;
+}
+declare module Haeckel.rec {
+    function intersect(a: Haeckel.Rectangle, b: Haeckel.Rectangle): Haeckel.Rectangle;
+}
+declare module Haeckel {
+    class OccurrencePlotChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
+        public radius: number;
+        public random: () => number;
+        private createPoint(builder, p, unit, withinMinimum);
+        private drawPoints(builder, plots, area, unit, count);
+        private drawRect(builder, plots, area, unit);
+        private getIndividualPoint(plots, area);
+        public render(svg: SVGSVGElement): SVGGElement;
+    }
+}
+declare module Haeckel {
+    var BIT_MEMBER_MAX: number;
 }
 declare module Haeckel {
     var EMPTY_DISTANCE_MATRIX: DistanceMatrix<any>;
@@ -804,22 +843,6 @@ declare module Haeckel {
 }
 declare module Haeckel {
     var EMPTY_PHYLO_SOLVER: PhyloSolver;
-}
-declare module Haeckel {
-    interface OccurrenceData {
-        count?: any;
-        geo?: Haeckel.GeoData;
-        time?: any;
-    }
-}
-declare module Haeckel.occ {
-    function readOccurrences(data: Haeckel.OccurrenceData[]): Haeckel.ExtSet<Haeckel.Occurrence>;
-    function readOccurrences(data: {
-        [key: string]: Haeckel.OccurrenceData;
-    }): Haeckel.ExtSet<Haeckel.Occurrence>;
-}
-declare module Haeckel {
-    var OCCURRENCE_CHARACTER: Character<ExtSet<Occurrence>>;
 }
 declare module Haeckel {
     interface Vector extends Haeckel.Model {
@@ -987,9 +1010,6 @@ declare module Haeckel.nom {
     function read(data: any, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
 }
 declare module Haeckel.occ {
-    function create(count?: Haeckel.Range, geo?: Haeckel.ExtSet<Haeckel.GeoCoords[]>, time?: Haeckel.Range): Haeckel.Occurrence;
-}
-declare module Haeckel.occ {
     function read(data: Haeckel.OccurrenceData): Haeckel.Occurrence;
 }
 declare module Haeckel.rng {
@@ -1038,9 +1058,6 @@ declare module Haeckel.rec {
     function combine(rectangles: Haeckel.Rectangle[]): Haeckel.Rectangle;
 }
 declare module Haeckel.rec {
-    function contains(r: Haeckel.Rectangle, p: Haeckel.Point): boolean;
-}
-declare module Haeckel.rec {
     interface BBoxElement extends SVGElement {
         getBBox(): SVGRect;
     }
@@ -1048,12 +1065,6 @@ declare module Haeckel.rec {
 }
 declare module Haeckel.rec {
     function createFromPoints(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Rectangle;
-}
-declare module Haeckel.rec {
-    function overlap(a: Haeckel.Rectangle, b: Haeckel.Rectangle): boolean;
-}
-declare module Haeckel.rec {
-    function intersect(a: Haeckel.Rectangle, b: Haeckel.Rectangle): Haeckel.Rectangle;
 }
 declare module Haeckel.rec {
     function segments(rects: Haeckel.Rectangle[]): Haeckel.Point[][];
