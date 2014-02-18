@@ -839,10 +839,40 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    var BIT_MEMBER_MAX: number;
+    var EMPTY_DISTANCE_MATRIX: DistanceMatrix<any>;
 }
 declare module Haeckel {
-    var EMPTY_DISTANCE_MATRIX: DistanceMatrix<any>;
+    var WHITE: Color;
+}
+declare module Haeckel.dst {
+    function max<T>(matrix: Haeckel.DistanceMatrix<T>): number;
+}
+declare module Haeckel.tax {
+    function distance(matrix: Haeckel.DistanceMatrix<Haeckel.Taxic>, focus: Haeckel.Taxic, taxon: Haeckel.Taxic): Haeckel.Range;
+}
+declare module Haeckel {
+    interface ProximityBar {
+        distance: Haeckel.Range;
+        names: Haeckel.ExtSet<string>;
+        normalizedDistance: Haeckel.Range;
+        taxon: Haeckel.Taxic;
+    }
+    class ProximityBarChart implements Haeckel.Renderer {
+        public area: Haeckel.Rectangle;
+        public barSort: (a: ProximityBar, b: ProximityBar) => number;
+        public colorMap: (taxon: Haeckel.Taxic) => Haeckel.Color;
+        public distanceMatrix: Haeckel.DistanceMatrix<any>;
+        public nomenclature: Haeckel.Nomenclature;
+        public focus: Haeckel.Taxic;
+        public spacing: number;
+        public taxa: Haeckel.ExtSet<Haeckel.Taxic>;
+        private getBars();
+        private renderBar(builder, bar, index, barWidth);
+        public render(svg: SVGSVGElement): SVGGElement;
+    }
+}
+declare module Haeckel {
+    var BIT_MEMBER_MAX: number;
 }
 declare module Haeckel {
     var EMPTY_MAP: (value: any) => any;
@@ -977,9 +1007,6 @@ declare module Haeckel.dst {
     function mapAround<T>(matrix: Haeckel.DistanceMatrix<T>, focus: T): (element: T) => Haeckel.Range;
 }
 declare module Haeckel.dst {
-    function max<T>(matrix: Haeckel.DistanceMatrix<T>): number;
-}
-declare module Haeckel.dst {
     function normalize<T>(matrix: Haeckel.DistanceMatrix<T>): Haeckel.DistanceMatrix<T>;
 }
 declare module Haeckel.ext {
@@ -1089,9 +1116,6 @@ declare module Haeckel.rng {
 }
 declare module Haeckel.tax {
     function byName(nomenclature: Haeckel.Nomenclature, name: string): Haeckel.Taxic;
-}
-declare module Haeckel.tax {
-    function distance(matrix: Haeckel.DistanceMatrix<Haeckel.Taxic>, focus: Haeckel.Taxic, taxon: Haeckel.Taxic): Haeckel.Range;
 }
 declare module Haeckel.tax {
     function prIncludes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
