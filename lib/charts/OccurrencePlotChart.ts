@@ -137,12 +137,12 @@ module Haeckel
 			return pt.create(x, y);
 		}
 
-		render(svg: SVGSVGElement): SVGGElement
+		render(parent: ElementBuilder): ElementBuilder
 		{
-			var g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g');
+			var g = parent.child(SVG_NS, 'g');
 			if (this.time.size === 0 || this.area.area === 0)
 			{
-				return <SVGGElement> g.attach(svg).build();
+				return g;
 			}
 
 			var plots: { [key: string]: boolean; } = {},
@@ -194,7 +194,7 @@ module Haeckel
 				}
 			}, this);
 
-			return <SVGGElement> g.attach(svg).build();
+			return g;
 		}
 	}
 }

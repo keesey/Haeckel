@@ -192,9 +192,9 @@ module Haeckel
 			return regions;
 		}
 
-		render(svg: SVGSVGElement): SVGGElement
+		render(parent: ElementBuilder): ElementBuilder
 		{
-			var g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g'),
+			var g = parent.child(SVG_NS, 'g'),
 				regions = this.getRegions();
 			for (var i = 0, n = regions.length; i < n; ++i)
 			{
@@ -260,31 +260,32 @@ module Haeckel
 								point = origin;
 							}
 							var labelGroup = regionGroup.child(SVG_NS, 'g'),
+								textBox = labelGroup.child(SVG_NS, 'rect')
+									.attrs(SVG_NS, {
+											'fill': WHITE.hex,
+											'fill-opacity': '1'
+										}),
 								text = labelGroup.child(SVG_NS, 'text')
 									.attr(SVG_NS, 'x', point.x + 'px')
 									.attr(SVG_NS, 'y', point.y + 'px')
 									.text(label.label)
 									.attrs(SVG_NS, label.attrs),
 								box = (<SVGTextElement> text.build()).getBBox(),
-								rpx = (Math.min(box.width, box.height) / 2) + 'px',
-								textBox = labelGroup.child(SVG_NS, 'rect')
-									.attrs(SVG_NS, {
-											'fill': WHITE.hex,
-											'fill-opacity': '1',
-											'height': box.height + 'px',
-											'rx': rpx,
-											'ry': rpx,
-											'stroke-opacity': '0',
-											'width': box.width + 'px',
-											'x': box.x + 'px',
-											'y': box.y + 'px'
-										});
-							text.attach(labelGroup.build());
+								rpx = (Math.min(box.width, box.height) / 2) + 'px';
+								textBox.attrs(SVG_NS, {
+										'height': box.height + 'px',
+										'rx': rpx,
+										'ry': rpx,
+										'stroke-opacity': '0',
+										'width': box.width + 'px',
+										'x': box.x + 'px',
+										'y': box.y + 'px'
+									});
 						}
 					}
 				}
 			}
-			return <SVGGElement> g.attach(svg).build();
+			return g;
 		}
 	}
 }

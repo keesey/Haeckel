@@ -28,7 +28,7 @@ module Haeckel
 
 		type: string = null;
 
-		render(svg: SVGSVGElement): SVGGElement
+		render(parent: ElementBuilder): ElementBuilder
 		{
 			var strata: Stratum[] = [],
 				yRange = rng.create(this.area.top, this.area.bottom),
@@ -50,7 +50,7 @@ module Haeckel
 					}
 				}
 			}, this);
-			var g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g'),
+			var g = parent.child(SVG_NS, 'g'),
 				boundaryList = ext.list(boundaries.build()).sort(rng.compare);
 			arr.each(boundaryList, (boundary: Range) =>
 			{
@@ -59,7 +59,7 @@ module Haeckel
 					.attrs(SVG_NS, BAR_STYLE)
 					.attr(SVG_NS, 'stroke-width', Math.max(this.minStrokeWidth, boundary.size) + 'px');
 			}, this);
-			return <SVGGElement> g.attach(svg).build();
+			return g;
 		}
 	}
 }

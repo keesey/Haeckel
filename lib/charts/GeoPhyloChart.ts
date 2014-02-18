@@ -64,7 +64,7 @@ module Haeckel
 			return result;
 		}
 
-		render(svg: SVGSVGElement): SVGGElement
+		render(parent: ElementBuilder): ElementBuilder
 		{
 			function drawExtensions(coords: GeoCoords, taxon: Taxic, lineAttrs: { [name: string]: string; })
 			{
@@ -167,7 +167,7 @@ module Haeckel
 				mapWidth = this.mapArea.width,
 				nomenclature = this.nomenclature,
 				taxonToCoords: { [taxonHash: string]: GeoCoords; } = {},
-				g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g');
+				g = parent.child(SVG_NS, 'g');
 			ext.each(solver.vertices, getTaxonCoords);
 			if (this.extensions)
 			{
@@ -209,7 +209,7 @@ module Haeckel
 							'stroke': 'none'
 						});
 			}, this);
-			return <SVGGElement> g.attach(svg).build();
+			return g;
 		}
 	}
 }

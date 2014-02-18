@@ -24,7 +24,7 @@ module Haeckel
 	{
 		phyloSolver: PhyloSolver;
 
-		render(svg: SVGSVGElement): SVGGElement
+		render(parent: ElementBuilder): ElementBuilder
 		{
 			var solver = this.phyloSolver,
 				graph = solver.graph,
@@ -35,7 +35,7 @@ module Haeckel
 			var positions: { [hash: string]: Rectangle; } = {},
 				area = this.area;
 			ext.each(graph.vertices, (taxon: Taxic) => positions[taxon.hash] = this.getTaxonRect(taxon));
-			var g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g');
+			var g = parent.child(SVG_NS, 'g');
 			ext.each(graph.arcs, (arc: Arc<Taxic>) =>
 			{
 				var source: Rectangle = positions[arc[0].hash],
@@ -54,7 +54,7 @@ module Haeckel
 					.attr(SVG_NS, 'd', data)
 					.attrs(SVG_NS, PATH_STYLE);
 			});
-			return <SVGGElement> g.attach(svg).build();
+			return g;
 		}		
 	}
 }

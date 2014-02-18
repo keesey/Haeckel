@@ -27,7 +27,7 @@ module Haeckel
 
 		style: { [style: string]: any; } = null;
 
-		render(svg: SVGSVGElement): SVGGElement
+		render(parent: ElementBuilder): ElementBuilder
 		{
 			function text(x: number, y: number, text: string): ElementBuilder
 			{
@@ -39,10 +39,10 @@ module Haeckel
 					.text(text);
 			}
 
-			var area = this.area.empty ? rec.createFromBoundingClientRect(svg) : this.area,
+			var area = this.area.empty ? rec.createFromBoundingClientRect(<SVGSVGElement> parent.build()) : this.area,
 				axis = this.axis,
 				style = ElementBuilder.style(this.style || STYLE),
-				g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g');
+				g = parent.child(SVG_NS, 'g');
 			if (isAxis(axis) && !axis.range.empty && axis.step > 0 && isFinite(axis.step))
 			{
 				var factor = area.width / axis.range.size,
@@ -56,7 +56,7 @@ module Haeckel
 					text(x, area.bottom, labelFunction(value));
 				}
 			}
-			return <SVGGElement> g.attach(svg).build();
+			return g;
 		}
 	}
 }

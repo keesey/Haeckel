@@ -134,9 +134,9 @@ module Haeckel
 			rect.attr(SVG_NS, "fill", fillBuilder.build());
 		}
 		
-		render(svg: SVGSVGElement): SVGGElement
+		render(parent: ElementBuilder): ElementBuilder
 		{
-			var g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g'),
+			var g = parent.child(SVG_NS, 'g'),
 				bars = this.getBars(),
 				n = bars.length;
 			if (n !== 0)
@@ -147,7 +147,7 @@ module Haeckel
 					this.renderBar(g, bars[i], i, barWidth);
 				}
 			}
-			return <SVGGElement> g.attach(svg).build();
+			return g;
 		}
 	}
 }

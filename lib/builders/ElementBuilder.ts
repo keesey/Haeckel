@@ -35,13 +35,6 @@ module Haeckel
 			}
 		}
 
-		attach(parent: Element): ElementBuilder
-		{
-			parent.appendChild(this.element);
-			this._parent = null;
-			return this;
-		}
-		
 		attr(name: string, value: string): ElementBuilder;
 		attr(uri: string, localName: string, value: string): ElementBuilder;
 		attr(a: string, b: string, c: string = null): ElementBuilder
@@ -66,7 +59,7 @@ module Haeckel
 			}
 			return this;
 		}
-		
+
 		build(): Element
 		{
 			return this.element;

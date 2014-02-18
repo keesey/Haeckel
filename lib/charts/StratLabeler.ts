@@ -1,11 +1,11 @@
 /// <reference path="StratChart.ts"/>
 /// <reference path="../builders/ElementBuilder.ts"/>
 /// <reference path="../constants/SVG_NS.ts"/>
-/// <reference path="../interfaces/Renderer.ts"/>
-/// <reference path="../interfaces/Stratum.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
 /// <reference path="../functions/rng/constrain.ts"/>
 /// <reference path="../functions/rng/create.ts"/>
+/// <reference path="../interfaces/Renderer.ts"/>
+/// <reference path="../interfaces/Stratum.ts"/>
 module Haeckel
 {
 	export class StratLabeler implements Renderer
@@ -16,9 +16,9 @@ module Haeckel
 		
 		margin = 12;
 		
-		render(svg: SVGSVGElement): SVGGElement
+		render(parent: ElementBuilder): ElementBuilder
 		{
-			var g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g'),
+			var g = parent.child(SVG_NS, 'g'),
 				chart = this.chart,
 				yRange = rng.create(chart.area.top, chart.area.bottom),
 				x = chart.area.right - this.margin,
@@ -46,7 +46,7 @@ module Haeckel
 					label.detach();
 				}
 			}, this);
-			return <SVGGElement> g.attach(svg).build();
+			return g;
 		}
 	}
 }

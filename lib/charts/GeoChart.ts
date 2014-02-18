@@ -42,7 +42,7 @@ module Haeckel
 			return result;
 		}
 
-		render(svg: SVGSVGElement): SVGGElement
+		render(parent: ElementBuilder): ElementBuilder
 		{
 			function createLine(a: Point, b: Point, occurrence: Occurrence)
 			{
@@ -129,7 +129,7 @@ module Haeckel
 				minThickness = this.minThickness,
 				self = this,
 				projector = (coords: GeoCoords) => self.project(coords),
-				g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g'),
+				g = parent.child(SVG_NS, 'g'),
 				i: number;
 
 			ext.each(this.occurrences, (occurrence: Occurrence) =>
@@ -159,7 +159,7 @@ module Haeckel
 				}
 			}, this);
 
-			return <SVGGElement> g.attach(svg).build();
+			return g;
 		}
 	}
 }

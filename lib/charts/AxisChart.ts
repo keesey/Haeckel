@@ -13,8 +13,8 @@ module Haeckel
 			step: 0.1
 		});
 
-	var LINE_STYLE: { [style: string]: any; } = {
-			"stroke-opacity": 1,
+	var LINE_STYLE: { [style: string]: string; } = {
+			"stroke-opacity": '1',
 			"stroke-linecap": "square"
 		};
 
@@ -24,9 +24,9 @@ module Haeckel
 
 		axis: Axis = DEFAULT_AXIS;
 
-		lineStyle: { [style: string]: any; } = null;
+		lineStyle: { [style: string]: string; } = null;
 
-		render(svg: SVGSVGElement): SVGGElement
+		render(parent: ElementBuilder): ElementBuilder
 		{
 			function vLine(x: number, top: number, bottom: number): ElementBuilder
 			{
@@ -38,10 +38,10 @@ module Haeckel
 						});
 			}
 
-			var area = this.area.empty ? rec.createFromBoundingClientRect(svg) : this.area,
+			var area = this.area.empty ? rec.createFromBoundingClientRect(<SVGSVGElement> parent.build()) : this.area,
 				axis = this.axis,
 				lineStyle = ElementBuilder.style(this.lineStyle || LINE_STYLE),
-				g = new ElementBuilder(svg.ownerDocument, SVG_NS, 'g');
+				g = parent.child(SVG_NS, 'g');
 			if (isAxis(axis) && !axis.range.empty && axis.step > 0 && isFinite(axis.step))
 			{
 				var factor = area.width / axis.range.size,
@@ -54,7 +54,7 @@ module Haeckel
 					vLine(x, area.top, area.bottom);
 				}
 			}
-			return <SVGGElement> g.attach(svg).build();
+			return g;
 		}
 	}
 }

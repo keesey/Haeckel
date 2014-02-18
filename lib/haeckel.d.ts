@@ -385,7 +385,6 @@ declare module Haeckel {
         constructor(document: Document, element: Element);
         constructor(document: Document, uri: string, localName: string);
         constructor(document: Document, name: string);
-        public attach(parent: Element): ElementBuilder;
         public attr(name: string, value: string): ElementBuilder;
         public attr(uri: string, localName: string, value: string): ElementBuilder;
         public attrs(uri: string, attrs: {
@@ -528,7 +527,7 @@ declare module Haeckel {
 }
 declare module Haeckel {
     interface Renderer {
-        render(svg: SVGSVGElement): SVGElement;
+        render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -536,9 +535,9 @@ declare module Haeckel {
         public area: Haeckel.Rectangle;
         public axis: Haeckel.Axis;
         public lineStyle: {
-            [style: string]: any;
+            [style: string]: string;
         };
-        public render(svg: SVGSVGElement): SVGGElement;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -548,7 +547,7 @@ declare module Haeckel {
         public style: {
             [style: string]: any;
         };
-        public render(svg: SVGSVGElement): SVGGElement;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -676,7 +675,7 @@ declare module Haeckel {
         public projector: (coords: Haeckel.GeoCoords) => Haeckel.Point;
         public random: () => number;
         public project(coords: Haeckel.GeoCoords): Haeckel.Point;
-        public render(svg: SVGSVGElement): SVGGElement;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -746,7 +745,7 @@ declare module Haeckel {
         public rootRadius: number;
         public solver: Haeckel.DAGSolver<Haeckel.Taxic>;
         public project(coords: Haeckel.GeoCoords): Haeckel.Point;
-        public render(svg: SVGSVGElement): SVGGElement;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -788,7 +787,7 @@ declare module Haeckel {
         private drawPoints(builder, plots, area, unit, count);
         private drawRect(builder, plots, area, unit);
         private getIndividualPoint(plots, area);
-        public render(svg: SVGSVGElement): SVGGElement;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel.ext {
@@ -836,7 +835,7 @@ declare module Haeckel {
 declare module Haeckel {
     class PhyloChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
         public phyloSolver: Haeckel.PhyloSolver;
-        public render(svg: SVGSVGElement): SVGGElement;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -869,7 +868,7 @@ declare module Haeckel {
         public taxa: Haeckel.ExtSet<Haeckel.Taxic>;
         private getBars();
         private renderBar(builder, bar, index, barWidth);
-        public render(svg: SVGSVGElement): SVGGElement;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel.pt {
@@ -953,7 +952,7 @@ declare module Haeckel {
         public taxa: RegionTaxon[];
         private addMargins(rect);
         private getRegions();
-        public render(svg: SVGSVGElement): SVGGElement;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel.rng {
@@ -973,7 +972,7 @@ declare module Haeckel {
         public minStrokeWidth: number;
         public strata: Haeckel.ExtSet<Haeckel.Stratum>;
         public type: string;
-        public render(svg: SVGSVGElement): SVGGElement;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -981,7 +980,7 @@ declare module Haeckel {
         public chart: Haeckel.StratChart;
         public fontSize: number;
         public margin: number;
-        public render(svg: SVGSVGElement): SVGGElement;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel {
