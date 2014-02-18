@@ -955,6 +955,26 @@ declare module Haeckel {
         public render(svg: SVGSVGElement): SVGGElement;
     }
 }
+declare module Haeckel.rng {
+    function compare(a: Haeckel.Range, b: Haeckel.Range): number;
+}
+declare module Haeckel {
+    interface Stratum extends Haeckel.Model {
+        type: string;
+        name: string;
+        start: Haeckel.Range;
+        end: Haeckel.Range;
+    }
+    function isStratum(o: any): boolean;
+}
+declare module Haeckel {
+    class StratChart extends Haeckel.ChronoChart implements Haeckel.Renderer {
+        public minStrokeWidth: number;
+        public strata: Haeckel.ExtSet<Haeckel.Stratum>;
+        public type: string;
+        public render(svg: SVGSVGElement): SVGGElement;
+    }
+}
 declare module Haeckel {
     var BIT_MEMBER_MAX: number;
 }
@@ -1144,9 +1164,6 @@ declare module Haeckel.rec {
     function createFromPoints(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Rectangle;
 }
 declare module Haeckel.rng {
-    function compare(a: Haeckel.Range, b: Haeckel.Range): number;
-}
-declare module Haeckel.rng {
     function contains(r: Haeckel.Range, n: number): boolean;
 }
 declare module Haeckel.rng {
@@ -1166,15 +1183,6 @@ declare module Haeckel.typ {
 }
 declare module Haeckel.typ {
     function create<T>(typeObject: any): Haeckel.TypeSet<T>;
-}
-declare module Haeckel {
-    interface Stratum extends Haeckel.Model {
-        type: string;
-        name: string;
-        start: Haeckel.Range;
-        end: Haeckel.Range;
-    }
-    function isStratum(o: any): boolean;
 }
 declare module Haeckel {
     interface DataSourceMetadata {
