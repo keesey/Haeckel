@@ -1,0 +1,36 @@
+{
+  "name": "Haeckel",
+  "version": "0.0.1",
+  "homepage": "https://github.com/keesey/Haeckel",
+  "authors": [
+    "T. Michael Keesey <keesey@gmail.com>"
+  ],
+  "description": "Models data related to biological evolution and provides ways to chart it (SVG).",
+  "main": [
+    "lib/haeckel.js",
+    "lib/haeckel.d.ts"
+  ],
+  "keywords": [
+    "biology",
+    "taxonomy",
+    "systematics",
+    "character",
+    "matrix",
+    "stratigraphy",
+    "evolution",
+    "chronology",
+    "taxa",
+    "organisms",
+    "nomenclature",
+    "SVG",
+    "charts",
+    "vector"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test"
+  ]
+}
