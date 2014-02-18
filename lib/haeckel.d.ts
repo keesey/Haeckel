@@ -871,6 +871,90 @@ declare module Haeckel {
         public render(svg: SVGSVGElement): SVGGElement;
     }
 }
+declare module Haeckel.pt {
+    function add(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Point;
+}
+declare module Haeckel.pt {
+    function distance(a: Haeckel.Point, b: Haeckel.Point): number;
+}
+declare module Haeckel.pt {
+    function furthest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
+}
+declare module Haeckel.pt {
+    function nearest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
+}
+declare module Haeckel.ray {
+    function create(origin: Haeckel.Point, angle: number): Haeckel.Ray;
+}
+declare module Haeckel {
+    function precisionEqual(a: number, b: number): boolean;
+}
+declare module Haeckel.pt {
+    function angle(a: Haeckel.Point, b: Haeckel.Point): number;
+}
+declare module Haeckel.ray {
+    function contains(ray: Haeckel.Ray, p: Haeckel.Point): boolean;
+}
+declare module Haeckel.ray {
+    function intersectSegment(ray: Haeckel.Ray, segment: Haeckel.Point[]): Haeckel.Point[];
+}
+declare module Haeckel.ray {
+    function intersectSegments(ray: Haeckel.Ray, segments: Haeckel.Point[][]): Haeckel.Point[];
+}
+declare module Haeckel.rec {
+    function combine(rectangles: Haeckel.Rectangle[]): Haeckel.Rectangle;
+}
+declare module Haeckel.rec {
+    function segments(rects: Haeckel.Rectangle[]): Haeckel.Point[][];
+}
+declare module Haeckel {
+    interface Vector extends Haeckel.Model {
+        angle: number;
+        distance: number;
+    }
+    function isVector(o: any): boolean;
+}
+declare module Haeckel.vec {
+    function create(radians: number, distance: number): Haeckel.Vector;
+}
+declare module Haeckel.vec {
+    function point(v: Haeckel.Vector): Haeckel.Point;
+}
+declare module Haeckel {
+    interface Region {
+        taxon: Haeckel.Taxic;
+        typeRect: Haeckel.Rectangle;
+        rectangles: Haeckel.Rectangle[];
+    }
+    interface RegionTaxon {
+        taxon: Haeckel.Taxic;
+        type?: Haeckel.Taxic;
+    }
+    interface RegionLabel {
+        angle: number;
+        attrs: {
+            [attrName: string]: string;
+        };
+        label: string;
+    }
+    class RegionChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
+        public labels: (taxon: Haeckel.Taxic) => RegionLabel;
+        public margin: number;
+        public minPointDistance: number;
+        public pointsPerRegion: number;
+        public smoothing: number;
+        public shapeAttrFunction: (taxon?: Haeckel.Taxic) => {
+            [attr: string]: string;
+        };
+        public shapeAttrs: {
+            [attr: string]: string;
+        };
+        public taxa: RegionTaxon[];
+        private addMargins(rect);
+        private getRegions();
+        public render(svg: SVGSVGElement): SVGGElement;
+    }
+}
 declare module Haeckel {
     var BIT_MEMBER_MAX: number;
 }
@@ -879,13 +963,6 @@ declare module Haeckel {
 }
 declare module Haeckel {
     var EMPTY_PHYLO_SOLVER: PhyloSolver;
-}
-declare module Haeckel {
-    interface Vector extends Haeckel.Model {
-        angle: number;
-        distance: number;
-    }
-    function isVector(o: any): boolean;
 }
 declare module Haeckel {
     var VECTOR_0: Vector;
@@ -1051,44 +1128,11 @@ declare module Haeckel.rng {
 declare module Haeckel.occ {
     function timeSlice(time: Haeckel.Range, occurrences: Haeckel.ExtSet<Haeckel.Occurrence>): Haeckel.ExtSet<Haeckel.Occurrence>;
 }
-declare module Haeckel {
-    function precisionEqual(a: number, b: number): boolean;
-}
-declare module Haeckel.pt {
-    function add(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Point;
-}
-declare module Haeckel.pt {
-    function angle(a: Haeckel.Point, b: Haeckel.Point): number;
-}
 declare module Haeckel.pt {
     function create3D(x: number, y: number, z: number): Haeckel.Point3D;
 }
 declare module Haeckel.pt {
-    function distance(a: Haeckel.Point, b: Haeckel.Point): number;
-}
-declare module Haeckel.pt {
     function equal(a: Haeckel.Point, b: Haeckel.Point): boolean;
-}
-declare module Haeckel.pt {
-    function furthest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
-}
-declare module Haeckel.pt {
-    function nearest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
-}
-declare module Haeckel.ray {
-    function contains(ray: Haeckel.Ray, p: Haeckel.Point): boolean;
-}
-declare module Haeckel.ray {
-    function create(origin: Haeckel.Point, angle: number): Haeckel.Ray;
-}
-declare module Haeckel.ray {
-    function intersectSegment(ray: Haeckel.Ray, segment: Haeckel.Point[]): Haeckel.Point[];
-}
-declare module Haeckel.ray {
-    function intersectSegments(ray: Haeckel.Ray, segments: Haeckel.Point[][]): Haeckel.Point[];
-}
-declare module Haeckel.rec {
-    function combine(rectangles: Haeckel.Rectangle[]): Haeckel.Rectangle;
 }
 declare module Haeckel.rec {
     interface BBoxElement extends SVGElement {
@@ -1098,9 +1142,6 @@ declare module Haeckel.rec {
 }
 declare module Haeckel.rec {
     function createFromPoints(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Rectangle;
-}
-declare module Haeckel.rec {
-    function segments(rects: Haeckel.Rectangle[]): Haeckel.Point[][];
 }
 declare module Haeckel.rng {
     function compare(a: Haeckel.Range, b: Haeckel.Range): number;
@@ -1125,12 +1166,6 @@ declare module Haeckel.typ {
 }
 declare module Haeckel.typ {
     function create<T>(typeObject: any): Haeckel.TypeSet<T>;
-}
-declare module Haeckel.vec {
-    function create(radians: number, distance: number): Haeckel.Vector;
-}
-declare module Haeckel.vec {
-    function point(v: Haeckel.Vector): Haeckel.Point;
 }
 declare module Haeckel {
     interface Stratum extends Haeckel.Model {
