@@ -790,15 +790,6 @@ declare module Haeckel {
         public render(svg: SVGSVGElement): SVGGElement;
     }
 }
-declare module Haeckel {
-    var BIT_MEMBER_MAX: number;
-}
-declare module Haeckel {
-    var EMPTY_DISTANCE_MATRIX: DistanceMatrix<any>;
-}
-declare module Haeckel {
-    var EMPTY_MAP: (value: any) => any;
-}
 declare module Haeckel.ext {
     function includes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
 }
@@ -840,6 +831,21 @@ declare module Haeckel {
         public synPrc(apomorphic: Haeckel.Taxic, representative: Haeckel.Taxic): Haeckel.Taxic;
         public total(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
     }
+}
+declare module Haeckel {
+    class PhyloChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
+        public phyloSolver: Haeckel.PhyloSolver;
+        public render(svg: SVGSVGElement): SVGGElement;
+    }
+}
+declare module Haeckel {
+    var BIT_MEMBER_MAX: number;
+}
+declare module Haeckel {
+    var EMPTY_DISTANCE_MATRIX: DistanceMatrix<any>;
+}
+declare module Haeckel {
+    var EMPTY_MAP: (value: any) => any;
 }
 declare module Haeckel {
     var EMPTY_PHYLO_SOLVER: PhyloSolver;
