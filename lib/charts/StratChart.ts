@@ -17,7 +17,7 @@ module Haeckel
 	var BAR_STYLE: { [name: string]: string; } = {
 		'stroke-opacity': '1',
 		'stroke': '#000000',
-		'stroke-dasharray': '2,8'
+		'stroke-dasharray': '1,4'
 	};
 
 	export class StratChart extends ChronoChart implements Renderer

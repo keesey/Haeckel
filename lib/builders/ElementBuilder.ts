@@ -87,11 +87,21 @@ module Haeckel
 			return child;
 		}
 		
+		detach(): ElementBuilder
+		{
+			if (this.element.parentNode)
+			{
+				this.element.parentNode.removeChild(this.element);
+				this._parent = null;
+			}
+			return this;
+		}
+		
 		parent(): ElementBuilder
 		{
 			return this._parent;
 		}
-		
+
 		reset(): ElementBuilder
 		{
 			this.element = null;

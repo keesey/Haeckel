@@ -398,6 +398,7 @@ declare module Haeckel {
         public buildString(): string;
         public child(uri: string, localName: string): ElementBuilder;
         public child(name: string): ElementBuilder;
+        public detach(): ElementBuilder;
         public parent(): ElementBuilder;
         public reset(): ElementBuilder;
         public text(data: string): ElementBuilder;
@@ -972,6 +973,14 @@ declare module Haeckel {
         public minStrokeWidth: number;
         public strata: Haeckel.ExtSet<Haeckel.Stratum>;
         public type: string;
+        public render(svg: SVGSVGElement): SVGGElement;
+    }
+}
+declare module Haeckel {
+    class StratLabeler implements Haeckel.Renderer {
+        public chart: Haeckel.StratChart;
+        public fontSize: number;
+        public margin: number;
         public render(svg: SVGSVGElement): SVGGElement;
     }
 }

@@ -124,7 +124,7 @@ module Haeckel
 			'fill-opacity': '0',
 			'stroke': BLACK.hex,
 			'stroke-width': '0.5',
-			'stroke-dasharray': '2,8'
+			'stroke-dasharray': '1,4'
 		};
 
 		taxa: RegionTaxon[] = [];
