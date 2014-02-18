@@ -47,22 +47,28 @@ module Haeckel
 			function createLine(a: Point, b: Point, occurrence: Occurrence)
 			{
 				g.child(SVG_NS, 'path')
-					.attr(SVG_NS, 'd', 'M' + a.x + ' ' + a.y + 'L' + b.x + ' ' + b.y)
-					.attr(SVG_NS, 'stroke', color.hex)
-					.attr(SVG_NS, 'stroke-opacity', '1')
-					.attr(SVG_NS, 'stroke-width', minThickness + 'px');
+					.attrs(SVG_NS, 
+						{
+							'd': 'M' + a.x + ' ' + a.y + 'L' + b.x + ' ' + b.y,
+							'stroke': color.hex,
+							'stroke-opacity': '1',
+							'stroke-width': minThickness + 'px'
+						});
 			}
 
 			function createPoint(p: Point, occurrence: Occurrence)
 			{
 				g.child(SVG_NS, 'circle')
-					.attr(SVG_NS, 'cx', p.x + 'px')
-					.attr(SVG_NS, 'cy', p.y + 'px')
-					.attr(SVG_NS, 'r', minThickness + 'px')
-					.attr(SVG_NS, 'color', color.hex)
-					.attr(SVG_NS, 'stroke', color.hex)
-					.attr(SVG_NS, 'stroke-opacity', '1')
-					.attr(SVG_NS, 'stroke-width', minThickness + 'px');
+					.attrs(SVG_NS,
+						{
+							'cx': p.x + 'px',
+							'cy': p.y + 'px',
+							'r': minThickness + 'px',
+							'color': color.hex,
+							'stroke': color.hex,
+							'stroke-opacity': '1',
+							'stroke-width': minThickness + 'px'
+						});
 			}
 
 			function createPolygon(points: Point[], occurrence: Occurrence)
@@ -77,12 +83,15 @@ module Haeckel
 				}
 				arr.each(points, (point: Point) => pathBuilder.add(point));
 				g.child(SVG_NS, 'path')
-					.attr(SVG_NS, 'd', pathBuilder.build())
-					.attr(SVG_NS, 'fill', color.hex)
-					.attr(SVG_NS, 'fill-opacity', '1')
-					.attr(SVG_NS, 'stroke', color.hex)
-					.attr(SVG_NS, 'stroke-opacity', '1')
-					.attr(SVG_NS, 'stroke-width', minThickness + 'px');
+					.attrs(SVG_NS,
+						{
+							'd': pathBuilder.build(),
+							'fill': color.hex,
+							'fill-opacity': '1',
+							'stroke': color.hex,
+							'stroke-opacity': '1',
+							'stroke-width': minThickness + 'px'
+						});
 			}
 
 			function fill(shapes: Point[][], occurrence: Occurrence)

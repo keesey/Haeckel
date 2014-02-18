@@ -31,8 +31,11 @@ module Haeckel
 			function vLine(x: number, top: number, bottom: number): ElementBuilder
 			{
 				return g.child(SVG_NS, 'path')
-					.attr(SVG_NS, 'style', lineStyle)
-					.attr(SVG_NS, 'path', "M" + x + " " + top + "V " + bottom);
+					.attrs(SVG_NS,
+						{
+							'path': "M" + x + " " + top + "V " + bottom,
+							'style': lineStyle
+						});
 			}
 
 			var area = this.area.empty ? rec.createFromBoundingClientRect(svg) : this.area,

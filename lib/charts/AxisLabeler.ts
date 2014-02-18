@@ -32,8 +32,10 @@ module Haeckel
 			function text(x: number, y: number, text: string): ElementBuilder
 			{
 				return g.child(SVG_NS, 'text')
-					.attr(SVG_NS, 'x', String(x) + 'px')
-					.attr(SVG_NS, 'y', String(y) + 'px')
+					.attrs(SVG_NS, {
+						'x': x + 'px',
+						'y': y + 'px'
+					})
 					.text(text);
 			}
 

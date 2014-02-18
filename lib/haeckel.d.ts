@@ -388,6 +388,9 @@ declare module Haeckel {
         public attach(parent: Element): ElementBuilder;
         public attr(name: string, value: string): ElementBuilder;
         public attr(uri: string, localName: string, value: string): ElementBuilder;
+        public attrs(uri: string, attrs: {
+            [name: string]: string;
+        }): ElementBuilder;
         public attrs(attrs: {
             [name: string]: string;
         }): ElementBuilder;
@@ -676,25 +679,86 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    var EMPTY_DAG_SOLVER: DAGSolver<any>;
+}
+declare module Haeckel {
+    var EMPTY_NOMENCLATURE: Nomenclature;
+}
+declare module Haeckel.ext {
+    function domain<T>(hash: string): Haeckel.ExtSet<T>;
+}
+declare module Haeckel.chr {
+    function createDomain<T>(hash: string, readStates?: (data: any) => Haeckel.ExtSet<T>, writeStates?: (states: Haeckel.ExtSet<T>) => any): Haeckel.Character<Haeckel.ExtSet<T>>;
+}
+declare module Haeckel.geo {
+    function createCoords(lat: number, lon: number): Haeckel.GeoCoords;
+}
+declare module Haeckel.geo {
+    function readCoords(data: number[]): Haeckel.GeoCoords;
+}
+declare module Haeckel.geo {
+    function readRegion(data: number[][]): Haeckel.GeoCoords[];
+}
+declare module Haeckel {
+    interface GeoData {
+        [regionName: string]: number[][];
+    }
+}
+declare module Haeckel.geo {
+    function readRegions(data: Haeckel.GeoData): Haeckel.ExtSet<Haeckel.GeoCoords[]>;
+    function readRegions(data: number[][][]): Haeckel.ExtSet<Haeckel.GeoCoords[]>;
+}
+declare module Haeckel {
+    var GEO_CHARACTER: Character<ExtSet<GeoCoords[]>>;
+}
+declare module Haeckel {
+    var DEG_TO_RAD: number;
+}
+declare module Haeckel {
+    interface Point3D extends Haeckel.Point {
+        z: number;
+    }
+    function isPoint3D(o: Point3D): boolean;
+}
+declare module Haeckel.geo {
+    function toPoint3D(coords: Haeckel.GeoCoords, radius?: number): Haeckel.Point3D;
+}
+declare module Haeckel.geo {
+    function center(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>): Haeckel.GeoCoords;
+    function center(region: Haeckel.GeoCoords[]): Haeckel.GeoCoords;
+}
+declare module Haeckel.nom {
+    function forTaxon(nomenclature: Haeckel.Nomenclature, taxon: Haeckel.Taxic): Haeckel.ExtSet<string>;
+}
+declare module Haeckel {
+    class GeoPhyloChart implements Haeckel.Renderer {
+        public color: Haeckel.Color;
+        public extensions: boolean;
+        public lineAttrs: (source: Haeckel.Taxic, target: Haeckel.Taxic, solver: Haeckel.DAGSolver<Haeckel.Taxic>) => {
+            [name: string]: string;
+        };
+        public mapArea: Haeckel.Rectangle;
+        public nomenclature: Haeckel.Nomenclature;
+        public occurrenceMatrix: Haeckel.CharacterMatrix<Haeckel.Set>;
+        public paddingY: number;
+        public projector: (coords: Haeckel.GeoCoords) => Haeckel.Point;
+        public rootRadius: number;
+        public solver: Haeckel.DAGSolver<Haeckel.Taxic>;
+        public project(coords: Haeckel.GeoCoords): Haeckel.Point;
+        public render(svg: SVGSVGElement): SVGGElement;
+    }
+}
+declare module Haeckel {
     var BIT_MEMBER_MAX: number;
 }
 declare module Haeckel {
     var COUNT_CHARACTER: Character<Range>;
 }
 declare module Haeckel {
-    var DEG_TO_RAD: number;
-}
-declare module Haeckel {
-    var EMPTY_DAG_SOLVER: DAGSolver<any>;
-}
-declare module Haeckel {
     var EMPTY_DISTANCE_MATRIX: DistanceMatrix<any>;
 }
 declare module Haeckel {
     var EMPTY_MAP: (value: any) => any;
-}
-declare module Haeckel {
-    var EMPTY_NOMENCLATURE: Nomenclature;
 }
 declare module Haeckel.ext {
     function includes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
@@ -740,33 +804,6 @@ declare module Haeckel {
 }
 declare module Haeckel {
     var EMPTY_PHYLO_SOLVER: PhyloSolver;
-}
-declare module Haeckel.ext {
-    function domain<T>(hash: string): Haeckel.ExtSet<T>;
-}
-declare module Haeckel.chr {
-    function createDomain<T>(hash: string, readStates?: (data: any) => Haeckel.ExtSet<T>, writeStates?: (states: Haeckel.ExtSet<T>) => any): Haeckel.Character<Haeckel.ExtSet<T>>;
-}
-declare module Haeckel.geo {
-    function createCoords(lat: number, lon: number): Haeckel.GeoCoords;
-}
-declare module Haeckel.geo {
-    function readCoords(data: number[]): Haeckel.GeoCoords;
-}
-declare module Haeckel.geo {
-    function readRegion(data: number[][]): Haeckel.GeoCoords[];
-}
-declare module Haeckel {
-    interface GeoData {
-        [regionName: string]: number[][];
-    }
-}
-declare module Haeckel.geo {
-    function readRegions(data: Haeckel.GeoData): Haeckel.ExtSet<Haeckel.GeoCoords[]>;
-    function readRegions(data: number[][][]): Haeckel.ExtSet<Haeckel.GeoCoords[]>;
-}
-declare module Haeckel {
-    var GEO_CHARACTER: Character<ExtSet<GeoCoords[]>>;
 }
 declare module Haeckel {
     interface OccurrenceData {
@@ -931,19 +968,6 @@ declare module Haeckel.ext {
 declare module Haeckel.ext {
     function where<T>(set: Haeckel.ExtSet<T>, f: (element: T) => boolean, thisObject?: any): Haeckel.ExtSet<T>;
 }
-declare module Haeckel {
-    interface Point3D extends Haeckel.Point {
-        z: number;
-    }
-    function isPoint3D(o: Point3D): boolean;
-}
-declare module Haeckel.geo {
-    function toPoint3D(coords: Haeckel.GeoCoords, radius?: number): Haeckel.Point3D;
-}
-declare module Haeckel.geo {
-    function center(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>): Haeckel.GeoCoords;
-    function center(region: Haeckel.GeoCoords[]): Haeckel.GeoCoords;
-}
 declare module Haeckel.ist {
     function contains<T>(set: Haeckel.IntSet<T>, element: T): boolean;
 }
@@ -958,9 +982,6 @@ declare module Haeckel.ist {
 }
 declare module Haeckel.nom {
     function forSubtaxa(nomenclature: Haeckel.Nomenclature, taxon: Haeckel.Taxic): Haeckel.ExtSet<string>;
-}
-declare module Haeckel.nom {
-    function forTaxon(nomenclature: Haeckel.Nomenclature, taxon: Haeckel.Taxic): Haeckel.ExtSet<string>;
 }
 declare module Haeckel.nom {
     function read(data: any, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;

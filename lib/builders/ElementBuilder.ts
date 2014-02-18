@@ -52,11 +52,17 @@ module Haeckel
 			return this;
 		}
 		
-		attrs(attrs: { [ name: string]: string; }): ElementBuilder
+		attrs(uri: string, attrs: { [ name: string]: string; }): ElementBuilder;
+		attrs(attrs: { [ name: string]: string; }): ElementBuilder;
+		attrs(a: any, b: { [ name: string]: string; } = null): ElementBuilder
 		{
+			var uri = typeof a === 'string' ? (<string> a) : null,
+				attrs: { [ name: string]: string; } = uri ? b : a;
 			for (var name in attrs)
 			{
-				this.element.setAttribute(name, attrs[name]);
+				uri === null
+					? this.element.setAttribute(name, attrs[name])
+					: this.element.setAttributeNS(uri, name, attrs[name]);
 			}
 			return this;
 		}
