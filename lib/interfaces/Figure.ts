@@ -2,11 +2,24 @@
 
 module Haeckel
 {
+	export enum AssetType
+	{
+		BASE64,
+		SVG
+	}
+
+	export interface Asset
+	{
+		data: string;
+		type: AssetType;
+	}
+
 	export interface Figure
 	{
+		assets: string[];
 		dataSources: string[];
 		height: string;
 		width: string;
-		render(dataSources: DataSources): SVGSVGElement;
+		render(doc: Document, dataSources: DataSources, assets: { [filename: string]: Asset; }): SVGSVGElement;
 	}
 }

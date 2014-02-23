@@ -32,5 +32,8 @@
     "node_modules",
     "bower_components",
     "test"
-  ]
+  ],
+  "devDependencies": {
+    "dt-node": "*"
+  }
 }

@@ -220,12 +220,12 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    interface Arc<T> extends T[] {
+    interface Arc<T> extends Array<T> {
     }
     function isArc(o: Arc<any>): boolean;
 }
 declare module Haeckel {
-    interface Digraph<V> extends Haeckel.ExtSet<any>[] {
+    interface Digraph<V> extends Array<Haeckel.ExtSet<any>> {
         arcs: Haeckel.ExtSet<Haeckel.Arc<V>>;
         vertices: Haeckel.ExtSet<V>;
     }
@@ -1240,11 +1240,22 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    enum AssetType {
+        BASE64 = 0,
+        SVG = 1,
+    }
+    interface Asset {
+        data: string;
+        type: AssetType;
+    }
     interface Figure {
+        assets: string[];
         dataSources: string[];
         height: string;
         width: string;
-        render(dataSources: Haeckel.DataSources): SVGSVGElement;
+        render(doc: Document, dataSources: Haeckel.DataSources, assets: {
+            [filename: string]: Asset;
+        }): SVGSVGElement;
     }
 }
 declare module Haeckel {
