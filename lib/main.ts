@@ -47,9 +47,6 @@ if (process)
 			sources[filename] = reader.readDataSource(data[filename]);
 		}
 	}
-	var xmldom: any = require("xmldom"),
-		parser = <DOMParser> new xmldom.DOMParser(),
-		serializer = <XMLSerializer> new xmldom.XMLSerializer();
 	if (figure.assets)
 	{
 		if (figure.assets.base64)
@@ -65,16 +62,14 @@ if (process)
 			for (i = 0, n = figure.assets.svg.length; i < n; ++i)
 			{
 				filename = figure.assets.svg[i];
-				assets[filename] = serializer.serializeToString(
-					parser.parseFromString(
-						fs.readFileSync(path.join(dir, filename), options),
-						SVG_MIME_TYPE
-					).documentElement
-				);
+				assets[filename] = fs.readFileSync(path.join(dir, filename), options);
 			}
 		}
 	}
-	var doc: Document = parser.parseFromString('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'
+	var xmldom: any = require("xmldom"),
+		parser = <DOMParser> new xmldom.DOMParser(),
+		serializer = <XMLSerializer> new xmldom.XMLSerializer(),
+		doc: Document = parser.parseFromString('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'
 			+ figure.width + '" height="' + figure.height + '"></svg>', SVG_MIME_TYPE),
 		builder = new Haeckel.ElementBuilder(doc, doc.documentElement);
 	figure.render(builder, sources, assets);
