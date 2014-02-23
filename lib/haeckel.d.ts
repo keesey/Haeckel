@@ -1,4 +1,4 @@
-/// <reference path="../bower_components/dt-node/node.d.ts" />
+
 declare module Haeckel {
     function hash(object: any): string;
 }

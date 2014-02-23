@@ -28,7 +28,10 @@ module.exports = function(grunt)
       {
         src: ['lib/haeckel.d.ts'],
         dest: 'lib/',
-        replacements: [{ from: /\s+extends\s+([^{[(]+)\[\]/g, to: " extends Array<$1>" }]
+        replacements: [
+          { from: /\s+extends\s+([^{[(]+)\[\]/g, to: " extends Array<$1>" },
+          { from: '/// <reference path="../bower_components/dt-node/node.d.ts" />', to: "" }
+        ]
       }
     },
     typescript:
