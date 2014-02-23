@@ -1233,7 +1233,10 @@ declare module Haeckel {
 }
 declare module Haeckel {
     interface DataSources {
-        [filename: string]: Haeckel.DataSource;
+        nomenclature: Haeckel.Nomenclature;
+        sources: {
+            [filename: string]: Haeckel.DataSource;
+        };
     }
 }
 declare module Haeckel {

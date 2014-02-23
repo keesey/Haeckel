@@ -1,6 +1,7 @@
 ///<reference path='../bower_components/dt-node/node.d.ts' />
 ///<reference path='builders/ElementBuilder.ts' />
 ///<reference path='builders/NomenclatureBuilder.ts' />
+///<reference path='constants/EMPTY_NOMENCLATURE.ts' />
 ///<reference path='interfaces/DataSource.ts' />
 ///<reference path='interfaces/DataSources.ts' />
 ///<reference path='interfaces/Figure.ts' />
@@ -22,13 +23,14 @@ if (process)
 		figure: Haeckel.Figure = eval(fs.readFileSync(figureFilename, options)),
 		path: any = require('path'),
 		dir = path.dirname(figureFilename),
-		sources: Haeckel.DataSources = {},
+		sources: Haeckel.DataSources = { nomenclature: Haeckel.EMPTY_NOMENCLATURE, sources: {} },
 		assets: Haeckel.AssetData = {},
 		filename: string,
 		i: number,
 		n: number;
 	if (figure.sources)
 	{
+		// :TODO: Move this to DataSourcesReader
 		var data: { [filename: string]: Haeckel.DataSourceData; } = {};
 		for (i = 0, n = figure.sources.length; i < n; ++i)
 		{
@@ -41,10 +43,10 @@ if (process)
 		{
 			reader.readNomenclature(data[filename], nomenclatureBuilder);
 		}
-		reader.nomenclature = nomenclatureBuilder.build();
+		reader.nomenclature = sources.nomenclature = nomenclatureBuilder.build();
 		for (filename in data)
 		{
-			sources[filename] = reader.readDataSource(data[filename]);
+			sources.sources[filename] = reader.readDataSource(data[filename]);
 		}
 	}
 	if (figure.assets)
