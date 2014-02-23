@@ -1,4 +1,3 @@
-/// <reference path="../constants/XML_SERIALIZER.ts"/>
 /// <reference path="../interfaces/Builder.ts"/>
 module Haeckel
 {
@@ -63,11 +62,6 @@ module Haeckel
 		build(): Element
 		{
 			return this.element;
-		}
-		
-		buildString(): string
-		{
-			return XML_SERIALIZER.serializeToString(this.element);
 		}
 		
 		child(uri: string, localName: string): ElementBuilder;

@@ -16,7 +16,6 @@ module.exports = function(grunt)
   {
     clean:
     {
-      generate: ['lib/generate.js'],
       lib: ['lib/haeckel.d.ts', 'lib/*.js', 'lib/**/*.js']
     },
     nodeunit:
@@ -36,16 +35,7 @@ module.exports = function(grunt)
     {
       lib:
       {
-        src: [
-          'lib/builders/**/*.ts',
-          'lib/charts/**/*.ts',
-          'lib/constants/**/*.ts',
-          'lib/functions/**/*.ts',
-          'lib/interfaces/**/*.ts',
-          'lib/readers/**/*.ts',
-          'lib/solvers/**/*.ts',
-          'lib/writers/**/*.ts'
-        ],
+        src: [ 'lib/**/*.ts' ],
         dest: 'lib/haeckel.js',
         options: 
         {
@@ -53,19 +43,6 @@ module.exports = function(grunt)
           base_path: 'lib',
           declaration: true,
           module: "commonjs",
-          sourcemap: false,
-          noImplicitAny: true
-        }
-      },
-      generate:
-      {
-        src: ['lib/generate.ts'],
-        dest: 'lib/generate.js',
-        options: 
-        {
-          target: 'es5',
-          base_path: 'lib',
-          declaration: false,
           sourcemap: false,
           noImplicitAny: true
         }
@@ -79,6 +56,7 @@ module.exports = function(grunt)
           target: 'es5',
           base_path: 'test',
           declaration: false,
+          module: "commonjs",
           sourcemap: true,
           noImplicitAny: true
         }
@@ -102,9 +80,7 @@ module.exports = function(grunt)
   // Default task.
   grunt.registerTask('lib', ['clean:lib', 'typescript:lib', 'replace:lib']);
 
-  grunt.registerTask('generate', ['clean:generate', 'lib', 'typescript:generate']);
+  grunt.registerTask('test', ['lib', 'typescript:test', 'nodeunit']);
 
-  grunt.registerTask('test', ['lib', 'generate', 'typescript:test', 'nodeunit']);
-
-  grunt.registerTask('default', ['generate']); // :TODO: change back to ['test']
+  grunt.registerTask('default', ['lib']); // :TODO: change back to ['test']
 };

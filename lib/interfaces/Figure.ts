@@ -1,25 +1,22 @@
 ///<reference path='DataSources.ts' />
+///<reference path='../builders/ElementBuilder.ts' />
 
 module Haeckel
 {
-	export enum AssetType
+	export interface AssetData
 	{
-		BASE64,
-		SVG
-	}
-
-	export interface Asset
-	{
-		data: string;
-		type: AssetType;
+		[filename: string]: string;
 	}
 
 	export interface Figure
 	{
-		assets: string[];
-		dataSources: string[];
+		assets?: {
+			base64?: string[];
+			svg?: string[];
+		};
 		height: string;
+		sources?: string[];
 		width: string;
-		render(doc: Document, dataSources: DataSources, assets: { [filename: string]: Asset; }): SVGSVGElement;
+		render(builder: ElementBuilder, sources: DataSources, assets: AssetData): void;
 	}
 }

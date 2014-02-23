@@ -51,5 +51,7 @@
   "scripts": {
     "test": "grunt"
   },
-  "dependencies": {}
+  "dependencies": {
+    "xmldom": "~0.1.19"
+  }
 }

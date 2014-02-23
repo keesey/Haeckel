@@ -1,3 +1,4 @@
+/// <reference path="../bower_components/dt-node/node.d.ts" />
 declare module Haeckel {
     function hash(object: any): string;
 }
@@ -372,9 +373,6 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    var XML_SERIALIZER: XMLSerializer;
-}
-declare module Haeckel {
     class ElementBuilder implements Haeckel.Builder<Element> {
         private document;
         private element;
@@ -394,7 +392,6 @@ declare module Haeckel {
             [name: string]: string;
         }): ElementBuilder;
         public build(): Element;
-        public buildString(): string;
         public child(uri: string, localName: string): ElementBuilder;
         public child(name: string): ElementBuilder;
         public detach(): ElementBuilder;
@@ -1240,22 +1237,18 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    enum AssetType {
-        BASE64 = 0,
-        SVG = 1,
-    }
-    interface Asset {
-        data: string;
-        type: AssetType;
+    interface AssetData {
+        [filename: string]: string;
     }
     interface Figure {
-        assets: string[];
-        dataSources: string[];
+        assets?: {
+            base64?: string[];
+            svg?: string[];
+        };
         height: string;
+        sources?: string[];
         width: string;
-        render(doc: Document, dataSources: Haeckel.DataSources, assets: {
-            [filename: string]: Asset;
-        }): SVGSVGElement;
+        render(builder: Haeckel.ElementBuilder, sources: Haeckel.DataSources, assets: AssetData): void;
     }
 }
 declare module Haeckel {
