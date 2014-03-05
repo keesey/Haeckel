@@ -6488,47 +6488,68 @@ var Haeckel;
     })();
     Haeckel.DataSourceReader = DataSourceReader;
 })(Haeckel || (Haeckel = {}));
-if (process) {
-    if (process.argv.length !== 3 || !process.argv[2]) {
-        process.stderr.write('Usage: node generate [figure.js] > [figure.svg]\n');
-        process.exit(1);
-    }
-
-    var SVG_MIME_TYPE = 'image/svg+xml', fs = require('fs'), figureFilename = process.argv[2], options = { encoding: 'utf8', flag: 'r' }, figure = eval(fs.readFileSync(figureFilename, options)), path = require('path'), dir = path.dirname(figureFilename), sources = { nomenclature: Haeckel.EMPTY_NOMENCLATURE, sources: {} }, assets = {}, filename, i, n;
-    if (figure.sources) {
-        var data = {};
-        for (i = 0, n = figure.sources.length; i < n; ++i) {
-            filename = figure.sources[i];
-            data[filename] = JSON.parse(fs.readFileSync(path.join(dir, filename), options));
+var Haeckel;
+(function (Haeckel) {
+    var DataSourcesReader = (function () {
+        function DataSourcesReader() {
         }
-        var reader = new Haeckel.DataSourceReader(), nomenclatureBuilder = new Haeckel.NomenclatureBuilder;
-        for (filename in data) {
-            reader.readNomenclature(data[filename], nomenclatureBuilder);
-        }
-        reader.nomenclature = sources.nomenclature = nomenclatureBuilder.build();
-        for (filename in data) {
-            sources.sources[filename] = reader.readDataSource(data[filename]);
-        }
-    }
-    if (figure.assets) {
-        if (figure.assets.base64) {
-            for (i = 0, n = figure.assets.base64.length; i < n; ++i) {
-                filename = figure.assets.base64[i];
-                assets[filename] = fs.readFileSync(path.join(dir, filename)).toString('base64');
+        DataSourcesReader.prototype.read = function (system, filenames) {
+            var data = {}, filename;
+            if (!filenames) {
+                filenames = [];
+            }
+            for (var i = 0, n = filenames.length; i < n; ++i) {
+                filename = filenames[i];
+                if (data[filename] === undefined) {
+                    data[filename] = JSON.parse(system.readText(filename));
+                }
+            }
+            var reader = new Haeckel.DataSourceReader, nomenclatureBuilder = new Haeckel.NomenclatureBuilder;
+            for (filename in data) {
+                reader.readNomenclature(data[filename], nomenclatureBuilder);
+            }
+            var sources = {
+                nomenclature: reader.nomenclature = nomenclatureBuilder.build(),
+                sources: {}
+            };
+            for (filename in data) {
+                sources.sources[filename] = reader.readDataSource(data[filename]);
+            }
+            return sources;
+        };
+        return DataSourcesReader;
+    })();
+    Haeckel.DataSourcesReader = DataSourcesReader;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    function render(figure, document, system, serializer) {
+        var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(system, figure.sources), i, n, assetData = {}, filename, elementBuilder = new Haeckel.ElementBuilder(document, Haeckel.SVG_NS, 'svg').attrs({
+            xmlns: Haeckel.SVG_NS,
+            "xmlns:xlink": "http://www.w3.org/1999/xlink"
+        }).attrs(Haeckel.SVG_NS, {
+            width: figure.width,
+            height: figure.height
+        });
+        if (figure.assets) {
+            if (figure.assets.base64) {
+                for (i = 0, n = figure.assets.base64.length; i < n; ++i) {
+                    filename = figure.assets.base64[i];
+                    assetData[filename] = system.readBase64(filename);
+                }
+            }
+            if (figure.assets.text) {
+                for (i = 0, n = figure.assets.text.length; i < n; ++i) {
+                    filename = figure.assets.text[i];
+                    assetData[filename] = system.readText(filename);
+                }
             }
         }
-        if (figure.assets.svg) {
-            for (i = 0, n = figure.assets.svg.length; i < n; ++i) {
-                filename = figure.assets.svg[i];
-                assets[filename] = fs.readFileSync(path.join(dir, filename), options);
-            }
-        }
+        figure.render(elementBuilder, dataSources, assetData);
+        return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(elementBuilder.build());
     }
-    var xmldom = require("xmldom"), parser = new xmldom.DOMParser(), serializer = new xmldom.XMLSerializer(), doc = parser.parseFromString('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + figure.width + '" height="' + figure.height + '"></svg>', SVG_MIME_TYPE), builder = new Haeckel.ElementBuilder(doc, doc.documentElement);
-    figure.render(builder, sources, assets);
-    process.stdout.write('<?xml version="1.0" encoding="UTF-8"?>');
-    process.stdout.write(serializer.serializeToString(builder.build()));
-}
+    Haeckel.render = render;
+})(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
     var CharacterScoresWriter = (function () {

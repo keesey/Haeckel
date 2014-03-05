@@ -16,18 +16,14 @@ module.exports = function(grunt)
   {
     clean:
     {
-      lib: ['lib/haeckel.d.ts', 'lib/*.js', 'lib/**/*.js']
-    },
-    nodeunit:
-    {
-      files: ['test/**/*_test.js']
+      bin: ['bin/**/*']
     },
     replace:
     {
       lib:
       {
-        src: ['lib/haeckel.d.ts'],
-        dest: 'lib/',
+        src: ['bin/haeckel.d.ts'],
+        dest: 'bin/',
         replacements: [
           { from: /\s+extends\s+([^{[(]+)\[\]/g, to: " extends Array<$1>" },
           { from: '/// <reference path="../bower_components/dt-node/node.d.ts" />', to: "" }
@@ -38,29 +34,40 @@ module.exports = function(grunt)
     {
       lib:
       {
-        src: [ 'lib/**/*.ts' ],
-        dest: 'lib/haeckel.js',
+        src: [ 'src/lib/**/*.ts' ],
+        dest: 'bin/haeckel.js',
         options: 
         {
           target: 'es5',
-          base_path: 'lib',
+          base_path: 'src/lib',
           declaration: true,
-          module: "commonjs",
           sourcemap: false,
           noImplicitAny: true
         }
       },
-      test:
+      phantom:
       {
-        src: ['test/**/*.ts'],
-        dest: 'test',
+        src: [ 'src/phantom.ts' ],
+        dest: 'bin/phantom.js',
         options: 
         {
           target: 'es5',
-          base_path: 'test',
+          base_path: 'src',
           declaration: false,
-          module: "commonjs",
-          sourcemap: true,
+          sourcemap: false,
+          noImplicitAny: true
+        }
+      },
+      render:
+      {
+        src: [ 'src/render.ts' ],
+        dest: 'bin/render.js',
+        options: 
+        {
+          target: 'es5',
+          base_path: 'src',
+          declaration: false,
+          sourcemap: false,
           noImplicitAny: true
         }
       }
@@ -69,21 +76,18 @@ module.exports = function(grunt)
     {
       lib:
       {
-        files: 'lib/**/*.ts',
-        tasks: ['clean:lib', 'typescript:lib', 'nodeunit']
-      },
-      test:
-      {
-        files: 'test/**/*.ts',
-        tasks: ['typescript:test', 'nodeunit']
+        files: 'src/lib/**/*.ts',
+        tasks: ['lib']
       }
     }
   });
 
   // Default task.
-  grunt.registerTask('lib', ['clean:lib', 'typescript:lib', 'replace:lib']);
+  grunt.registerTask('lib', ['typescript:lib', 'replace:lib']);
 
-  grunt.registerTask('test', ['lib', 'typescript:test', 'nodeunit']);
+  grunt.registerTask('exec', ['lib', 'typescript:phantom', 'typescript:render']);
 
-  grunt.registerTask('default', ['lib']); // :TODO: change back to ['test']
+  //grunt.registerTask('test', ['lib', 'typescript:test', 'nodeunit']);
+
+  grunt.registerTask('default', ['exec']); // :TODO: change back to ['test']
 };

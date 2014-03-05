@@ -1,12 +1,4 @@
 bower_components/
 node_modules/
 npm-debug.log
-lib/builders/*.js
-lib/charts/*.js
-lib/constants/*.js
-lib/functions/*.js
-lib/interfaces/*.js
-lib/readers/*.js
-lib/solvers/*.js
-lib/writers/*.js
 test/*.js

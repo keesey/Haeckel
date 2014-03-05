@@ -1,4 +1,3 @@
-
 declare module Haeckel {
     function hash(object: any): string;
 }
@@ -1246,7 +1245,7 @@ declare module Haeckel {
     interface Figure {
         assets?: {
             base64?: string[];
-            svg?: string[];
+            text?: string[];
         };
         height: string;
         sources?: string[];
@@ -1414,6 +1413,18 @@ declare module Haeckel {
         public readDataSource(data: DataSourceData): Haeckel.DataSource;
         public readNomenclature(data: DataSourceData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
     }
+}
+declare module Haeckel {
+    interface FileSystem {
+        readBase64(filename: string): string;
+        readText(filename: string): string;
+    }
+    class DataSourcesReader {
+        public read(system: FileSystem, filenames: string[]): Haeckel.DataSources;
+    }
+}
+declare module Haeckel {
+    function render(figure: Figure, document: Document, system: FileSystem, serializer: XMLSerializer): string;
 }
 declare module Haeckel {
     class CharacterScoresWriter {

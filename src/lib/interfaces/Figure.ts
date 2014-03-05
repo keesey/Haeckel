@@ -12,7 +12,7 @@ module Haeckel
 	{
 		assets?: {
 			base64?: string[];
-			svg?: string[];
+			text?: string[];
 		};
 		height: string;
 		sources?: string[];
