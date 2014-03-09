@@ -255,6 +255,20 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    function isWeightedStates(o) {
+        return typeof o === "object" && (o.states === null || Haeckel.isSet(o.states)) && typeof o.weight === "number";
+    }
+    Haeckel.isWeightedStates = isWeightedStates;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    function isInferrer(o) {
+        return typeof o === "object" && typeof o.average === "function";
+    }
+    Haeckel.isInferrer = isInferrer;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
     function isCharacter(o) {
         if (!Haeckel.isEntity(o)) {
             return false;
@@ -458,6 +472,28 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (ext) {
+        function setDiff(minuend, subtrahend) {
+            if (minuend.empty || subtrahend.size === Infinity) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (subtrahend.empty) {
+                return minuend;
+            }
+            if (Haeckel.equal(minuend, subtrahend)) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (minuend.size === Infinity) {
+                throw new Error('Cannot traverse domain sets.');
+            }
+            return new Haeckel.ExtSetBuilder().addSet(minuend).removeSet(subtrahend).build();
+        }
+        ext.setDiff = setDiff;
+    })(Haeckel.ext || (Haeckel.ext = {}));
+    var ext = Haeckel.ext;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (ext) {
         function create(elements) {
             if (elements.length === 0) {
                 return Haeckel.EMPTY_SET;
@@ -514,6 +550,16 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (tax) {
+        function setDiff(minuend, subtrahend) {
+            return Haeckel.tax.create(Haeckel.ext.setDiff(minuend.entities, subtrahend.entities));
+        }
+        tax.setDiff = setDiff;
+    })(Haeckel.tax || (Haeckel.tax = {}));
+    var tax = Haeckel.tax;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (tax) {
         function union(taxa) {
             var builder = new Haeckel.ExtSetBuilder();
             for (var i = 0, n = taxa.length; i < n; ++i) {
@@ -524,13 +570,6 @@ var Haeckel;
         tax.union = union;
     })(Haeckel.tax || (Haeckel.tax = {}));
     var tax = Haeckel.tax;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    function isWeightedStates(o) {
-        return typeof o === "object" && (o.states === null || Haeckel.isSet(o.states)) && typeof o.weight === "number";
-    }
-    Haeckel.isWeightedStates = isWeightedStates;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -1076,28 +1115,6 @@ var Haeckel;
         return DistanceMatrixBuilder;
     })();
     Haeckel.DistanceMatrixBuilder = DistanceMatrixBuilder;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (ext) {
-        function setDiff(minuend, subtrahend) {
-            if (minuend.empty || subtrahend.size === Infinity) {
-                return Haeckel.EMPTY_SET;
-            }
-            if (subtrahend.empty) {
-                return minuend;
-            }
-            if (Haeckel.equal(minuend, subtrahend)) {
-                return Haeckel.EMPTY_SET;
-            }
-            if (minuend.size === Infinity) {
-                throw new Error('Cannot traverse domain sets.');
-            }
-            return new Haeckel.ExtSetBuilder().addSet(minuend).removeSet(subtrahend).build();
-        }
-        ext.setDiff = setDiff;
-    })(Haeckel.ext || (Haeckel.ext = {}));
-    var ext = Haeckel.ext;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -3428,6 +3445,39 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (occ) {
+        function create(count, geo, time) {
+            if (typeof count === "undefined") { count = null; }
+            if (typeof geo === "undefined") { geo = null; }
+            if (typeof time === "undefined") { time = null; }
+            var occurrence = {
+                count: count ? count : Haeckel.EMPTY_SET,
+                geo: geo ? geo : Haeckel.EMPTY_SET,
+                hash: null,
+                time: time ? time : Haeckel.EMPTY_SET
+            };
+            occurrence.hash = "(occurrence:" + occurrence.count.hash + ":" + occurrence.geo.hash + ":" + occurrence.time.hash + ")";
+            return Object.freeze(occurrence);
+        }
+        occ.create = create;
+    })(Haeckel.occ || (Haeckel.occ = {}));
+    var occ = Haeckel.occ;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (occ) {
+        function read(data) {
+            if (data === null) {
+                return null;
+            }
+            return Haeckel.occ.create(Haeckel.rng.read(data.count), Haeckel.geo.readRegions(data.geo), Haeckel.rng.read(data.time));
+        }
+        occ.read = read;
+    })(Haeckel.occ || (Haeckel.occ = {}));
+    var occ = Haeckel.occ;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (occ) {
         function readOccurrences(data) {
             var builder = new Haeckel.ExtSetBuilder(), occurrence;
             if (Array.isArray(data)) {
@@ -3454,26 +3504,6 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     Haeckel.OCCURRENCE_CHARACTER = Haeckel.chr.createDomain('{Occurrence}', Haeckel.occ.readOccurrences);
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (occ) {
-        function create(count, geo, time) {
-            if (typeof count === "undefined") { count = null; }
-            if (typeof geo === "undefined") { geo = null; }
-            if (typeof time === "undefined") { time = null; }
-            var occurrence = {
-                count: count ? count : Haeckel.EMPTY_SET,
-                geo: geo ? geo : Haeckel.EMPTY_SET,
-                hash: null,
-                time: time ? time : Haeckel.EMPTY_SET
-            };
-            occurrence.hash = "(occurrence:" + occurrence.count.hash + ":" + occurrence.geo.hash + ":" + occurrence.time.hash + ")";
-            return Object.freeze(occurrence);
-        }
-        occ.create = create;
-    })(Haeckel.occ || (Haeckel.occ = {}));
-    var occ = Haeckel.occ;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -3689,16 +3719,6 @@ var Haeckel;
             return Haeckel.tax.create(Haeckel.ext.intersect(a.entities, b.entities));
         }
         tax.intersect = intersect;
-    })(Haeckel.tax || (Haeckel.tax = {}));
-    var tax = Haeckel.tax;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (tax) {
-        function setDiff(minuend, subtrahend) {
-            return Haeckel.tax.create(Haeckel.ext.setDiff(minuend.entities, subtrahend.entities));
-        }
-        tax.setDiff = setDiff;
     })(Haeckel.tax || (Haeckel.tax = {}));
     var tax = Haeckel.tax;
 })(Haeckel || (Haeckel = {}));
@@ -5651,19 +5671,6 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    (function (occ) {
-        function read(data) {
-            if (data === null) {
-                return null;
-            }
-            return Haeckel.occ.create(Haeckel.rng.read(data.count), Haeckel.geo.readRegions(data.geo), Haeckel.rng.read(data.time));
-        }
-        occ.read = read;
-    })(Haeckel.occ || (Haeckel.occ = {}));
-    var occ = Haeckel.occ;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
     (function (rng) {
         function intersect(a, b) {
             if (!a || !b || !Haeckel.rng.overlap(a, b)) {
@@ -5845,13 +5852,6 @@ var Haeckel;
         typ.create = create;
     })(Haeckel.typ || (Haeckel.typ = {}));
     var typ = Haeckel.typ;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    function isInferrer(o) {
-        return typeof o === "object" && typeof o.average === "function";
-    }
-    Haeckel.isInferrer = isInferrer;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -6493,7 +6493,7 @@ var Haeckel;
     var DataSourcesReader = (function () {
         function DataSourcesReader() {
         }
-        DataSourcesReader.prototype.read = function (system, filenames) {
+        DataSourcesReader.prototype.read = function (files, filenames) {
             var data = {}, filename;
             if (!filenames) {
                 filenames = [];
@@ -6501,7 +6501,7 @@ var Haeckel;
             for (var i = 0, n = filenames.length; i < n; ++i) {
                 filename = filenames[i];
                 if (data[filename] === undefined) {
-                    data[filename] = JSON.parse(system.readText(filename));
+                    data[filename] = JSON.parse(files.text[filename]);
                 }
             }
             var reader = new Haeckel.DataSourceReader, nomenclatureBuilder = new Haeckel.NomenclatureBuilder;
@@ -6523,8 +6523,8 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    function render(figure, document, system, serializer) {
-        var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(system, figure.sources), i, n, assetData = {}, filename, elementBuilder = new Haeckel.ElementBuilder(document, Haeckel.SVG_NS, 'svg').attrs({
+    function render(figure, document, files, serializer) {
+        var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, assetData = {}, filename, elementBuilder = new Haeckel.ElementBuilder(document, Haeckel.SVG_NS, 'svg').attrs({
             xmlns: Haeckel.SVG_NS,
             "xmlns:xlink": "http://www.w3.org/1999/xlink"
         }).attrs(Haeckel.SVG_NS, {
@@ -6535,18 +6535,20 @@ var Haeckel;
             if (figure.assets.base64) {
                 for (i = 0, n = figure.assets.base64.length; i < n; ++i) {
                     filename = figure.assets.base64[i];
-                    assetData[filename] = system.readBase64(filename);
+                    assetData[filename] = files.base64[filename];
                 }
             }
             if (figure.assets.text) {
                 for (i = 0, n = figure.assets.text.length; i < n; ++i) {
                     filename = figure.assets.text[i];
-                    assetData[filename] = system.readText(filename);
+                    assetData[filename] = files.text[filename];
                 }
             }
         }
         figure.render(elementBuilder, dataSources, assetData);
-        return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(elementBuilder.build());
+        var svg = elementBuilder.build();
+        document.body.appendChild(svg);
+        return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(svg);
     }
     Haeckel.render = render;
 })(Haeckel || (Haeckel = {}));

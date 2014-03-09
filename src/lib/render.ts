@@ -1,14 +1,14 @@
 /// <reference path="builders/ElementBuilder.ts"/>
 /// <reference path="constants/SVG_NS.ts"/>
 /// <reference path="interfaces/Figure.ts"/>
+/// <reference path="interfaces/FileCache.ts"/>
 /// <reference path="readers/DataSourcesReader.ts"/>
-
 module Haeckel
 {
-	export function render(figure: Figure, document: Document, system: FileSystem, serializer: XMLSerializer): string
+	export function render(figure: Figure, document: Document, files: FileCache, serializer: XMLSerializer): string
 	{
 		var dataSourcesReader = new DataSourcesReader(),
-			dataSources = dataSourcesReader.read(system, figure.sources),
+			dataSources = dataSourcesReader.read(files, figure.sources),
 			i: number,
 			n: number,
 			assetData: AssetData = {},
@@ -29,7 +29,7 @@ module Haeckel
 				for (i = 0, n = figure.assets.base64.length; i < n; ++i)
 				{
 					filename = figure.assets.base64[i];
-					assetData[filename] = system.readBase64(filename);
+					assetData[filename] = files.base64[filename];
 				}
 			}
 			if (figure.assets.text)
@@ -37,12 +37,14 @@ module Haeckel
 				for (i = 0, n = figure.assets.text.length; i < n; ++i)
 				{
 					filename = figure.assets.text[i];
-					assetData[filename] = system.readText(filename);
+					assetData[filename] = files.text[filename];
 				}
 			}
 		}
 		figure.render(elementBuilder, dataSources, assetData);
+		var svg = <SVGSVGElement> elementBuilder.build();
+		document.body.appendChild(svg);
 		return '<?xml version="1.0" encoding="UTF-8"?>'
-			+ serializer.serializeToString(elementBuilder.build());
+			+ serializer.serializeToString(svg);
 	}
 }

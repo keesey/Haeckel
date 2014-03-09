@@ -124,6 +124,19 @@ declare module Haeckel.arr {
     function each<T>(list: T[], f: (element: T) => any, thisObject?: any): void;
 }
 declare module Haeckel {
+    interface WeightedStates<S extends Haeckel.Set> {
+        states: S;
+        weight: number;
+    }
+    function isWeightedStates(o: any): boolean;
+}
+declare module Haeckel {
+    interface Inferrer<S extends Haeckel.Set> {
+        average: (statesList: Haeckel.WeightedStates<S>[]) => S;
+    }
+    function isInferrer(o: any): boolean;
+}
+declare module Haeckel {
     interface Character<S extends Haeckel.Set> extends Haeckel.Entity {
         combine: (statesList: S[]) => S;
         domain: S;
@@ -193,6 +206,9 @@ declare module Haeckel.ext {
     function intersect<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): Haeckel.ExtSet<T>;
 }
 declare module Haeckel.ext {
+    function setDiff<T>(minuend: Haeckel.ExtSet<T>, subtrahend: Haeckel.ExtSet<T>): Haeckel.ExtSet<T>;
+}
+declare module Haeckel.ext {
     function create<T>(elements: T[]): Haeckel.ExtSet<T>;
 }
 declare module Haeckel.tax {
@@ -202,14 +218,10 @@ declare module Haeckel.tax {
     function create(entities: Haeckel.ExtSet<Haeckel.Entity>): Haeckel.Taxic;
 }
 declare module Haeckel.tax {
-    function union(taxa: Haeckel.Taxic[]): Haeckel.Taxic;
+    function setDiff(minuend: Haeckel.Taxic, subtrahend: Haeckel.Taxic): Haeckel.Taxic;
 }
-declare module Haeckel {
-    interface WeightedStates<S extends Haeckel.Set> {
-        states: S;
-        weight: number;
-    }
-    function isWeightedStates(o: any): boolean;
+declare module Haeckel.tax {
+    function union(taxa: Haeckel.Taxic[]): Haeckel.Taxic;
 }
 declare module Haeckel {
     class SolverCache {
@@ -220,12 +232,12 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    interface Arc<T> extends Array<T> {
+    interface Arc<T> extends T[] {
     }
     function isArc(o: Arc<any>): boolean;
 }
 declare module Haeckel {
-    interface Digraph<V> extends Array<Haeckel.ExtSet<any>> {
+    interface Digraph<V> extends Haeckel.ExtSet<any>[] {
         arcs: Haeckel.ExtSet<Haeckel.Arc<V>>;
         vertices: Haeckel.ExtSet<V>;
     }
@@ -314,9 +326,6 @@ declare module Haeckel {
         public get(a: T, b: T): Haeckel.Range;
         public reset(): DistanceMatrixBuilder<T>;
     }
-}
-declare module Haeckel.ext {
-    function setDiff<T>(minuend: Haeckel.ExtSet<T>, subtrahend: Haeckel.ExtSet<T>): Haeckel.ExtSet<T>;
 }
 declare module Haeckel.ext {
     function union<T>(sets: Haeckel.ExtSet<T>[]): Haeckel.ExtSet<T>;
@@ -747,12 +756,18 @@ declare module Haeckel {
 declare module Haeckel {
     var COUNT_CHARACTER: Character<Range>;
 }
+declare module Haeckel.occ {
+    function create(count?: Haeckel.Range, geo?: Haeckel.ExtSet<Haeckel.GeoCoords[]>, time?: Haeckel.Range): Haeckel.Occurrence;
+}
 declare module Haeckel {
     interface OccurrenceData {
         count?: any;
         geo?: Haeckel.GeoData;
         time?: any;
     }
+}
+declare module Haeckel.occ {
+    function read(data: Haeckel.OccurrenceData): Haeckel.Occurrence;
 }
 declare module Haeckel.occ {
     function readOccurrences(data: Haeckel.OccurrenceData[]): Haeckel.ExtSet<Haeckel.Occurrence>;
@@ -762,9 +777,6 @@ declare module Haeckel.occ {
 }
 declare module Haeckel {
     var OCCURRENCE_CHARACTER: Character<ExtSet<Occurrence>>;
-}
-declare module Haeckel.occ {
-    function create(count?: Haeckel.Range, geo?: Haeckel.ExtSet<Haeckel.GeoCoords[]>, time?: Haeckel.Range): Haeckel.Occurrence;
 }
 declare module Haeckel.rec {
     function contains(r: Haeckel.Rectangle, p: Haeckel.Point): boolean;
@@ -794,9 +806,6 @@ declare module Haeckel.tax {
 }
 declare module Haeckel.tax {
     function intersect(a: Haeckel.Taxic, b: Haeckel.Taxic): Haeckel.Taxic;
-}
-declare module Haeckel.tax {
-    function setDiff(minuend: Haeckel.Taxic, subtrahend: Haeckel.Taxic): Haeckel.Taxic;
 }
 declare module Haeckel {
     class PhyloSolver {
@@ -1153,9 +1162,6 @@ declare module Haeckel.nom {
 declare module Haeckel.nom {
     function read(data: any, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
 }
-declare module Haeckel.occ {
-    function read(data: Haeckel.OccurrenceData): Haeckel.Occurrence;
-}
 declare module Haeckel.rng {
     function intersect(a: Haeckel.Range, b: Haeckel.Range): Haeckel.Range;
 }
@@ -1254,10 +1260,14 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    interface Inferrer<S extends Haeckel.Set> {
-        average: (statesList: Haeckel.WeightedStates<S>[]) => S;
+    interface FileCache {
+        base64: {
+            [filename: string]: string;
+        };
+        text: {
+            [filename: string]: string;
+        };
     }
-    function isInferrer(o: any): boolean;
 }
 declare module Haeckel {
     interface CharacterMapData {
@@ -1415,16 +1425,12 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    interface FileSystem {
-        readBase64(filename: string): string;
-        readText(filename: string): string;
-    }
     class DataSourcesReader {
-        public read(system: FileSystem, filenames: string[]): Haeckel.DataSources;
+        public read(files: Haeckel.FileCache, filenames: string[]): Haeckel.DataSources;
     }
 }
 declare module Haeckel {
-    function render(figure: Figure, document: Document, system: FileSystem, serializer: XMLSerializer): string;
+    function render(figure: Figure, document: Document, files: FileCache, serializer: XMLSerializer): string;
 }
 declare module Haeckel {
     class CharacterScoresWriter {
