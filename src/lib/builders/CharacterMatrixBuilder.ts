@@ -5,6 +5,8 @@
 /// <reference path="../functions/dst/get.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
 /// <reference path="../functions/ext/intersect.ts"/>
+/// <reference path="../functions/ext/setDiff.ts"/>
+/// <reference path="../functions/tax/setDiff.ts"/>
 /// <reference path="../functions/tax/union.ts"/>
 /// <reference path="../interfaces/Builder.ts"/>
 /// <reference path="../interfaces/CharacterMatrix.ts"/>

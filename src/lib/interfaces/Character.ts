@@ -1,4 +1,5 @@
 ///<reference path='Entity.ts' />
+///<reference path='Inferrer.ts' />
 ///<reference path='Range.ts' />
 ///<reference path='Set.ts' />
 

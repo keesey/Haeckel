@@ -3,17 +3,12 @@
 /// <reference path="../constants/EMPTY_NOMENCLATURE.ts"/>
 /// <reference path="../interfaces/DataSource.ts"/>
 /// <reference path="../interfaces/DataSources.ts"/>
+/// <reference path="../interfaces/FileCache.ts"/>
 module Haeckel
 {
-	export interface FileSystem
-	{
-		readBase64(filename: string): string;
-		readText(filename: string): string;
-	}
-
 	export class DataSourcesReader
 	{
-		read(system: FileSystem, filenames: string[]): DataSources
+		read(files: FileCache, filenames: string[]): DataSources
 		{
 			var data: { [filename: string]: DataSourceData; } = {},
 				filename: string;
@@ -26,7 +21,7 @@ module Haeckel
 				filename = filenames[i];
 				if (data[filename] === undefined)
 				{
-					data[filename] = <DataSourceData> JSON.parse(system.readText(filename));
+					data[filename] = <DataSourceData> JSON.parse(files.text[filename]);
 				}
 			}
 			var reader = new DataSourceReader,
