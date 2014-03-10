@@ -17,7 +17,7 @@ try
 {
 	if (system.args.length !== 3 || !/\.js$/.test(system.args[1]))
 	{
-		throw new Error('Correct usage: phantomjs phantom.js <figure.js> <output_folder>')
+		throw new Error('Correct usage: phantomjs render.js <figure.js> <output_folder>')
 	}
 	var inputFile = system.args[1],
 		outputFolder = system.args[2],

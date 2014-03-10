@@ -45,10 +45,10 @@ module.exports = function(grunt)
           noImplicitAny: true
         }
       },
-      phantom:
+      render:
       {
-        src: [ 'src/phantom.ts' ],
-        dest: 'bin/phantom.js',
+        src: [ 'src/render.ts' ],
+        dest: 'bin/render.js',
         options: 
         {
           target: 'es5',
@@ -72,7 +72,7 @@ module.exports = function(grunt)
   // Default task.
   grunt.registerTask('lib', ['typescript:lib', 'replace:lib']);
 
-  grunt.registerTask('exec', ['lib', 'typescript:phantom']);
+  grunt.registerTask('exec', ['lib', 'typescript:render']);
 
   //grunt.registerTask('test', ['lib', 'typescript:test', 'nodeunit']);
 
