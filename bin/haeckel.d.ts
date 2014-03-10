@@ -232,12 +232,12 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    interface Arc<T> extends T[] {
+    interface Arc<T> extends Array<T> {
     }
     function isArc(o: Arc<any>): boolean;
 }
 declare module Haeckel {
-    interface Digraph<V> extends Haeckel.ExtSet<any>[] {
+    interface Digraph<V> extends Array<Haeckel.ExtSet<any>> {
         arcs: Haeckel.ExtSet<Haeckel.Arc<V>>;
         vertices: Haeckel.ExtSet<V>;
     }
@@ -1144,66 +1144,6 @@ declare module Haeckel.ext {
 declare module Haeckel.ext {
     function where<T>(set: Haeckel.ExtSet<T>, f: (element: T) => boolean, thisObject?: any): Haeckel.ExtSet<T>;
 }
-declare module Haeckel.ist {
-    function contains<T>(set: Haeckel.IntSet<T>, element: T): boolean;
-}
-declare module Haeckel.ist {
-    function intersect<T>(a: Haeckel.IntSet<T>, b: Haeckel.IntSet<T>): Haeckel.IntSet<T>;
-}
-declare module Haeckel.ist {
-    function setDiff<T>(minuend: Haeckel.IntSet<T>, subtrahend: Haeckel.IntSet<T>): Haeckel.IntSet<T>;
-}
-declare module Haeckel.ist {
-    function union<T>(sets: Haeckel.IntSet<T>[]): Haeckel.IntSet<T>;
-}
-declare module Haeckel.nom {
-    function forSubtaxa(nomenclature: Haeckel.Nomenclature, taxon: Haeckel.Taxic): Haeckel.ExtSet<string>;
-}
-declare module Haeckel.nom {
-    function read(data: any, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
-}
-declare module Haeckel.rng {
-    function intersect(a: Haeckel.Range, b: Haeckel.Range): Haeckel.Range;
-}
-declare module Haeckel.occ {
-    function timeSlice(time: Haeckel.Range, occurrences: Haeckel.ExtSet<Haeckel.Occurrence>): Haeckel.ExtSet<Haeckel.Occurrence>;
-}
-declare module Haeckel.pt {
-    function create3D(x: number, y: number, z: number): Haeckel.Point3D;
-}
-declare module Haeckel.pt {
-    function equal(a: Haeckel.Point, b: Haeckel.Point): boolean;
-}
-declare module Haeckel.rec {
-    interface BBoxElement extends SVGElement {
-        getBBox(): SVGRect;
-    }
-    function createFromBBox(svg: BBoxElement): Haeckel.Rectangle;
-}
-declare module Haeckel.rec {
-    function createFromPoints(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Rectangle;
-}
-declare module Haeckel.rng {
-    function contains(r: Haeckel.Range, n: number): boolean;
-}
-declare module Haeckel.rng {
-    function includes(superset: Haeckel.Range, subset: Haeckel.Range): boolean;
-}
-declare module Haeckel.rng {
-    function prIncludes(superset: Haeckel.Range, subset: Haeckel.Range): boolean;
-}
-declare module Haeckel.tax {
-    function byName(nomenclature: Haeckel.Nomenclature, name: string): Haeckel.Taxic;
-}
-declare module Haeckel.tax {
-    function prIncludes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
-}
-declare module Haeckel.typ {
-    function contains<T>(set: Haeckel.TypeSet<T>, element: T): boolean;
-}
-declare module Haeckel.typ {
-    function create<T>(typeObject: any): Haeckel.TypeSet<T>;
-}
 declare module Haeckel {
     interface DataSourceMetadata {
         authors?: string[];
@@ -1268,6 +1208,12 @@ declare module Haeckel {
             [filename: string]: string;
         };
     }
+}
+declare module Haeckel.nom {
+    function read(data: any, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+}
+declare module Haeckel.tax {
+    function byName(nomenclature: Haeckel.Nomenclature, name: string): Haeckel.Taxic;
 }
 declare module Haeckel {
     interface CharacterMapData {
@@ -1429,8 +1375,62 @@ declare module Haeckel {
         public read(files: Haeckel.FileCache, filenames: string[]): Haeckel.DataSources;
     }
 }
-declare module Haeckel {
-    function render(figure: Figure, document: Document, files: FileCache, serializer: XMLSerializer): string;
+declare module Haeckel.fig {
+    function render(figure: Haeckel.Figure, document: Document, files: Haeckel.FileCache, serializer: XMLSerializer): string;
+}
+declare module Haeckel.ist {
+    function contains<T>(set: Haeckel.IntSet<T>, element: T): boolean;
+}
+declare module Haeckel.ist {
+    function intersect<T>(a: Haeckel.IntSet<T>, b: Haeckel.IntSet<T>): Haeckel.IntSet<T>;
+}
+declare module Haeckel.ist {
+    function setDiff<T>(minuend: Haeckel.IntSet<T>, subtrahend: Haeckel.IntSet<T>): Haeckel.IntSet<T>;
+}
+declare module Haeckel.ist {
+    function union<T>(sets: Haeckel.IntSet<T>[]): Haeckel.IntSet<T>;
+}
+declare module Haeckel.nom {
+    function forSubtaxa(nomenclature: Haeckel.Nomenclature, taxon: Haeckel.Taxic): Haeckel.ExtSet<string>;
+}
+declare module Haeckel.rng {
+    function intersect(a: Haeckel.Range, b: Haeckel.Range): Haeckel.Range;
+}
+declare module Haeckel.occ {
+    function timeSlice(time: Haeckel.Range, occurrences: Haeckel.ExtSet<Haeckel.Occurrence>): Haeckel.ExtSet<Haeckel.Occurrence>;
+}
+declare module Haeckel.pt {
+    function create3D(x: number, y: number, z: number): Haeckel.Point3D;
+}
+declare module Haeckel.pt {
+    function equal(a: Haeckel.Point, b: Haeckel.Point): boolean;
+}
+declare module Haeckel.rec {
+    interface BBoxElement extends SVGElement {
+        getBBox(): SVGRect;
+    }
+    function createFromBBox(svg: BBoxElement): Haeckel.Rectangle;
+}
+declare module Haeckel.rec {
+    function createFromPoints(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Rectangle;
+}
+declare module Haeckel.rng {
+    function contains(r: Haeckel.Range, n: number): boolean;
+}
+declare module Haeckel.rng {
+    function includes(superset: Haeckel.Range, subset: Haeckel.Range): boolean;
+}
+declare module Haeckel.rng {
+    function prIncludes(superset: Haeckel.Range, subset: Haeckel.Range): boolean;
+}
+declare module Haeckel.tax {
+    function prIncludes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
+}
+declare module Haeckel.typ {
+    function contains<T>(set: Haeckel.TypeSet<T>, element: T): boolean;
+}
+declare module Haeckel.typ {
+    function create<T>(typeObject: any): Haeckel.TypeSet<T>;
 }
 declare module Haeckel {
     class CharacterScoresWriter {

@@ -1,7 +1,7 @@
 /// <reference path="../bower_components/dt-phantomjs/phantomjs.d.ts"/>
+/// <reference path="lib/functions/fig/render.ts"/>
 /// <reference path="lib/interfaces/Figure.ts"/>
 /// <reference path="lib/interfaces/FileCache.ts"/>
-/// <reference path="lib/render.ts"/>
 
 declare var FIGURE_TO_RENDER: Haeckel.Figure;
 
@@ -113,7 +113,7 @@ page.open(dataURI(HTML, 'text/html'), (status: string) =>
 		{
 			var svgData = page.evaluate((cache: Haeckel.FileCache) =>
 			{
-				return Haeckel.render(FIGURE_TO_RENDER, document, cache, new XMLSerializer);
+				return Haeckel.fig.render(FIGURE_TO_RENDER, document, cache, new XMLSerializer);
 			}, files);
 			fs.write(outputFilename + '.svg', svgData, 'w');
         	page.render(outputFilename + '.png');

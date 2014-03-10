@@ -1,5 +1,82 @@
 var Haeckel;
 (function (Haeckel) {
+    var ElementBuilder = (function () {
+        function ElementBuilder(document, a, b) {
+            if (typeof b === "undefined") { b = null; }
+            this.document = document;
+            if (typeof a === 'string') {
+                this.element = b === null ? document.createElement(a) : document.createElementNS(a, b);
+            } else {
+                this.element = a;
+            }
+        }
+        ElementBuilder.style = function (attrs) {
+            var value = '';
+            for (var style in attrs) {
+                value += style + ':' + String(attrs[style]) + ';';
+            }
+            return value;
+        };
+
+        ElementBuilder.prototype.attr = function (a, b, c) {
+            if (typeof c === "undefined") { c = null; }
+            c === null ? this.element.setAttribute(a, b) : this.element.setAttributeNS(a, b, c);
+            return this;
+        };
+
+        ElementBuilder.prototype.attrs = function (a, b) {
+            if (typeof b === "undefined") { b = null; }
+            var uri = typeof a === 'string' ? a : null, attrs = uri ? b : a;
+            for (var name in attrs) {
+                uri === null ? this.element.setAttribute(name, attrs[name]) : this.element.setAttributeNS(uri, name, attrs[name]);
+            }
+            return this;
+        };
+
+        ElementBuilder.prototype.build = function () {
+            return this.element;
+        };
+
+        ElementBuilder.prototype.child = function (a, b) {
+            if (typeof b === "undefined") { b = null; }
+            var child = new ElementBuilder(this.document, a, b);
+            child._parent = this;
+            this.element.appendChild(child.element);
+            return child;
+        };
+
+        ElementBuilder.prototype.detach = function () {
+            if (this.element.parentNode) {
+                this.element.parentNode.removeChild(this.element);
+                this._parent = null;
+            }
+            return this;
+        };
+
+        ElementBuilder.prototype.parent = function () {
+            return this._parent;
+        };
+
+        ElementBuilder.prototype.reset = function () {
+            this.element = null;
+            this._parent = null;
+            return this;
+        };
+
+        ElementBuilder.prototype.text = function (data) {
+            this.element.appendChild(this.document.createTextNode(data));
+            return this;
+        };
+        return ElementBuilder;
+    })();
+    Haeckel.ElementBuilder = ElementBuilder;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    Haeckel.SVG_NS = "http://www.w3.org/2000/svg";
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
     function isModel(o) {
         return o !== null && typeof o === "object" && typeof o.hash === "string";
     }
@@ -118,83 +195,6 @@ var Haeckel;
         return Haeckel.isModel(o) && typeof o.type === "string" && typeof o.name === "string" && Haeckel.isRange(o.start) && Haeckel.isRange(o.end);
     }
     Haeckel.isStratum = isStratum;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    var ElementBuilder = (function () {
-        function ElementBuilder(document, a, b) {
-            if (typeof b === "undefined") { b = null; }
-            this.document = document;
-            if (typeof a === 'string') {
-                this.element = b === null ? document.createElement(a) : document.createElementNS(a, b);
-            } else {
-                this.element = a;
-            }
-        }
-        ElementBuilder.style = function (attrs) {
-            var value = '';
-            for (var style in attrs) {
-                value += style + ':' + String(attrs[style]) + ';';
-            }
-            return value;
-        };
-
-        ElementBuilder.prototype.attr = function (a, b, c) {
-            if (typeof c === "undefined") { c = null; }
-            c === null ? this.element.setAttribute(a, b) : this.element.setAttributeNS(a, b, c);
-            return this;
-        };
-
-        ElementBuilder.prototype.attrs = function (a, b) {
-            if (typeof b === "undefined") { b = null; }
-            var uri = typeof a === 'string' ? a : null, attrs = uri ? b : a;
-            for (var name in attrs) {
-                uri === null ? this.element.setAttribute(name, attrs[name]) : this.element.setAttributeNS(uri, name, attrs[name]);
-            }
-            return this;
-        };
-
-        ElementBuilder.prototype.build = function () {
-            return this.element;
-        };
-
-        ElementBuilder.prototype.child = function (a, b) {
-            if (typeof b === "undefined") { b = null; }
-            var child = new ElementBuilder(this.document, a, b);
-            child._parent = this;
-            this.element.appendChild(child.element);
-            return child;
-        };
-
-        ElementBuilder.prototype.detach = function () {
-            if (this.element.parentNode) {
-                this.element.parentNode.removeChild(this.element);
-                this._parent = null;
-            }
-            return this;
-        };
-
-        ElementBuilder.prototype.parent = function () {
-            return this._parent;
-        };
-
-        ElementBuilder.prototype.reset = function () {
-            this.element = null;
-            this._parent = null;
-            return this;
-        };
-
-        ElementBuilder.prototype.text = function (data) {
-            this.element.appendChild(this.document.createTextNode(data));
-            return this;
-        };
-        return ElementBuilder;
-    })();
-    Haeckel.ElementBuilder = ElementBuilder;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    Haeckel.SVG_NS = "http://www.w3.org/2000/svg";
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -3253,34 +3253,37 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    function render(figure, document, files, serializer) {
-        var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, assetData = {}, filename, elementBuilder = new Haeckel.ElementBuilder(document, Haeckel.SVG_NS, 'svg').attrs({
-            xmlns: Haeckel.SVG_NS,
-            "xmlns:xlink": "http://www.w3.org/1999/xlink"
-        }).attrs(Haeckel.SVG_NS, {
-            width: figure.width + 'px',
-            height: figure.height + 'px'
-        });
-        if (figure.assets) {
-            if (figure.assets.base64) {
-                for (i = 0, n = figure.assets.base64.length; i < n; ++i) {
-                    filename = figure.assets.base64[i];
-                    assetData[filename] = files.base64[filename];
+    (function (fig) {
+        function render(figure, document, files, serializer) {
+            var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, assetData = {}, filename, elementBuilder = new Haeckel.ElementBuilder(document, Haeckel.SVG_NS, 'svg').attrs({
+                xmlns: Haeckel.SVG_NS,
+                "xmlns:xlink": "http://www.w3.org/1999/xlink"
+            }).attrs(Haeckel.SVG_NS, {
+                width: figure.width + 'px',
+                height: figure.height + 'px'
+            });
+            if (figure.assets) {
+                if (figure.assets.base64) {
+                    for (i = 0, n = figure.assets.base64.length; i < n; ++i) {
+                        filename = figure.assets.base64[i];
+                        assetData[filename] = files.base64[filename];
+                    }
+                }
+                if (figure.assets.text) {
+                    for (i = 0, n = figure.assets.text.length; i < n; ++i) {
+                        filename = figure.assets.text[i];
+                        assetData[filename] = files.text[filename];
+                    }
                 }
             }
-            if (figure.assets.text) {
-                for (i = 0, n = figure.assets.text.length; i < n; ++i) {
-                    filename = figure.assets.text[i];
-                    assetData[filename] = files.text[filename];
-                }
-            }
+            figure.render(elementBuilder, dataSources, assetData);
+            var svg = elementBuilder.build();
+            document.body.appendChild(svg);
+            return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(svg);
         }
-        figure.render(elementBuilder, dataSources, assetData);
-        var svg = elementBuilder.build();
-        document.body.appendChild(svg);
-        return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(svg);
-    }
-    Haeckel.render = render;
+        fig.render = render;
+    })(Haeckel.fig || (Haeckel.fig = {}));
+    var fig = Haeckel.fig;
 })(Haeckel || (Haeckel = {}));
 
 var HTML = '<!DOCTYPE HTML><html><head><title>&nbsp;</title></head><body></body></html>';
@@ -3354,7 +3357,7 @@ page.open(dataURI(HTML, 'text/html'), function (status) {
             throw new Error('Cannot find \"" + inputFile + "\".');
         } else {
             var svgData = page.evaluate(function (cache) {
-                return Haeckel.render(FIGURE_TO_RENDER, document, cache, new XMLSerializer);
+                return Haeckel.fig.render(FIGURE_TO_RENDER, document, cache, new XMLSerializer);
             }, files);
             fs.write(outputFilename + '.svg', svgData, 'w');
             page.render(outputFilename + '.png');

@@ -1,9 +1,9 @@
-/// <reference path="builders/ElementBuilder.ts"/>
-/// <reference path="constants/SVG_NS.ts"/>
-/// <reference path="interfaces/Figure.ts"/>
-/// <reference path="interfaces/FileCache.ts"/>
-/// <reference path="readers/DataSourcesReader.ts"/>
-module Haeckel
+/// <reference path="../../builders/ElementBuilder.ts"/>
+/// <reference path="../../constants/SVG_NS.ts"/>
+/// <reference path="../../interfaces/Figure.ts"/>
+/// <reference path="../../interfaces/FileCache.ts"/>
+/// <reference path="../../readers/DataSourcesReader.ts"/>
+module Haeckel.fig
 {
 	export function render(figure: Figure, document: Document, files: FileCache, serializer: XMLSerializer): string
 	{

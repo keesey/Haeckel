@@ -5561,99 +5561,6 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    (function (ist) {
-        function contains(set, element) {
-            return set.criterion(element);
-        }
-        ist.contains = contains;
-    })(Haeckel.ist || (Haeckel.ist = {}));
-    var ist = Haeckel.ist;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (ist) {
-        function intersect(a, b) {
-            if (a.empty || b.empty) {
-                return Haeckel.EMPTY_SET;
-            }
-            if (Haeckel.equal(a, b)) {
-                return a;
-            }
-            return Haeckel.ist.create(function (element) {
-                return a.criterion(element) && b.criterion(element);
-            });
-        }
-        ist.intersect = intersect;
-    })(Haeckel.ist || (Haeckel.ist = {}));
-    var ist = Haeckel.ist;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (ist) {
-        function setDiff(minuend, subtrahend) {
-            if (minuend.empty) {
-                return Haeckel.EMPTY_SET;
-            }
-            if (subtrahend.empty) {
-                return minuend;
-            }
-            if (Haeckel.equal(minuend, subtrahend)) {
-                return Haeckel.EMPTY_SET;
-            }
-            return Haeckel.ist.create(function (element) {
-                return minuend.criterion(element) && !subtrahend.criterion(element);
-            });
-        }
-        ist.setDiff = setDiff;
-    })(Haeckel.ist || (Haeckel.ist = {}));
-    var ist = Haeckel.ist;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (ist) {
-        function union(sets) {
-            var n = sets.length;
-            if (n === 0) {
-                return Haeckel.EMPTY_SET;
-            }
-            if (n === 1) {
-                return sets[0];
-            }
-            return Haeckel.ist.create(function (element) {
-                for (var i = 0; i < n; ++i) {
-                    if (sets[i].criterion(element)) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-        }
-        ist.union = union;
-    })(Haeckel.ist || (Haeckel.ist = {}));
-    var ist = Haeckel.ist;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (nom) {
-        function forSubtaxa(nomenclature, taxon) {
-            if (taxon.empty) {
-                return Haeckel.EMPTY_SET;
-            }
-            var builder = new Haeckel.ExtSetBuilder();
-            Haeckel.ext.each(nomenclature.names, function (name) {
-                var nameTaxon = nomenclature.nameMap[name];
-                if (Haeckel.tax.includes(taxon, nameTaxon)) {
-                    builder.add(name);
-                }
-            });
-            return builder.build();
-        }
-        nom.forSubtaxa = forSubtaxa;
-    })(Haeckel.nom || (Haeckel.nom = {}));
-    var nom = Haeckel.nom;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
     (function (nom) {
         function read(data, builder) {
             if (typeof builder === "undefined") { builder = null; }
@@ -5671,143 +5578,6 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    (function (rng) {
-        function intersect(a, b) {
-            if (!a || !b || !Haeckel.rng.overlap(a, b)) {
-                return Haeckel.EMPTY_SET;
-            }
-            if (a.hash === b.hash) {
-                return a;
-            }
-            return Haeckel.rng.create(Math.max(a.min, b.min), Math.min(a.max, b.max));
-        }
-        rng.intersect = intersect;
-    })(Haeckel.rng || (Haeckel.rng = {}));
-    var rng = Haeckel.rng;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (occ) {
-        function timeSlice(time, occurrences) {
-            var sliceBuilder = new Haeckel.ExtSetBuilder();
-            if (occurrences && !occurrences.empty) {
-                Haeckel.ext.each(occurrences, function (occurrence) {
-                    var intersectTime = Haeckel.rng.intersect(time, occurrence.time);
-                    if (!intersectTime.empty) {
-                        var ratio = (occurrence.time.size === 0) ? 1 : (intersectTime.size / occurrence.time.size), intersectCount = (ratio === 1) ? occurrence.count : Haeckel.rng.multiply(occurrence.count, ratio);
-                        sliceBuilder.add(Haeckel.occ.create(intersectCount, occurrence.geo, intersectTime));
-                    }
-                });
-            }
-            return sliceBuilder.build();
-        }
-        occ.timeSlice = timeSlice;
-    })(Haeckel.occ || (Haeckel.occ = {}));
-    var occ = Haeckel.occ;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (pt) {
-        function create3D(x, y, z) {
-            if (!isFinite(x)) {
-                x = 0;
-            }
-            if (!isFinite(y)) {
-                y = 0;
-            }
-            if (!isFinite(z)) {
-                z = 0;
-            }
-            return Object.freeze({
-                hash: "(" + String(x) + ":" + String(y) + ":" + String(z) + ")",
-                x: x,
-                y: y,
-                z: z
-            });
-        }
-        pt.create3D = create3D;
-    })(Haeckel.pt || (Haeckel.pt = {}));
-    var pt = Haeckel.pt;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (pt) {
-        function equal(a, b) {
-            return Haeckel.precisionEqual(a.x, b.x) && Haeckel.precisionEqual(a.y, b.y);
-        }
-        pt.equal = equal;
-    })(Haeckel.pt || (Haeckel.pt = {}));
-    var pt = Haeckel.pt;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (rec) {
-        function createFromBBox(svg) {
-            var rect = svg.getBBox();
-            return Haeckel.rec.create(rect.x, rect.y, rect.width, rect.height);
-        }
-        rec.createFromBBox = createFromBBox;
-    })(Haeckel.rec || (Haeckel.rec = {}));
-    var rec = Haeckel.rec;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (rec) {
-        function createFromPoints(a, b) {
-            var x = Math.min(a.x, b.x), y = Math.min(a.y, b.y), width = Math.max(a.x, b.x) - x, height = Math.max(a.y, b.y) - y;
-            return Haeckel.rec.create(x, y, width, height);
-        }
-        rec.createFromPoints = createFromPoints;
-    })(Haeckel.rec || (Haeckel.rec = {}));
-    var rec = Haeckel.rec;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (rng) {
-        function contains(r, n) {
-            if (r.empty) {
-                return false;
-            }
-            return n >= r.min && n <= r.max;
-        }
-        rng.contains = contains;
-    })(Haeckel.rng || (Haeckel.rng = {}));
-    var rng = Haeckel.rng;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (rng) {
-        function includes(superset, subset) {
-            if (subset.empty) {
-                return true;
-            }
-            if (superset.empty) {
-                return false;
-            }
-            return subset.min >= superset.min && subset.max <= superset.max;
-        }
-        rng.includes = includes;
-    })(Haeckel.rng || (Haeckel.rng = {}));
-    var rng = Haeckel.rng;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (rng) {
-        function prIncludes(superset, subset) {
-            if (subset.empty) {
-                return !superset.empty;
-            }
-            if (superset.empty || Haeckel.equal(superset, subset)) {
-                return false;
-            }
-            return (subset.min >= superset.min && subset.max <= superset.max);
-        }
-        rng.prIncludes = prIncludes;
-    })(Haeckel.rng || (Haeckel.rng = {}));
-    var rng = Haeckel.rng;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
     (function (tax) {
         function byName(nomenclature, name) {
             return nomenclature.nameMap[name] || Haeckel.EMPTY_SET;
@@ -5815,43 +5585,6 @@ var Haeckel;
         tax.byName = byName;
     })(Haeckel.tax || (Haeckel.tax = {}));
     var tax = Haeckel.tax;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (tax) {
-        function prIncludes(a, b) {
-            return Haeckel.ext.prIncludes(a.entities, b.entities);
-        }
-        tax.prIncludes = prIncludes;
-    })(Haeckel.tax || (Haeckel.tax = {}));
-    var tax = Haeckel.tax;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (typ) {
-        function contains(set, element) {
-            return !set.empty;
-        }
-        typ.contains = contains;
-    })(Haeckel.typ || (Haeckel.typ = {}));
-    var typ = Haeckel.typ;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (typ) {
-        function create(typeObject) {
-            var s = {
-                contains: function (x) {
-                    return true;
-                },
-                empty: false,
-                hash: '{x:' + Haeckel.hash(typeObject) + '(x)}'
-            };
-            return Object.freeze(s);
-        }
-        typ.create = create;
-    })(Haeckel.typ || (Haeckel.typ = {}));
-    var typ = Haeckel.typ;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -6523,34 +6256,304 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    function render(figure, document, files, serializer) {
-        var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, assetData = {}, filename, elementBuilder = new Haeckel.ElementBuilder(document, Haeckel.SVG_NS, 'svg').attrs({
-            xmlns: Haeckel.SVG_NS,
-            "xmlns:xlink": "http://www.w3.org/1999/xlink"
-        }).attrs(Haeckel.SVG_NS, {
-            width: figure.width + 'px',
-            height: figure.height + 'px'
-        });
-        if (figure.assets) {
-            if (figure.assets.base64) {
-                for (i = 0, n = figure.assets.base64.length; i < n; ++i) {
-                    filename = figure.assets.base64[i];
-                    assetData[filename] = files.base64[filename];
+    (function (fig) {
+        function render(figure, document, files, serializer) {
+            var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, assetData = {}, filename, elementBuilder = new Haeckel.ElementBuilder(document, Haeckel.SVG_NS, 'svg').attrs({
+                xmlns: Haeckel.SVG_NS,
+                "xmlns:xlink": "http://www.w3.org/1999/xlink"
+            }).attrs(Haeckel.SVG_NS, {
+                width: figure.width + 'px',
+                height: figure.height + 'px'
+            });
+            if (figure.assets) {
+                if (figure.assets.base64) {
+                    for (i = 0, n = figure.assets.base64.length; i < n; ++i) {
+                        filename = figure.assets.base64[i];
+                        assetData[filename] = files.base64[filename];
+                    }
+                }
+                if (figure.assets.text) {
+                    for (i = 0, n = figure.assets.text.length; i < n; ++i) {
+                        filename = figure.assets.text[i];
+                        assetData[filename] = files.text[filename];
+                    }
                 }
             }
-            if (figure.assets.text) {
-                for (i = 0, n = figure.assets.text.length; i < n; ++i) {
-                    filename = figure.assets.text[i];
-                    assetData[filename] = files.text[filename];
-                }
-            }
+            figure.render(elementBuilder, dataSources, assetData);
+            var svg = elementBuilder.build();
+            document.body.appendChild(svg);
+            return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(svg);
         }
-        figure.render(elementBuilder, dataSources, assetData);
-        var svg = elementBuilder.build();
-        document.body.appendChild(svg);
-        return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(svg);
-    }
-    Haeckel.render = render;
+        fig.render = render;
+    })(Haeckel.fig || (Haeckel.fig = {}));
+    var fig = Haeckel.fig;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (ist) {
+        function contains(set, element) {
+            return set.criterion(element);
+        }
+        ist.contains = contains;
+    })(Haeckel.ist || (Haeckel.ist = {}));
+    var ist = Haeckel.ist;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (ist) {
+        function intersect(a, b) {
+            if (a.empty || b.empty) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (Haeckel.equal(a, b)) {
+                return a;
+            }
+            return Haeckel.ist.create(function (element) {
+                return a.criterion(element) && b.criterion(element);
+            });
+        }
+        ist.intersect = intersect;
+    })(Haeckel.ist || (Haeckel.ist = {}));
+    var ist = Haeckel.ist;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (ist) {
+        function setDiff(minuend, subtrahend) {
+            if (minuend.empty) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (subtrahend.empty) {
+                return minuend;
+            }
+            if (Haeckel.equal(minuend, subtrahend)) {
+                return Haeckel.EMPTY_SET;
+            }
+            return Haeckel.ist.create(function (element) {
+                return minuend.criterion(element) && !subtrahend.criterion(element);
+            });
+        }
+        ist.setDiff = setDiff;
+    })(Haeckel.ist || (Haeckel.ist = {}));
+    var ist = Haeckel.ist;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (ist) {
+        function union(sets) {
+            var n = sets.length;
+            if (n === 0) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (n === 1) {
+                return sets[0];
+            }
+            return Haeckel.ist.create(function (element) {
+                for (var i = 0; i < n; ++i) {
+                    if (sets[i].criterion(element)) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        }
+        ist.union = union;
+    })(Haeckel.ist || (Haeckel.ist = {}));
+    var ist = Haeckel.ist;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (nom) {
+        function forSubtaxa(nomenclature, taxon) {
+            if (taxon.empty) {
+                return Haeckel.EMPTY_SET;
+            }
+            var builder = new Haeckel.ExtSetBuilder();
+            Haeckel.ext.each(nomenclature.names, function (name) {
+                var nameTaxon = nomenclature.nameMap[name];
+                if (Haeckel.tax.includes(taxon, nameTaxon)) {
+                    builder.add(name);
+                }
+            });
+            return builder.build();
+        }
+        nom.forSubtaxa = forSubtaxa;
+    })(Haeckel.nom || (Haeckel.nom = {}));
+    var nom = Haeckel.nom;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rng) {
+        function intersect(a, b) {
+            if (!a || !b || !Haeckel.rng.overlap(a, b)) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (a.hash === b.hash) {
+                return a;
+            }
+            return Haeckel.rng.create(Math.max(a.min, b.min), Math.min(a.max, b.max));
+        }
+        rng.intersect = intersect;
+    })(Haeckel.rng || (Haeckel.rng = {}));
+    var rng = Haeckel.rng;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (occ) {
+        function timeSlice(time, occurrences) {
+            var sliceBuilder = new Haeckel.ExtSetBuilder();
+            if (occurrences && !occurrences.empty) {
+                Haeckel.ext.each(occurrences, function (occurrence) {
+                    var intersectTime = Haeckel.rng.intersect(time, occurrence.time);
+                    if (!intersectTime.empty) {
+                        var ratio = (occurrence.time.size === 0) ? 1 : (intersectTime.size / occurrence.time.size), intersectCount = (ratio === 1) ? occurrence.count : Haeckel.rng.multiply(occurrence.count, ratio);
+                        sliceBuilder.add(Haeckel.occ.create(intersectCount, occurrence.geo, intersectTime));
+                    }
+                });
+            }
+            return sliceBuilder.build();
+        }
+        occ.timeSlice = timeSlice;
+    })(Haeckel.occ || (Haeckel.occ = {}));
+    var occ = Haeckel.occ;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (pt) {
+        function create3D(x, y, z) {
+            if (!isFinite(x)) {
+                x = 0;
+            }
+            if (!isFinite(y)) {
+                y = 0;
+            }
+            if (!isFinite(z)) {
+                z = 0;
+            }
+            return Object.freeze({
+                hash: "(" + String(x) + ":" + String(y) + ":" + String(z) + ")",
+                x: x,
+                y: y,
+                z: z
+            });
+        }
+        pt.create3D = create3D;
+    })(Haeckel.pt || (Haeckel.pt = {}));
+    var pt = Haeckel.pt;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (pt) {
+        function equal(a, b) {
+            return Haeckel.precisionEqual(a.x, b.x) && Haeckel.precisionEqual(a.y, b.y);
+        }
+        pt.equal = equal;
+    })(Haeckel.pt || (Haeckel.pt = {}));
+    var pt = Haeckel.pt;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rec) {
+        function createFromBBox(svg) {
+            var rect = svg.getBBox();
+            return Haeckel.rec.create(rect.x, rect.y, rect.width, rect.height);
+        }
+        rec.createFromBBox = createFromBBox;
+    })(Haeckel.rec || (Haeckel.rec = {}));
+    var rec = Haeckel.rec;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rec) {
+        function createFromPoints(a, b) {
+            var x = Math.min(a.x, b.x), y = Math.min(a.y, b.y), width = Math.max(a.x, b.x) - x, height = Math.max(a.y, b.y) - y;
+            return Haeckel.rec.create(x, y, width, height);
+        }
+        rec.createFromPoints = createFromPoints;
+    })(Haeckel.rec || (Haeckel.rec = {}));
+    var rec = Haeckel.rec;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rng) {
+        function contains(r, n) {
+            if (r.empty) {
+                return false;
+            }
+            return n >= r.min && n <= r.max;
+        }
+        rng.contains = contains;
+    })(Haeckel.rng || (Haeckel.rng = {}));
+    var rng = Haeckel.rng;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rng) {
+        function includes(superset, subset) {
+            if (subset.empty) {
+                return true;
+            }
+            if (superset.empty) {
+                return false;
+            }
+            return subset.min >= superset.min && subset.max <= superset.max;
+        }
+        rng.includes = includes;
+    })(Haeckel.rng || (Haeckel.rng = {}));
+    var rng = Haeckel.rng;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rng) {
+        function prIncludes(superset, subset) {
+            if (subset.empty) {
+                return !superset.empty;
+            }
+            if (superset.empty || Haeckel.equal(superset, subset)) {
+                return false;
+            }
+            return (subset.min >= superset.min && subset.max <= superset.max);
+        }
+        rng.prIncludes = prIncludes;
+    })(Haeckel.rng || (Haeckel.rng = {}));
+    var rng = Haeckel.rng;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (tax) {
+        function prIncludes(a, b) {
+            return Haeckel.ext.prIncludes(a.entities, b.entities);
+        }
+        tax.prIncludes = prIncludes;
+    })(Haeckel.tax || (Haeckel.tax = {}));
+    var tax = Haeckel.tax;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (typ) {
+        function contains(set, element) {
+            return !set.empty;
+        }
+        typ.contains = contains;
+    })(Haeckel.typ || (Haeckel.typ = {}));
+    var typ = Haeckel.typ;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (typ) {
+        function create(typeObject) {
+            var s = {
+                contains: function (x) {
+                    return true;
+                },
+                empty: false,
+                hash: '{x:' + Haeckel.hash(typeObject) + '(x)}'
+            };
+            return Object.freeze(s);
+        }
+        typ.create = create;
+    })(Haeckel.typ || (Haeckel.typ = {}));
+    var typ = Haeckel.typ;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
