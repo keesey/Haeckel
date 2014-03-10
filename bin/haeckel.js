@@ -6528,8 +6528,8 @@ var Haeckel;
             xmlns: Haeckel.SVG_NS,
             "xmlns:xlink": "http://www.w3.org/1999/xlink"
         }).attrs(Haeckel.SVG_NS, {
-            width: figure.width,
-            height: figure.height
+            width: figure.width + 'px',
+            height: figure.height + 'px'
         });
         if (figure.assets) {
             if (figure.assets.base64) {

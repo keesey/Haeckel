@@ -3258,8 +3258,8 @@ var Haeckel;
             xmlns: Haeckel.SVG_NS,
             "xmlns:xlink": "http://www.w3.org/1999/xlink"
         }).attrs(Haeckel.SVG_NS, {
-            width: figure.width,
-            height: figure.height
+            width: figure.width + 'px',
+            height: figure.height + 'px'
         });
         if (figure.assets) {
             if (figure.assets.base64) {
@@ -3297,7 +3297,7 @@ try  {
     if (system.args.length !== 3 || !/\.js$/.test(system.args[1])) {
         throw new Error('Correct usage: phantomjs phantom.js <figure.js> <output_folder>');
     }
-    var inputFile = system.args[1], outputFolder = system.args[2], split = inputFile.split(/[\/\\]/g), baseFilename = split[split.length - 1].replace(/(\.fig)?\.js$/, ''), outputFilename = outputFolder.replace(/\/$/, '') + '/' + baseFilename;
+    var inputFile = system.args[1], outputFolder = system.args[2], split = inputFile.split(/[\/\\]/g), baseFilename = split.pop().replace(/(\.fig)?\.js$/, ''), baseFolder = split.join('/') + (split.length > 0 ? '/' : ''), outputFilename = outputFolder.replace(/\/$/, '') + '/' + baseFilename;
     fs = require('fs');
     if (!fs.isFile(inputFile)) {
         throw new Error("Cannot find input file \"" + inputFile + "\".");
@@ -3321,26 +3321,25 @@ try  {
             if (FIGURE_TO_RENDER.assets.text) {
                 for (i = 0, n = FIGURE_TO_RENDER.assets.text.length; i < n; ++i) {
                     filename = FIGURE_TO_RENDER.assets.text[i];
-                    files.text[filename] = read(filename, { charset: 'utf-8' });
+                    files.text[filename] = read(baseFolder + filename, { charset: 'utf-8' });
                 }
             }
             if (FIGURE_TO_RENDER.assets.base64) {
                 for (i = 0, n = FIGURE_TO_RENDER.assets.base64.length; i < n; ++i) {
                     filename = FIGURE_TO_RENDER.assets.base64[i];
-                    files.base64[filename] = read(filename, { mode: 'rb' });
-
-                    console.log(files.base64[filename]);
+                    files.base64[filename] = btoa(read(baseFolder + filename, { mode: 'rb' }));
                 }
             }
         }
         if (FIGURE_TO_RENDER.sources) {
             for (i = 0, n = FIGURE_TO_RENDER.sources.length; i < n; ++i) {
                 filename = FIGURE_TO_RENDER.sources[i];
-                files.text[filename] = read(filename, { charset: 'utf-8' });
+                files.text[filename] = read(baseFolder + filename, { charset: 'utf-8' });
             }
         }
     }
     var page = require('webpage').create();
+    page.viewportSize = { width: FIGURE_TO_RENDER.width, height: FIGURE_TO_RENDER.height };
 } catch (e) {
     console.error(e);
     phantom.exit(1);
@@ -3365,5 +3364,5 @@ page.open(dataURI(HTML, 'text/html'), function (status) {
         phantom.exit(1);
         return;
     }
-    phantom.exit(0);
+    phantom.exit();
 });

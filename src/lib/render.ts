@@ -19,8 +19,8 @@ module Haeckel
 						"xmlns:xlink": "http://www.w3.org/1999/xlink",
 					})
 				.attrs(SVG_NS, {
-						width: figure.width,
-						height: figure.height
+						width: figure.width + 'px',
+						height: figure.height + 'px'
 					});
 		if (figure.assets)
 		{

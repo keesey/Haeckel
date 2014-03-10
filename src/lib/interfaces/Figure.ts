@@ -14,9 +14,9 @@ module Haeckel
 			base64?: string[];
 			text?: string[];
 		};
-		height: string;
+		height: number;
 		sources?: string[];
-		width: string;
+		width: number;
 		render(builder: ElementBuilder, sources: DataSources, assets: AssetData): void;
 	}
 }

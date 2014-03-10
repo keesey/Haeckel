@@ -1253,9 +1253,9 @@ declare module Haeckel {
             base64?: string[];
             text?: string[];
         };
-        height: string;
+        height: number;
         sources?: string[];
-        width: string;
+        width: number;
         render(builder: Haeckel.ElementBuilder, sources: Haeckel.DataSources, assets: AssetData): void;
     }
 }

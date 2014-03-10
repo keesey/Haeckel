@@ -22,7 +22,8 @@ try
 	var inputFile = system.args[1],
 		outputFolder = system.args[2],
 		split = inputFile.split(/[\/\\]/g),
-		baseFilename = split[split.length - 1].replace(/(\.fig)?\.js$/, ''),
+		baseFilename = split.pop().replace(/(\.fig)?\.js$/, ''),
+		baseFolder = split.join('/') + (split.length > 0 ? '/' : ''),
 		outputFilename = outputFolder.replace(/\/$/, '')
 			+ '/' + baseFilename;
 		fs = <FileSystem> require('fs');
@@ -63,7 +64,7 @@ try
 				for (i = 0, n = FIGURE_TO_RENDER.assets.text.length; i < n; ++i)
 				{
 					filename = FIGURE_TO_RENDER.assets.text[i];
-					files.text[filename] = read(filename, { charset: 'utf-8' }); // :TODO: fix declaration
+					files.text[filename] = read(baseFolder + filename, { charset: 'utf-8' });
 				}
 			}
 			if (FIGURE_TO_RENDER.assets.base64)
@@ -71,9 +72,7 @@ try
 				for (i = 0, n = FIGURE_TO_RENDER.assets.base64.length; i < n; ++i)
 				{
 					filename = FIGURE_TO_RENDER.assets.base64[i];
-					files.base64[filename] = read(filename, { mode: 'rb' }); // :TODO: fix declaration
-					// :TODO: Figure out what this is.
-					console.log(files.base64[filename])
+					files.base64[filename] = btoa(read(baseFolder + filename, { mode: 'rb' }));
 				}
 			}
 		}
@@ -82,11 +81,12 @@ try
 			for (i = 0, n = FIGURE_TO_RENDER.sources.length; i < n; ++i)
 			{
 				filename = FIGURE_TO_RENDER.sources[i];
-				files.text[filename] = read(filename, { charset: 'utf-8' }); // :TODO: fix declaration
+				files.text[filename] = read(baseFolder + filename, { charset: 'utf-8' });
 			}
 		}
 	}
 	var page = <WebPage> require('webpage').create();
+	page.viewportSize = { width: FIGURE_TO_RENDER.width, height: FIGURE_TO_RENDER.height };
 }
 catch (e)
 {
@@ -116,7 +116,7 @@ page.open(dataURI(HTML, 'text/html'), (status: string) =>
 				return Haeckel.render(FIGURE_TO_RENDER, document, cache, new XMLSerializer);
 			}, files);
 			fs.write(outputFilename + '.svg', svgData, 'w');
-			page.render(outputFilename + '.png')
+        	page.render(outputFilename + '.png');
 		}
 	}
 	catch (e)
@@ -125,5 +125,5 @@ page.open(dataURI(HTML, 'text/html'), (status: string) =>
 		phantom.exit(1);
 		return;
 	}
-	phantom.exit(0);
+	phantom.exit();
 });
