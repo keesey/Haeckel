@@ -116,7 +116,19 @@ page.open(dataURI(HTML, 'text/html'), (status: string) =>
 				return Haeckel.fig.render(FIGURE_TO_RENDER, document, cache, new XMLSerializer);
 			}, files);
 			fs.write(outputFilename + '.svg', svgData, 'w');
-        	page.render(outputFilename + '.png');
+			page.open(outputFilename + '.svg', (status: string) =>
+			{
+				if (status !== 'success')
+				{
+					throw new Error('Error reading SVG.');
+				}
+				page.zoomFactor = 3;
+				window.setTimeout(() =>
+				{
+		        	page.render(outputFilename + '.png');
+					phantom.exit();
+		        }, 200);
+			})
 		}
 	}
 	catch (e)
@@ -125,5 +137,4 @@ page.open(dataURI(HTML, 'text/html'), (status: string) =>
 		phantom.exit(1);
 		return;
 	}
-	phantom.exit();
 });

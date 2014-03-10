@@ -20,7 +20,9 @@ module Haeckel.fig
 					})
 				.attrs(SVG_NS, {
 						width: figure.width + 'px',
-						height: figure.height + 'px'
+						height: figure.height + 'px',
+						version: '1.2',
+						viewBox: '0 0 ' + figure.width + ' ' + figure.height
 					});
 		if (figure.assets)
 		{

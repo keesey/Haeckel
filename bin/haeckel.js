@@ -6263,7 +6263,9 @@ var Haeckel;
                 "xmlns:xlink": "http://www.w3.org/1999/xlink"
             }).attrs(Haeckel.SVG_NS, {
                 width: figure.width + 'px',
-                height: figure.height + 'px'
+                height: figure.height + 'px',
+                version: '1.2',
+                viewBox: '0 0 ' + figure.width + ' ' + figure.height
             });
             if (figure.assets) {
                 if (figure.assets.base64) {

@@ -3260,7 +3260,9 @@ var Haeckel;
                 "xmlns:xlink": "http://www.w3.org/1999/xlink"
             }).attrs(Haeckel.SVG_NS, {
                 width: figure.width + 'px',
-                height: figure.height + 'px'
+                height: figure.height + 'px',
+                version: '1.2',
+                viewBox: '0 0 ' + figure.width + ' ' + figure.height
             });
             if (figure.assets) {
                 if (figure.assets.base64) {
@@ -3360,12 +3362,20 @@ page.open(dataURI(HTML, 'text/html'), function (status) {
                 return Haeckel.fig.render(FIGURE_TO_RENDER, document, cache, new XMLSerializer);
             }, files);
             fs.write(outputFilename + '.svg', svgData, 'w');
-            page.render(outputFilename + '.png');
+            page.open(outputFilename + '.svg', function (status) {
+                if (status !== 'success') {
+                    throw new Error('Error reading SVG.');
+                }
+                page.zoomFactor = 3;
+                window.setTimeout(function () {
+                    page.render(outputFilename + '.png');
+                    phantom.exit();
+                }, 200);
+            });
         }
     } catch (e) {
         console.error(e);
         phantom.exit(1);
         return;
     }
-    phantom.exit();
 });
