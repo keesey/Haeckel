@@ -72,9 +72,9 @@ module.exports = function(grunt)
   // Default task.
   grunt.registerTask('lib', ['typescript:lib', 'replace:lib']);
 
-  grunt.registerTask('exec', ['lib', 'typescript:render']);
+  grunt.registerTask('build', ['lib', 'typescript:render']);
 
   //grunt.registerTask('test', ['lib', 'typescript:test', 'nodeunit']);
 
-  grunt.registerTask('default', ['exec']); // :TODO: change back to ['test']
+  grunt.registerTask('default', ['build']); // :TODO: change back to ['test']
 };

@@ -11,12 +11,12 @@ module Haeckel
 	export interface Figure
 	{
 		assets?: {
-			base64?: string[];
-			text?: string[];
+			png?: string[];
+			svg?: string[];
 		};
 		height: number;
 		sources?: string[];
 		width: number;
-		render(builder: ElementBuilder, sources: DataSources, assets: AssetData): void;
+		render(builder: ElementBuilder, sources: DataSources, defs?: ElementBuilder): void;
 	}
 }

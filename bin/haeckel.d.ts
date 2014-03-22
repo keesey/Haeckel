@@ -1010,6 +1010,9 @@ declare module Haeckel {
 declare module Haeckel {
     var EMPTY_PHYLO_SOLVER: PhyloSolver;
 }
+declare module Haeckel {
+    var XLINK_NS: string;
+}
 declare module Haeckel.arr {
     function contains<T>(list: T[], element: T): boolean;
 }
@@ -1190,13 +1193,13 @@ declare module Haeckel {
     }
     interface Figure {
         assets?: {
-            base64?: string[];
-            text?: string[];
+            png?: string[];
+            svg?: string[];
         };
         height: number;
         sources?: string[];
         width: number;
-        render(builder: Haeckel.ElementBuilder, sources: Haeckel.DataSources, assets: AssetData): void;
+        render(builder: Haeckel.ElementBuilder, sources: Haeckel.DataSources, defs?: Haeckel.ElementBuilder): void;
     }
 }
 declare module Haeckel {

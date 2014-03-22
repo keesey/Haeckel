@@ -49,7 +49,7 @@ try
 		};
 	if ((FIGURE_TO_RENDER.sources && FIGURE_TO_RENDER.sources.length)
 		|| (FIGURE_TO_RENDER.assets &&
-		((FIGURE_TO_RENDER.assets.base64 && FIGURE_TO_RENDER.assets.base64.length) || (FIGURE_TO_RENDER.assets.text && FIGURE_TO_RENDER.assets.text.length))
+		((FIGURE_TO_RENDER.assets.png && FIGURE_TO_RENDER.assets.png.length) || (FIGURE_TO_RENDER.assets.svg && FIGURE_TO_RENDER.assets.svg.length))
 		))
 	{
 		var i: number,
@@ -59,19 +59,19 @@ try
 			read = <any> fs.read; // :TODO: fix declaration
 		if (FIGURE_TO_RENDER.assets)
 		{
-			if (FIGURE_TO_RENDER.assets.text)
+			if (FIGURE_TO_RENDER.assets.svg)
 			{
-				for (i = 0, n = FIGURE_TO_RENDER.assets.text.length; i < n; ++i)
+				for (i = 0, n = FIGURE_TO_RENDER.assets.svg.length; i < n; ++i)
 				{
-					filename = FIGURE_TO_RENDER.assets.text[i];
+					filename = FIGURE_TO_RENDER.assets.svg[i];
 					files.text[filename] = read(baseFolder + filename, { charset: 'utf-8' });
 				}
 			}
-			if (FIGURE_TO_RENDER.assets.base64)
+			if (FIGURE_TO_RENDER.assets.png)
 			{
-				for (i = 0, n = FIGURE_TO_RENDER.assets.base64.length; i < n; ++i)
+				for (i = 0, n = FIGURE_TO_RENDER.assets.png.length; i < n; ++i)
 				{
-					filename = FIGURE_TO_RENDER.assets.base64[i];
+					filename = FIGURE_TO_RENDER.assets.png[i];
 					files.base64[filename] = btoa(read(baseFolder + filename, { mode: 'rb' }));
 				}
 			}
