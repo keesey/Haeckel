@@ -31,7 +31,8 @@
     "src",
     "node_modules",
     "bower_components",
-    "test"
+    "test",
+    "Gruntfile.js"
   ],
   "devDependencies": {
     "dt-node": "*",

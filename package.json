@@ -20,7 +20,8 @@
     }
   ],
   "files": [
-    "lib/generate.js"
+    "lib/haeckel.js",
+    "lib/render.js"
   ],
   "keywords": [
     "biology",
