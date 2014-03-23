@@ -1696,9 +1696,9 @@ var Haeckel;
 
         ElementBuilder.prototype.getBBox = function () {
             var clone = this.element.cloneNode(true);
-            this.document.rootElement.appendChild(clone);
+            this.document.documentElement.appendChild(clone);
             var rect = Haeckel.rec.createFromBBox(clone);
-            this.document.rootElement.removeChild(clone);
+            this.document.documentElement.removeChild(clone);
             return rect;
         };
 
