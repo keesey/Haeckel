@@ -6,6 +6,8 @@
 /// <reference path="../../readers/DataSourcesReader.ts"/>
 module Haeckel.fig
 {
+	var XMLNS_NS = 'http://www.w3.org/2000/xmlns/';
+
 	export function render(figure: Figure, document: Document, files: FileCache, serializer: XMLSerializer): string
 	{
 		function initDefs()
@@ -35,15 +37,32 @@ module Haeckel.fig
 				parser = new DOMParser();
 			}
 		    var svgDocument = parser.parseFromString(data, 'image/svg+xml'),
-		        svg = <SVGSVGElement> svgDocument.rootElement.cloneNode(true),
-		        width = svg.width.baseVal,
-		        height = svg.height.baseVal;
-		    svg.removeAttribute('xmlns');
-		    svg.removeAttribute('xmlns:xlink');
-		    width.convertToSpecifiedUnits(5); // pixels
-		    height.convertToSpecifiedUnits(5); // pixels
-		    svg.setAttributeNS(SVG_NS, 'id', filename);
-		    svg.setAttributeNS(SVG_NS, 'viewBox', [0, 0, width.value, height.value].join(' '));
+		        svg = <SVGSVGElement> svgDocument.rootElement.cloneNode(true);
+		    svg.setAttribute('id', filename);
+		    if (!svg.hasAttribute('viewBox'))
+		    {
+			    var width = svg.width.baseVal,
+			        height = svg.height.baseVal;
+			    width.convertToSpecifiedUnits(5); // pixels
+			    height.convertToSpecifiedUnits(5); // pixels
+			    svg.setAttribute('viewBox', [0, 0, width.value, height.value].join(' '));
+			}
+			var xmlnsNames: string[] = [];
+			for (var i = 0; i < svg.attributes.length; ++i)
+			{
+				var attr = svg.attributes.item(i);
+				if (attr.namespaceURI === XMLNS_NS && attr.localName !== 'xmlns')
+				{
+					xmlnsNames.push(attr.localName);
+				}
+			}
+			for (i = 0; i < xmlnsNames.length; ++i)
+			{
+				var name = xmlnsNames[i],
+					value = svg.getAttributeNS(XMLNS_NS, name);
+				svg.removeAttributeNS(XMLNS_NS, name);
+				svg.setAttribute('xmlns:' + name, value);
+			}
 		    defs.build().appendChild(svg);
 		}
 
