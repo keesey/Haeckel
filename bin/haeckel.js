@@ -1598,6 +1598,49 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    (function (rec) {
+        function create(x, y, width, height) {
+            if (isNaN(width) || width < 0) {
+                throw new Error("Invalid width: " + String(width) + ".");
+            }
+            if (isNaN(height) || height < 0) {
+                throw new Error("Invalid height: " + String(height) + ".");
+            }
+            return Object.freeze({
+                area: width * height,
+                bottom: y + height,
+                centerX: x + (width / 2),
+                centerY: y + (height / 2),
+                empty: false,
+                hash: "(" + x + ":" + y + " -> " + width + ":" + height + ")",
+                height: height,
+                left: x,
+                right: x + width,
+                top: y,
+                width: width,
+                x: x,
+                y: y,
+                x2: x + width,
+                y2: y + height
+            });
+        }
+        rec.create = create;
+    })(Haeckel.rec || (Haeckel.rec = {}));
+    var rec = Haeckel.rec;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rec) {
+        function createFromBBox(svg) {
+            var rect = svg.getBBox();
+            return Haeckel.rec.create(rect.x, rect.y, rect.width, rect.height);
+        }
+        rec.createFromBBox = createFromBBox;
+    })(Haeckel.rec || (Haeckel.rec = {}));
+    var rec = Haeckel.rec;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
     var ElementBuilder = (function () {
         function ElementBuilder(document, a, b) {
             if (typeof b === "undefined") { b = null; }
@@ -1649,6 +1692,14 @@ var Haeckel;
                 this._parent = null;
             }
             return this;
+        };
+
+        ElementBuilder.prototype.getBBox = function () {
+            var clone = this.element.cloneNode(true);
+            this.document.rootElement.appendChild(clone);
+            var rect = Haeckel.rec.createFromBBox(clone);
+            this.document.rootElement.removeChild(clone);
+            return rect;
         };
 
         ElementBuilder.prototype.parent = function () {
@@ -2111,38 +2162,6 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     Haeckel.SVG_NS = "http://www.w3.org/2000/svg";
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (rec) {
-        function create(x, y, width, height) {
-            if (isNaN(width) || width < 0) {
-                throw new Error("Invalid width: " + String(width) + ".");
-            }
-            if (isNaN(height) || height < 0) {
-                throw new Error("Invalid height: " + String(height) + ".");
-            }
-            return Object.freeze({
-                area: width * height,
-                bottom: y + height,
-                centerX: x + (width / 2),
-                centerY: y + (height / 2),
-                empty: false,
-                hash: "(" + x + ":" + y + " -> " + width + ":" + height + ")",
-                height: height,
-                left: x,
-                right: x + width,
-                top: y,
-                width: width,
-                x: x,
-                y: y,
-                x2: x + width,
-                y2: y + height
-            });
-        }
-        rec.create = create;
-    })(Haeckel.rec || (Haeckel.rec = {}));
-    var rec = Haeckel.rec;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -6509,17 +6528,6 @@ var Haeckel;
         pt.equal = equal;
     })(Haeckel.pt || (Haeckel.pt = {}));
     var pt = Haeckel.pt;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (rec) {
-        function createFromBBox(svg) {
-            var rect = svg.getBBox();
-            return Haeckel.rec.create(rect.x, rect.y, rect.width, rect.height);
-        }
-        rec.createFromBBox = createFromBBox;
-    })(Haeckel.rec || (Haeckel.rec = {}));
-    var rec = Haeckel.rec;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {

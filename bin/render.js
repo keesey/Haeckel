@@ -1,5 +1,76 @@
 var Haeckel;
 (function (Haeckel) {
+    function isModel(o) {
+        return o !== null && typeof o === "object" && typeof o.hash === "string";
+    }
+    Haeckel.isModel = isModel;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    function isPoint(o) {
+        return Haeckel.isModel(o) && typeof o.x === 'number' && typeof o.y === 'number';
+    }
+    Haeckel.isPoint = isPoint;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    function isSet(o) {
+        return Haeckel.isModel(o) && typeof o.empty === "boolean";
+    }
+    Haeckel.isSet = isSet;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    function isRectangle(o) {
+        return Haeckel.isPoint(o) && typeof o.area === "number" && typeof o.bottom === "number" && typeof o.centerX === "number" && typeof o.centerY === "number" && typeof o.height === "number" && typeof o.left === "number" && typeof o.right === "number" && typeof o.top === "number" && typeof o.width === "number" && typeof o.x2 === "number" && typeof o.y2 === "number";
+    }
+    Haeckel.isRectangle = isRectangle;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rec) {
+        function create(x, y, width, height) {
+            if (isNaN(width) || width < 0) {
+                throw new Error("Invalid width: " + String(width) + ".");
+            }
+            if (isNaN(height) || height < 0) {
+                throw new Error("Invalid height: " + String(height) + ".");
+            }
+            return Object.freeze({
+                area: width * height,
+                bottom: y + height,
+                centerX: x + (width / 2),
+                centerY: y + (height / 2),
+                empty: false,
+                hash: "(" + x + ":" + y + " -> " + width + ":" + height + ")",
+                height: height,
+                left: x,
+                right: x + width,
+                top: y,
+                width: width,
+                x: x,
+                y: y,
+                x2: x + width,
+                y2: y + height
+            });
+        }
+        rec.create = create;
+    })(Haeckel.rec || (Haeckel.rec = {}));
+    var rec = Haeckel.rec;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rec) {
+        function createFromBBox(svg) {
+            var rect = svg.getBBox();
+            return Haeckel.rec.create(rect.x, rect.y, rect.width, rect.height);
+        }
+        rec.createFromBBox = createFromBBox;
+    })(Haeckel.rec || (Haeckel.rec = {}));
+    var rec = Haeckel.rec;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
     var ElementBuilder = (function () {
         function ElementBuilder(document, a, b) {
             if (typeof b === "undefined") { b = null; }
@@ -53,6 +124,14 @@ var Haeckel;
             return this;
         };
 
+        ElementBuilder.prototype.getBBox = function () {
+            var clone = this.element.cloneNode(true);
+            this.document.rootElement.appendChild(clone);
+            var rect = Haeckel.rec.createFromBBox(clone);
+            this.document.rootElement.removeChild(clone);
+            return rect;
+        };
+
         ElementBuilder.prototype.parent = function () {
             return this._parent;
         };
@@ -78,20 +157,6 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     Haeckel.XLINK_NS = "http://www.w3.org/1999/xlink";
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    function isModel(o) {
-        return o !== null && typeof o === "object" && typeof o.hash === "string";
-    }
-    Haeckel.isModel = isModel;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    function isSet(o) {
-        return Haeckel.isModel(o) && typeof o.empty === "boolean";
-    }
-    Haeckel.isSet = isSet;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -331,24 +396,10 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    function isPoint(o) {
-        return Haeckel.isModel(o) && typeof o.x === 'number' && typeof o.y === 'number';
-    }
-    Haeckel.isPoint = isPoint;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
     function isRay(o) {
         return Haeckel.isSet(o) && typeof o.angle === "number" && Haeckel.isPoint(o.origin);
     }
     Haeckel.isRay = isRay;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    function isRectangle(o) {
-        return Haeckel.isPoint(o) && typeof o.area === "number" && typeof o.bottom === "number" && typeof o.centerX === "number" && typeof o.centerY === "number" && typeof o.height === "number" && typeof o.left === "number" && typeof o.right === "number" && typeof o.top === "number" && typeof o.width === "number" && typeof o.x2 === "number" && typeof o.y2 === "number";
-    }
-    Haeckel.isRectangle = isRectangle;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {

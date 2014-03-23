@@ -380,6 +380,15 @@ declare module Haeckel {
         public states(taxon: Haeckel.Taxic, character: Haeckel.Character<S>, states: S): CharacterMatrixBuilder<S>;
     }
 }
+declare module Haeckel.rec {
+    function create(x: number, y: number, width: number, height: number): Haeckel.Rectangle;
+}
+declare module Haeckel.rec {
+    interface BBoxElement extends SVGElement {
+        getBBox(): SVGRect;
+    }
+    function createFromBBox(svg: BBoxElement): Haeckel.Rectangle;
+}
 declare module Haeckel {
     class ElementBuilder implements Haeckel.Builder<Element> {
         private document;
@@ -403,6 +412,7 @@ declare module Haeckel {
         public child(uri: string, localName: string): ElementBuilder;
         public child(name: string): ElementBuilder;
         public detach(): ElementBuilder;
+        public getBBox(): Haeckel.Rectangle;
         public parent(): ElementBuilder;
         public reset(): ElementBuilder;
         public text(data: string): ElementBuilder;
@@ -512,9 +522,6 @@ declare module Haeckel {
 }
 declare module Haeckel {
     var SVG_NS: string;
-}
-declare module Haeckel.rec {
-    function create(x: number, y: number, width: number, height: number): Haeckel.Rectangle;
 }
 declare module Haeckel.rec {
     interface BoundingClientRectElement extends SVGElement {
@@ -1404,12 +1411,6 @@ declare module Haeckel.pt {
 }
 declare module Haeckel.pt {
     function equal(a: Haeckel.Point, b: Haeckel.Point): boolean;
-}
-declare module Haeckel.rec {
-    interface BBoxElement extends SVGElement {
-        getBBox(): SVGRect;
-    }
-    function createFromBBox(svg: BBoxElement): Haeckel.Rectangle;
 }
 declare module Haeckel.rec {
     function createFromPoints(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Rectangle;
