@@ -98,6 +98,7 @@ module Haeckel.fig
 					}),
 			defs: ElementBuilder,
 			parser: DOMParser;
+		document.body.appendChild(elementBuilder.build());
 		if (figure.assets)
 		{
 			if (figure.assets.png)

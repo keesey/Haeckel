@@ -1,5 +1,4 @@
 /// <reference path="../interfaces/Builder.ts"/>
-/// <reference path="../functions/rec/createFromBBox.ts"/>
 module Haeckel
 {
 	export class ElementBuilder implements Builder<Element>
@@ -85,15 +84,6 @@ module Haeckel
 			return this;
 		}
 
-		getBBox(): Rectangle
-		{
-			var clone = <rec.BBoxElement> this.element.cloneNode(true);
-			this.document.documentElement.appendChild(clone);
-			var rect = rec.createFromBBox(clone);
-			this.document.documentElement.removeChild(clone);
-			return rect;
-		}
-		
 		parent(): ElementBuilder
 		{
 			return this._parent;
