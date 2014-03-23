@@ -16,7 +16,7 @@ module Haeckel.fig
 			}
 		}
 
-		function addPNGSymbol(filename: string, data: string)
+		function addPNGDef(filename: string, data: string)
 		{
 			initDefs();
 			defs.child(SVG_NS, 'image')
@@ -27,7 +27,7 @@ module Haeckel.fig
 				.attr(XLINK_NS, 'xlink:href', 'data:image/png;base64,' + data);
 		}
 
-		function addSVGSymbol(filename: string, data: string)
+		function addSVGDef(filename: string, data: string)
 		{
 			initDefs();
 			if (!parser)
@@ -35,21 +35,16 @@ module Haeckel.fig
 				parser = new DOMParser();
 			}
 		    var svgDocument = parser.parseFromString(data, 'image/svg+xml'),
-		        symbol = defs.child(SVG_NS, 'symbol'),
-		        symbolElement = symbol.build(),
-		        svg = <SVGSVGElement> svgDocument.rootElement,
+		        svg = <SVGSVGElement> svgDocument.rootElement.cloneNode(true),
 		        width = svg.width.baseVal,
 		        height = svg.height.baseVal;
+		    svg.removeAttribute('xmlns');
+		    svg.removeAttribute('xmlns:xlink');
 		    width.convertToSpecifiedUnits(5); // pixels
 		    height.convertToSpecifiedUnits(5); // pixels
-		    symbol.attrs(Haeckel.SVG_NS, {
-		            id: filename,
-		            viewBox: [0, 0, width.value, height.value].join(' ')
-		        });
-		    for (var node = svg.firstChild; node != null; node = node.nextSibling)
-		    {
-		        symbolElement.appendChild(node.cloneNode(true));
-		    }
+		    svg.setAttributeNS(SVG_NS, 'id', filename);
+		    svg.setAttributeNS(SVG_NS, 'viewBox', [0, 0, width.value, height.value].join(' '));
+		    defs.build().appendChild(svg);
 		}
 
 		var dataSourcesReader = new DataSourcesReader(),
@@ -77,7 +72,7 @@ module Haeckel.fig
 				for (i = 0, n = figure.assets.png.length; i < n; ++i)
 				{
 					filename = figure.assets.png[i];
-					addPNGSymbol(filename, files.base64[filename]);
+					addPNGDef(filename, files.base64[filename]);
 				}
 			}
 			if (figure.assets.svg)
@@ -85,7 +80,7 @@ module Haeckel.fig
 				for (i = 0, n = figure.assets.svg.length; i < n; ++i)
 				{
 					filename = figure.assets.svg[i];
-					addSVGSymbol(filename, files.text[filename]);
+					addSVGDef(filename, files.text[filename]);
 				}
 			}
 		}

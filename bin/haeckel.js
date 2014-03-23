@@ -6268,7 +6268,7 @@ var Haeckel;
                 }
             }
 
-            function addPNGSymbol(filename, data) {
+            function addPNGDef(filename, data) {
                 initDefs();
                 defs.child(Haeckel.SVG_NS, 'image').attrs(Haeckel.SVG_NS, {
                     id: filename,
@@ -6276,21 +6276,19 @@ var Haeckel;
                 }).attr(Haeckel.XLINK_NS, 'xlink:href', 'data:image/png;base64,' + data);
             }
 
-            function addSVGSymbol(filename, data) {
+            function addSVGDef(filename, data) {
                 initDefs();
                 if (!parser) {
                     parser = new DOMParser();
                 }
-                var svgDocument = parser.parseFromString(data, 'image/svg+xml'), symbol = defs.child(Haeckel.SVG_NS, 'symbol'), symbolElement = symbol.build(), svg = svgDocument.rootElement, width = svg.width.baseVal, height = svg.height.baseVal;
+                var svgDocument = parser.parseFromString(data, 'image/svg+xml'), svg = svgDocument.rootElement.cloneNode(true), width = svg.width.baseVal, height = svg.height.baseVal;
+                svg.removeAttribute('xmlns');
+                svg.removeAttribute('xmlns:xlink');
                 width.convertToSpecifiedUnits(5);
                 height.convertToSpecifiedUnits(5);
-                symbol.attrs(Haeckel.SVG_NS, {
-                    id: filename,
-                    viewBox: [0, 0, width.value, height.value].join(' ')
-                });
-                for (var node = svg.firstChild; node != null; node = node.nextSibling) {
-                    symbolElement.appendChild(node.cloneNode(true));
-                }
+                svg.setAttributeNS(Haeckel.SVG_NS, 'id', filename);
+                svg.setAttributeNS(Haeckel.SVG_NS, 'viewBox', [0, 0, width.value, height.value].join(' '));
+                defs.build().appendChild(svg);
             }
 
             var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, filename, elementBuilder = new Haeckel.ElementBuilder(document, Haeckel.SVG_NS, 'svg').attrs({
@@ -6306,13 +6304,13 @@ var Haeckel;
                 if (figure.assets.png) {
                     for (i = 0, n = figure.assets.png.length; i < n; ++i) {
                         filename = figure.assets.png[i];
-                        addPNGSymbol(filename, files.base64[filename]);
+                        addPNGDef(filename, files.base64[filename]);
                     }
                 }
                 if (figure.assets.svg) {
                     for (i = 0, n = figure.assets.svg.length; i < n; ++i) {
                         filename = figure.assets.svg[i];
-                        addSVGSymbol(filename, files.text[filename]);
+                        addSVGDef(filename, files.text[filename]);
                     }
                 }
             }
