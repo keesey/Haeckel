@@ -6291,18 +6291,27 @@ var Haeckel;
                     height.convertToSpecifiedUnits(5);
                     svg.setAttribute('viewBox', [0, 0, width.value, height.value].join(' '));
                 }
-                var xmlnsNames = [];
-                for (var i = 0; i < svg.attributes.length; ++i) {
+
+                var xmlns = {}, n = svg.attributes.length, name, uri;
+                for (var i = 0; i < n; ++i) {
                     var attr = svg.attributes.item(i);
                     if (attr.namespaceURI === XMLNS_NS && attr.localName !== 'xmlns') {
-                        xmlnsNames.push(attr.localName);
+                        xmlns[attr.value] = attr.localName;
                     }
                 }
-                for (i = 0; i < xmlnsNames.length; ++i) {
-                    var name = xmlnsNames[i], value = svg.getAttributeNS(XMLNS_NS, name);
-                    svg.removeAttributeNS(XMLNS_NS, name);
-                    svg.setAttribute('xmlns:' + name, value);
+                for (i = 0; i < n; ++i) {
+                    attr = svg.attributes.item(i);
+                    if (name = xmlns[attr.namespaceURI]) {
+                        svg.removeAttributeNS(attr.namespaceURI, attr.localName);
+                        svg.setAttribute(name + ':' + attr.localName, attr.value);
+                    }
                 }
+                for (uri in xmlns) {
+                    var name = xmlns[uri];
+                    svg.removeAttributeNS(XMLNS_NS, name);
+                    svg.setAttribute('xmlns:' + name, uri);
+                }
+
                 defs.build().appendChild(svg);
             }
 

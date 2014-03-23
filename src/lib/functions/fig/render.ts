@@ -47,22 +47,36 @@ module Haeckel.fig
 			    height.convertToSpecifiedUnits(5); // pixels
 			    svg.setAttribute('viewBox', [0, 0, width.value, height.value].join(' '));
 			}
-			var xmlnsNames: string[] = [];
-			for (var i = 0; i < svg.attributes.length; ++i)
+
+			// :KLUDGE: The following section is needed to correct some errors in the handling of namespaces.
+			var xmlns: { [uri: string]: string; } = {},
+				n = svg.attributes.length,
+				name: string,
+				uri: string;
+			for (var i = 0; i < n; ++i)
 			{
 				var attr = svg.attributes.item(i);
 				if (attr.namespaceURI === XMLNS_NS && attr.localName !== 'xmlns')
 				{
-					xmlnsNames.push(attr.localName);
+					xmlns[attr.value] = attr.localName;
 				}
 			}
-			for (i = 0; i < xmlnsNames.length; ++i)
+			for (i = 0; i < n; ++i)
 			{
-				var name = xmlnsNames[i],
-					value = svg.getAttributeNS(XMLNS_NS, name);
-				svg.removeAttributeNS(XMLNS_NS, name);
-				svg.setAttribute('xmlns:' + name, value);
+				attr = svg.attributes.item(i);
+				if (name = xmlns[attr.namespaceURI])
+				{
+					svg.removeAttributeNS(attr.namespaceURI, attr.localName);
+					svg.setAttribute(name + ':' + attr.localName, attr.value);
+				}
 			}
+			for (uri in xmlns)
+			{
+				var name = xmlns[uri];
+				svg.removeAttributeNS(XMLNS_NS, name);
+				svg.setAttribute('xmlns:' + name, uri);
+			}
+			
 		    defs.build().appendChild(svg);
 		}
 
