@@ -3,6 +3,11 @@
 
 module Haeckel
 {
+	export interface PNGAssets
+	{
+		image(builder: ElementBuilder, filename: string): ElementBuilder;
+	}
+
 	export interface Figure
 	{
 		assets?: {
@@ -12,6 +17,6 @@ module Haeckel
 		height: number;
 		sources?: string[];
 		width: number;
-		render(builder: ElementBuilder, sources: DataSources, defs: ElementBuilder): void;
+		render(builder: ElementBuilder, sources: DataSources, defs: () => ElementBuilder, pngAssets: PNGAssets): void;
 	}
 }

@@ -1188,6 +1188,9 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    interface PNGAssets {
+        image(builder: Haeckel.ElementBuilder, filename: string): Haeckel.ElementBuilder;
+    }
     interface Figure {
         assets?: {
             png?: string[];
@@ -1196,7 +1199,7 @@ declare module Haeckel {
         height: number;
         sources?: string[];
         width: number;
-        render(builder: Haeckel.ElementBuilder, sources: Haeckel.DataSources, defs: Haeckel.ElementBuilder): void;
+        render(builder: Haeckel.ElementBuilder, sources: Haeckel.DataSources, defs: () => Haeckel.ElementBuilder, pngAssets: PNGAssets): void;
     }
 }
 declare module Haeckel {

@@ -3260,11 +3260,26 @@ var Haeckel;
     (function (fig) {
         var XMLNS_NS = 'http://www.w3.org/2000/xmlns/';
 
+        var PNGAssetsImpl = (function () {
+            function PNGAssetsImpl() {
+                this.base64Dict = {};
+            }
+            PNGAssetsImpl.prototype.image = function (builder, filename) {
+                var data = this.base64Dict[filename];
+                if (!data) {
+                    throw new Error('Cannot find PNG data for "' + filename + '".');
+                }
+                return builder.child(Haeckel.SVG_NS, 'image').attr(Haeckel.SVG_NS, 'preserveAspectRatio', 'none').attr('xlink:href', 'data:image/png;base64,' + data);
+            };
+            return PNGAssetsImpl;
+        })();
+
         function render(figure, document, files, serializer) {
             function initDefs() {
                 if (!defs) {
                     defs = elementBuilder.child(Haeckel.SVG_NS, 'defs');
                 }
+                return defs;
             }
 
             function addPNGDef(filename, data) {
@@ -3272,7 +3287,7 @@ var Haeckel;
                 defs.child(Haeckel.SVG_NS, 'image').attrs(Haeckel.SVG_NS, {
                     id: filename,
                     preserveAspectRatio: 'none'
-                }).attr(Haeckel.XLINK_NS, 'xlink:href', 'data:image/png;base64,' + data);
+                }).attr('xlink:href', 'data:image/png;base64,' + data);
             }
 
             function addSVGDef(filename, data) {
@@ -3320,13 +3335,13 @@ var Haeckel;
                 height: figure.height + 'px',
                 version: '1.2',
                 viewBox: '0 0 ' + figure.width + ' ' + figure.height
-            }), defs, parser;
+            }), defs, parser, pngAssets = new PNGAssetsImpl;
             document.body.appendChild(elementBuilder.build());
             if (figure.assets) {
                 if (figure.assets.png) {
                     for (i = 0, n = figure.assets.png.length; i < n; ++i) {
                         filename = figure.assets.png[i];
-                        addPNGDef(filename, files.base64[filename]);
+                        pngAssets.base64Dict[filename] = files.base64[filename];
                     }
                 }
                 if (figure.assets.svg) {
@@ -3336,7 +3351,7 @@ var Haeckel;
                     }
                 }
             }
-            figure.render(elementBuilder, dataSources, defs);
+            figure.render(elementBuilder, dataSources, initDefs, pngAssets);
             var svg = elementBuilder.build();
             document.body.appendChild(svg);
             return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(svg);

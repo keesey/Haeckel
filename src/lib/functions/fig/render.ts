@@ -8,6 +8,22 @@ module Haeckel.fig
 {
 	var XMLNS_NS = 'http://www.w3.org/2000/xmlns/';
 
+	class PNGAssetsImpl implements PNGAssets
+	{
+		base64Dict: { [filename: string]: string; } = {};
+		image(builder: ElementBuilder, filename: string): ElementBuilder
+		{
+			var data = this.base64Dict[filename];
+			if (!data)
+			{
+				throw new Error('Cannot find PNG data for "' + filename + '".');
+			}
+			return builder.child(SVG_NS, 'image')
+				.attr(SVG_NS, 'preserveAspectRatio', 'none')
+				.attr('xlink:href', 'data:image/png;base64,' + data);
+		}
+	}
+
 	export function render(figure: Figure, document: Document, files: FileCache, serializer: XMLSerializer): string
 	{
 		function initDefs()
@@ -16,6 +32,7 @@ module Haeckel.fig
 			{
 				defs = elementBuilder.child(SVG_NS, 'defs');
 			}
+			return defs;
 		}
 
 		function addPNGDef(filename: string, data: string)
@@ -26,7 +43,7 @@ module Haeckel.fig
 						id: filename,
 						preserveAspectRatio: 'none'
 					})
-				.attr(XLINK_NS, 'xlink:href', 'data:image/png;base64,' + data);
+				.attr('xlink:href', 'data:image/png;base64,' + data);
 		}
 
 		function addSVGDef(filename: string, data: string)
@@ -97,7 +114,8 @@ module Haeckel.fig
 						viewBox: '0 0 ' + figure.width + ' ' + figure.height
 					}),
 			defs: ElementBuilder,
-			parser: DOMParser;
+			parser: DOMParser,
+			pngAssets = new PNGAssetsImpl;
 		document.body.appendChild(elementBuilder.build());
 		if (figure.assets)
 		{
@@ -106,7 +124,7 @@ module Haeckel.fig
 				for (i = 0, n = figure.assets.png.length; i < n; ++i)
 				{
 					filename = figure.assets.png[i];
-					addPNGDef(filename, files.base64[filename]);
+					pngAssets.base64Dict[filename] = files.base64[filename];
 				}
 			}
 			if (figure.assets.svg)
@@ -118,7 +136,7 @@ module Haeckel.fig
 				}
 			}
 		}
-		figure.render(elementBuilder, dataSources, defs);
+		figure.render(elementBuilder, dataSources, initDefs, pngAssets);
 		var svg = <SVGSVGElement> elementBuilder.build();
 		document.body.appendChild(svg);
 		return '<?xml version="1.0" encoding="UTF-8"?>'
