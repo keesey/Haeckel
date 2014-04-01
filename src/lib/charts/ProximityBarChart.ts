@@ -107,19 +107,33 @@ module Haeckel
 			return bars.sort(this.barSort);
 		}
 		
-		private renderBar(builder: ElementBuilder, bar: ProximityBar, gradientID: string, index: number, barWidth: number)
+		private renderBar(builder: ElementBuilder, defsBuilder: ElementBuilder, bar: ProximityBar, index: number, barWidth: number)
 		{
 			var x = this.area.left + barWidth * index,
 				yMin = this.area.top + bar.normalizedDistance.min * this.area.height,
 				yMax = this.area.top + bar.normalizedDistance.max * this.area.height,
 				yBottom = this.area.bottom,
-				color = this.colorMap(bar.taxon);
+				color = this.colorMap(bar.taxon),
+				gradientID = this.id + '-gradient-' + index;
 			if (yMin === yBottom)
 			{
 				yMin -= 1;
 				yMax -= 1;
 			}
-			var rect = builder.child(SVG_NS, 'rect')
+			var fillBuilder = new LinearGradientBuilder(defsBuilder, gradientID),
+				yMin = this.area.top + bar.normalizedDistance.min * this.area.height,
+				yMax = this.area.top + bar.normalizedDistance.max * this.area.height,
+				yBottom = this.area.bottom;
+			fillBuilder.startOpacity = 0;
+			fillBuilder.start = color;
+			fillBuilder.end = color;
+			fillBuilder.add({
+				color: color,
+				opacity: 1,
+				ratio: (yMax - yMin) / (yBottom - yMin)
+			});
+			fillBuilder.build();
+			builder.child(SVG_NS, 'rect')
 				.attrs(SVG_NS,{
 						'x': (x + this.spacing / 2) + 'px',
 						'y': yMin + 'px',
@@ -138,38 +152,10 @@ module Haeckel
 				i: number;
 			if (n !== 0)
 			{
-				var colorDict: { [hex: string]: string; } = {},
-					fillBuilder = new LinearGradientBuilder(defs(), null),
-					index = 0;
-				fillBuilder.startOpacity = 0;
-				for (i = 0; i < n; ++i)
-				{
-					var bar = bars[i],
-						color = this.colorMap(bars[i].taxon),
-						hex = color.hex;
-					if (!colorDict[hex])
-					{
-						var gradientID = colorDict[hex] = this.id + '-gradient-' + (index++),
-							yMin = this.area.top + bar.normalizedDistance.min * this.area.height,
-							yMax = this.area.top + bar.normalizedDistance.max * this.area.height,
-							yBottom = this.area.bottom;
-						fillBuilder.resetID(gradientID);
-						fillBuilder.angle = -90 * DEG_TO_RAD;
-						fillBuilder.start = color;
-						fillBuilder.end = color;
-						fillBuilder.add({
-							color: color,
-							opacity: 1,
-							ratio: (yMax - yMin) / (yBottom - yMin)
-						});
-						fillBuilder.build();
-					}
-				}
 				var barWidth = this.area.width / n;
 				for (i = 0; i < n; ++i)
 				{
-					bar = bars[i];
-					this.renderBar(g, bar, colorDict[this.colorMap(bar.taxon).hex], i, barWidth);
+					this.renderBar(g, defs(), bars[i], i, barWidth);
 				}
 			}
 			return g;

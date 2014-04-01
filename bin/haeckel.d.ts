@@ -876,7 +876,7 @@ declare module Haeckel {
         public taxa: Haeckel.ExtSet<Haeckel.Taxic>;
         constructor(id: string);
         private getBars();
-        private renderBar(builder, bar, gradientID, index, barWidth);
+        private renderBar(builder, defsBuilder, bar, index, barWidth);
         public render(parent: Haeckel.ElementBuilder, defs: () => Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
