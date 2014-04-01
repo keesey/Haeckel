@@ -2,6 +2,6 @@ module Haeckel
 {
 	export interface Renderer
 	{
-		render(parent: ElementBuilder): ElementBuilder;
+		render(parent: ElementBuilder, defsBuilder: () => ElementBuilder): ElementBuilder;
 	}
 }

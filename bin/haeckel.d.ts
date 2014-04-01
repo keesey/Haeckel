@@ -421,30 +421,35 @@ declare module Haeckel {
     var BLACK: Color;
 }
 declare module Haeckel {
-    var RAD_TO_DEG: number;
-}
-declare module Haeckel {
-    var TAU: number;
-}
-declare module Haeckel.trg {
-    function normalize(radians: number): number;
+    var SVG_NS: string;
 }
 declare module Haeckel {
     interface GradientEntry {
         color: Haeckel.Color;
         ratio: number;
+        opacity: number;
     }
 }
 declare module Haeckel {
-    class LinearGradientBuilder implements Haeckel.Builder<string> {
+    class LinearGradientBuilder implements Haeckel.Builder<Haeckel.ElementBuilder> {
+        private defsBuilder;
+        private id;
         public angle: number;
+        public bottom: number;
         public end: Haeckel.Color;
+        public endOpacity: number;
+        public left: number;
+        public right: number;
         public start: Haeckel.Color;
-        private _tweens;
+        public startOpacity: number;
+        public top: number;
+        private _stops;
+        constructor(defsBuilder: Haeckel.ElementBuilder, id: string);
         public add(entry: Haeckel.GradientEntry): LinearGradientBuilder;
-        public build(): string;
+        public build(): Haeckel.ElementBuilder;
         public reset(): LinearGradientBuilder;
         public resetEntries(): LinearGradientBuilder;
+        public resetID(id: string): LinearGradientBuilder;
     }
 }
 declare module Haeckel {
@@ -510,9 +515,6 @@ declare module Haeckel {
         public reset(): TaxonBuilder;
     }
 }
-declare module Haeckel {
-    var SVG_NS: string;
-}
 declare module Haeckel.rec {
     function create(x: number, y: number, width: number, height: number): Haeckel.Rectangle;
 }
@@ -532,7 +534,7 @@ declare module Haeckel {
 }
 declare module Haeckel {
     interface Renderer {
-        render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        render(parent: Haeckel.ElementBuilder, defsBuilder: () => Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -863,6 +865,7 @@ declare module Haeckel {
         taxon: Haeckel.Taxic;
     }
     class ProximityBarChart implements Haeckel.Renderer {
+        private id;
         public area: Haeckel.Rectangle;
         public barSort: (a: ProximityBar, b: ProximityBar) => number;
         public colorMap: (taxon: Haeckel.Taxic) => Haeckel.Color;
@@ -871,10 +874,14 @@ declare module Haeckel {
         public focus: Haeckel.Taxic;
         public spacing: number;
         public taxa: Haeckel.ExtSet<Haeckel.Taxic>;
+        constructor(id: string);
         private getBars();
-        private renderBar(builder, bar, index, barWidth);
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        private renderBar(builder, bar, gradientID, index, barWidth);
+        public render(parent: Haeckel.ElementBuilder, defs: () => Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
+}
+declare module Haeckel {
+    var TAU: number;
 }
 declare module Haeckel.pt {
     function add(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Point;
@@ -887,6 +894,9 @@ declare module Haeckel.pt {
 }
 declare module Haeckel.pt {
     function nearest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
+}
+declare module Haeckel.trg {
+    function normalize(radians: number): number;
 }
 declare module Haeckel.ray {
     function create(origin: Haeckel.Point, angle: number): Haeckel.Ray;
@@ -1009,6 +1019,9 @@ declare module Haeckel {
 }
 declare module Haeckel {
     var EMPTY_PHYLO_SOLVER: PhyloSolver;
+}
+declare module Haeckel {
+    var RAD_TO_DEG: number;
 }
 declare module Haeckel {
     var XLINK_NS: string;

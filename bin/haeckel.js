@@ -1681,30 +1681,7 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    Haeckel.RAD_TO_DEG = 180 / Math.PI;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    Haeckel.TAU = Math.PI * 2;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (trg) {
-        function normalize(radians) {
-            if (!isFinite(radians)) {
-                return 0;
-            }
-            while (radians < 0) {
-                radians += Haeckel.TAU;
-            }
-            while (radians >= Haeckel.TAU) {
-                radians -= Haeckel.TAU;
-            }
-            return radians;
-        }
-        trg.normalize = normalize;
-    })(Haeckel.trg || (Haeckel.trg = {}));
-    var trg = Haeckel.trg;
+    Haeckel.SVG_NS = "http://www.w3.org/2000/svg";
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -1712,16 +1689,24 @@ var Haeckel;
         return a.ratio - b.ratio;
     }
 
-    function gradientEntryToString(entry) {
-        return entry.color.hex + ":" + (entry.ratio * 100);
+    function percent(ratio) {
+        return String(ratio * 100) + '%';
     }
 
     var LinearGradientBuilder = (function () {
-        function LinearGradientBuilder() {
+        function LinearGradientBuilder(defsBuilder, id) {
+            this.defsBuilder = defsBuilder;
+            this.id = id;
             this.angle = 0;
+            this.bottom = 1;
             this.end = Haeckel.BLACK;
+            this.endOpacity = 1;
+            this.left = 0;
+            this.right = 0;
             this.start = Haeckel.BLACK;
-            this._tweens = [];
+            this.startOpacity = 1;
+            this.top = 0;
+            this._stops = [];
         }
         LinearGradientBuilder.prototype.add = function (entry) {
             if (entry.ratio <= 0 || isNaN(entry.ratio)) {
@@ -1729,32 +1714,57 @@ var Haeckel;
             } else if (entry.ratio >= 1) {
                 this.end = entry.color;
             } else {
-                this._tweens.push(entry);
+                this._stops.push(entry);
             }
             return this;
         };
 
         LinearGradientBuilder.prototype.build = function () {
-            this._tweens = this._tweens.sort(compareGradientEntries);
-            var s = String(Haeckel.trg.normalize(this.angle) * Haeckel.RAD_TO_DEG) + "-" + this.start.hex;
-            for (var i = 0, n = this._tweens.length; i < n; ++i) {
-                s += "-" + gradientEntryToString(this._tweens[i]);
+            this._stops = this._stops.sort(compareGradientEntries);
+            var linearGradient = this.defsBuilder.child(Haeckel.SVG_NS, 'linearGradient').attrs(Haeckel.SVG_NS, {
+                id: this.id,
+                x1: percent(this.left),
+                y1: percent(this.top),
+                x2: percent(this.right),
+                y2: percent(this.bottom)
+            });
+            linearGradient.child(Haeckel.SVG_NS, 'stop').attrs(Haeckel.SVG_NS, {
+                offset: '0%',
+                'stop-color': 'rgb(' + this.start.r + ',' + this.start.g + ',' + this.start.b + ')',
+                'stop-opacity': percent(this.startOpacity)
+            });
+            for (var i = 0, n = this._stops.length; i < n; ++i) {
+                var stop = this._stops[i];
+                linearGradient.child(Haeckel.SVG_NS, 'stop').attrs(Haeckel.SVG_NS, {
+                    offset: percent(stop.ratio),
+                    'stop-color': 'rgb(' + stop.color.r + ',' + stop.color.g + ',' + stop.color.b + ')',
+                    'stop-opacity': percent(stop.opacity)
+                });
             }
-            s += "-" + this.end.hex;
-            return s;
+            linearGradient.child(Haeckel.SVG_NS, 'stop').attrs(Haeckel.SVG_NS, {
+                offset: '100%',
+                'stop-color': 'rgb(' + this.end.r + ',' + this.end.g + ',' + this.end.b + ')',
+                'stop-opacity': percent(this.endOpacity)
+            });
+            return linearGradient;
         };
 
         LinearGradientBuilder.prototype.reset = function () {
             this.angle = 0;
             this.end = Haeckel.BLACK;
             this.start = Haeckel.BLACK;
-            this._tweens = [];
+            this._stops = [];
             return this;
         };
 
         LinearGradientBuilder.prototype.resetEntries = function () {
-            this._tweens = [];
+            this._stops = [];
             return this;
+        };
+
+        LinearGradientBuilder.prototype.resetID = function (id) {
+            this.id = id;
+            return this.reset();
         };
         return LinearGradientBuilder;
     })();
@@ -2107,10 +2117,6 @@ var Haeckel;
         return TaxonBuilder;
     })();
     Haeckel.TaxonBuilder = TaxonBuilder;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    Haeckel.SVG_NS = "http://www.w3.org/2000/svg";
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -4180,7 +4186,8 @@ var Haeckel;
     };
 
     var ProximityBarChart = (function () {
-        function ProximityBarChart() {
+        function ProximityBarChart(id) {
+            this.id = id;
             this.area = Haeckel.EMPTY_SET;
             this.barSort = DEFAULT_BAR_SORT;
             this.colorMap = DEFAULT_COLOR_MAP;
@@ -4206,8 +4213,8 @@ var Haeckel;
             return bars.sort(this.barSort);
         };
 
-        ProximityBarChart.prototype.renderBar = function (builder, bar, index, barWidth) {
-            var x = this.area.left + barWidth * index, yMin = this.area.top + bar.normalizedDistance.min * this.area.height, yMax = this.area.top + bar.normalizedDistance.max * this.area.height, yBottom = this.area.bottom, color = this.colorMap(bar.taxon), fillBuilder = new Haeckel.LinearGradientBuilder;
+        ProximityBarChart.prototype.renderBar = function (builder, bar, gradientID, index, barWidth) {
+            var x = this.area.left + barWidth * index, yMin = this.area.top + bar.normalizedDistance.min * this.area.height, yMax = this.area.top + bar.normalizedDistance.max * this.area.height, yBottom = this.area.bottom, color = this.colorMap(bar.taxon);
             if (yMin === yBottom) {
                 yMin -= 1;
                 yMax -= 1;
@@ -4216,24 +4223,36 @@ var Haeckel;
                 'x': (x + this.spacing / 2) + 'px',
                 'y': yMin + 'px',
                 'width': (barWidth - this.spacing) + 'px',
-                'height': (yBottom - yMin) + 'px'
+                'height': (yBottom - yMin) + 'px',
+                'fill': 'url(#' + gradientID + ')'
             }).attrs(Haeckel.SVG_NS, BAR_STYLE);
-            fillBuilder.angle = -90 * Haeckel.DEG_TO_RAD;
-            fillBuilder.start = Haeckel.WHITE;
-            fillBuilder.end = color;
-            fillBuilder.add({
-                color: color,
-                ratio: (yMax - yMin) / (yBottom - yMin)
-            });
-            rect.attr(Haeckel.SVG_NS, "fill", fillBuilder.build());
         };
 
-        ProximityBarChart.prototype.render = function (parent) {
-            var g = parent.child(Haeckel.SVG_NS, 'g'), bars = this.getBars(), n = bars.length;
+        ProximityBarChart.prototype.render = function (parent, defs) {
+            var g = parent.child(Haeckel.SVG_NS, 'g'), bars = this.getBars(), n = bars.length, i;
             if (n !== 0) {
+                var colorDict = {}, fillBuilder = new Haeckel.LinearGradientBuilder(defs(), null), index = 0;
+                fillBuilder.startOpacity = 0;
+                for (i = 0; i < n; ++i) {
+                    var bar = bars[i], color = this.colorMap(bars[i].taxon), hex = color.hex;
+                    if (!colorDict[hex]) {
+                        var gradientID = colorDict[hex] = this.id + '-gradient-' + (index++), yMin = this.area.top + bar.normalizedDistance.min * this.area.height, yMax = this.area.top + bar.normalizedDistance.max * this.area.height, yBottom = this.area.bottom;
+                        fillBuilder.resetID(gradientID);
+                        fillBuilder.angle = -90 * Haeckel.DEG_TO_RAD;
+                        fillBuilder.start = color;
+                        fillBuilder.end = color;
+                        fillBuilder.add({
+                            color: color,
+                            opacity: 1,
+                            ratio: (yMax - yMin) / (yBottom - yMin)
+                        });
+                        fillBuilder.build();
+                    }
+                }
                 var barWidth = this.area.width / n;
-                for (var i = 0; i < n; ++i) {
-                    this.renderBar(g, bars[i], i, barWidth);
+                for (i = 0; i < n; ++i) {
+                    bar = bars[i];
+                    this.renderBar(g, bar, colorDict[this.colorMap(bar.taxon).hex], i, barWidth);
                 }
             }
             return g;
@@ -4241,6 +4260,10 @@ var Haeckel;
         return ProximityBarChart;
     })();
     Haeckel.ProximityBarChart = ProximityBarChart;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    Haeckel.TAU = Math.PI * 2;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -4311,6 +4334,25 @@ var Haeckel;
         pt.nearest = nearest;
     })(Haeckel.pt || (Haeckel.pt = {}));
     var pt = Haeckel.pt;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (trg) {
+        function normalize(radians) {
+            if (!isFinite(radians)) {
+                return 0;
+            }
+            while (radians < 0) {
+                radians += Haeckel.TAU;
+            }
+            while (radians >= Haeckel.TAU) {
+                radians -= Haeckel.TAU;
+            }
+            return radians;
+        }
+        trg.normalize = normalize;
+    })(Haeckel.trg || (Haeckel.trg = {}));
+    var trg = Haeckel.trg;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -4833,6 +4875,10 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     Haeckel.EMPTY_PHYLO_SOLVER = new Haeckel.PhyloSolver(Haeckel.EMPTY_DAG_SOLVER);
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    Haeckel.RAD_TO_DEG = 180 / Math.PI;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {

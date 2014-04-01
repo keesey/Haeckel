@@ -80,6 +80,10 @@ module Haeckel
 		spacing = 1;
 		
 		taxa: ExtSet<Taxic>;
+
+		constructor(private id: string)
+		{
+		}
 		
 		private getBars(): ProximityBar[]
 		{
@@ -103,14 +107,13 @@ module Haeckel
 			return bars.sort(this.barSort);
 		}
 		
-		private renderBar(builder: ElementBuilder, bar: ProximityBar, index: number, barWidth: number)
+		private renderBar(builder: ElementBuilder, bar: ProximityBar, gradientID: string, index: number, barWidth: number)
 		{
 			var x = this.area.left + barWidth * index,
 				yMin = this.area.top + bar.normalizedDistance.min * this.area.height,
 				yMax = this.area.top + bar.normalizedDistance.max * this.area.height,
 				yBottom = this.area.bottom,
-				color = this.colorMap(bar.taxon),
-				fillBuilder = new LinearGradientBuilder;
+				color = this.colorMap(bar.taxon);
 			if (yMin === yBottom)
 			{
 				yMin -= 1;
@@ -121,30 +124,52 @@ module Haeckel
 						'x': (x + this.spacing / 2) + 'px',
 						'y': yMin + 'px',
 						'width': (barWidth - this.spacing) + 'px',
-						'height': (yBottom - yMin) + 'px'
+						'height': (yBottom - yMin) + 'px',
+						'fill': 'url(#' + gradientID + ')'
 					})
 				.attrs(SVG_NS, BAR_STYLE);
-			fillBuilder.angle = -90 * DEG_TO_RAD;
-			fillBuilder.start = WHITE;
-			fillBuilder.end = color;
-			fillBuilder.add({
-				color: color,
-				ratio: (yMax - yMin) / (yBottom - yMin)
-			});
-			rect.attr(SVG_NS, "fill", fillBuilder.build());
 		}
 		
-		render(parent: ElementBuilder): ElementBuilder
+		render(parent: ElementBuilder, defs: () => ElementBuilder): ElementBuilder
 		{
 			var g = parent.child(SVG_NS, 'g'),
 				bars = this.getBars(),
-				n = bars.length;
+				n = bars.length,
+				i: number;
 			if (n !== 0)
 			{
-				var barWidth = this.area.width / n;
-				for (var i = 0; i < n; ++i)
+				var colorDict: { [hex: string]: string; } = {},
+					fillBuilder = new LinearGradientBuilder(defs(), null),
+					index = 0;
+				fillBuilder.startOpacity = 0;
+				for (i = 0; i < n; ++i)
 				{
-					this.renderBar(g, bars[i], i, barWidth);
+					var bar = bars[i],
+						color = this.colorMap(bars[i].taxon),
+						hex = color.hex;
+					if (!colorDict[hex])
+					{
+						var gradientID = colorDict[hex] = this.id + '-gradient-' + (index++),
+							yMin = this.area.top + bar.normalizedDistance.min * this.area.height,
+							yMax = this.area.top + bar.normalizedDistance.max * this.area.height,
+							yBottom = this.area.bottom;
+						fillBuilder.resetID(gradientID);
+						fillBuilder.angle = -90 * DEG_TO_RAD;
+						fillBuilder.start = color;
+						fillBuilder.end = color;
+						fillBuilder.add({
+							color: color,
+							opacity: 1,
+							ratio: (yMax - yMin) / (yBottom - yMin)
+						});
+						fillBuilder.build();
+					}
+				}
+				var barWidth = this.area.width / n;
+				for (i = 0; i < n; ++i)
+				{
+					bar = bars[i];
+					this.renderBar(g, bar, colorDict[this.colorMap(bar.taxon).hex], i, barWidth);
 				}
 			}
 			return g;

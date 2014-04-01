@@ -6,5 +6,6 @@ module Haeckel
 	{
 		color: Color;
 		ratio: number;
+		opacity: number;
 	}
 }
