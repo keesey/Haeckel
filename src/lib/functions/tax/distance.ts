@@ -1,7 +1,9 @@
+/// <reference path="intersect.ts"/>
 /// <reference path="../dst/get.ts"/>
 /// <reference path="../ext/each.ts"/>
 /// <reference path="../../builders/RangeBuilder.ts"/>
 /// <reference path="../../constants/EMPTY_SET.ts"/>
+/// <reference path="../../constants/RANGE_0.ts"/>
 /// <reference path="../../interfaces/DistanceMatrix.ts"/>
 /// <reference path="../../interfaces/Range.ts"/>
 /// <reference path="../../interfaces/Taxic.ts"/>
@@ -25,6 +27,11 @@ module Haeckel.tax
 				builder.addRange(dst.get(matrix, x, y));
 			});
 		});
-		return builder.build();
+		var range = builder.build();
+		if (range.empty && !tax.intersect(focus, taxon).empty)
+		{
+			return RANGE_0;
+		}
+		return range;
 	}
 }

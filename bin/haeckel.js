@@ -4218,7 +4218,11 @@ var Haeckel;
                     builder.addRange(Haeckel.dst.get(matrix, x, y));
                 });
             });
-            return builder.build();
+            var range = builder.build();
+            if (range.empty && !Haeckel.tax.intersect(focus, taxon).empty) {
+                return Haeckel.RANGE_0;
+            }
+            return range;
         }
         tax.distance = distance;
     })(Haeckel.tax || (Haeckel.tax = {}));
