@@ -2037,6 +2037,79 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (ext) {
+        function powerList(l) {
+            var builder = new Haeckel.ExtSetBuilder(), n = l.length;
+            if (n === 0) {
+                builder.add(Haeckel.EMPTY_SET);
+            } else {
+                var first = Haeckel.ext.create([l[0]]);
+                if (n === 1) {
+                    builder.add(Haeckel.EMPTY_SET);
+                    builder.add(first);
+                } else {
+                    Haeckel.ext.each(powerList(l.slice(1, n)), function (s) {
+                        builder.add(s);
+                        builder.add(Haeckel.ext.union([first, s]));
+                    });
+                }
+            }
+            return builder.build();
+        }
+
+        function power(s) {
+            return powerList(Haeckel.ext.list(s));
+        }
+        ext.power = power;
+    })(Haeckel.ext || (Haeckel.ext = {}));
+    var ext = Haeckel.ext;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (tax) {
+        function power(taxon) {
+            var entitySets = Haeckel.ext.power(taxon.entities), builder = new Haeckel.ExtSetBuilder();
+            Haeckel.ext.each(entitySets, function (s) {
+                builder.add(Haeckel.tax.create(s));
+            });
+            return builder.build();
+        }
+        tax.power = power;
+    })(Haeckel.tax || (Haeckel.tax = {}));
+    var tax = Haeckel.tax;
+})(Haeckel || (Haeckel = {}));
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var Haeckel;
+(function (Haeckel) {
+    var TaxicDistanceMatrixBuilder = (function (_super) {
+        __extends(TaxicDistanceMatrixBuilder, _super);
+        function TaxicDistanceMatrixBuilder() {
+            _super.apply(this, arguments);
+        }
+        TaxicDistanceMatrixBuilder.prototype.addRange = function (a, b, range) {
+            var _this = this;
+            Haeckel.ext.each(Haeckel.tax.power(a), function (a) {
+                if (!a.empty) {
+                    Haeckel.ext.each(Haeckel.tax.power(b), function (b) {
+                        if (!b.empty) {
+                            _super.prototype.addRange.call(_this, a, b, range);
+                        }
+                    });
+                }
+            });
+            return this;
+        };
+        return TaxicDistanceMatrixBuilder;
+    })(Haeckel.DistanceMatrixBuilder);
+    Haeckel.TaxicDistanceMatrixBuilder = TaxicDistanceMatrixBuilder;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (ext) {
         function singleMember(set) {
             if (set.size !== 1) {
                 throw new Error("Not a singleton: {" + Haeckel.ext.list(set).join(", ") + "}");
@@ -2635,12 +2708,6 @@ var Haeckel;
     })(Haeckel.rng || (Haeckel.rng = {}));
     var rng = Haeckel.rng;
 })(Haeckel || (Haeckel = {}));
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
 var Haeckel;
 (function (Haeckel) {
     var ChronoCharChart = (function (_super) {

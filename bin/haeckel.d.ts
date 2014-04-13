@@ -501,6 +501,17 @@ declare module Haeckel {
     }
 }
 declare module Haeckel.ext {
+    function power<T>(s: Haeckel.ExtSet<T>): Haeckel.ExtSet<Haeckel.ExtSet<T>>;
+}
+declare module Haeckel.tax {
+    function power<T>(taxon: Haeckel.Taxic): Haeckel.ExtSet<Haeckel.Taxic>;
+}
+declare module Haeckel {
+    class TaxicDistanceMatrixBuilder extends Haeckel.DistanceMatrixBuilder<Haeckel.Taxic> {
+        public addRange(a: Haeckel.Taxic, b: Haeckel.Taxic, range: Haeckel.Range): TaxicDistanceMatrixBuilder;
+    }
+}
+declare module Haeckel.ext {
     function singleMember<T>(set: Haeckel.ExtSet<T>): T;
 }
 declare module Haeckel {
