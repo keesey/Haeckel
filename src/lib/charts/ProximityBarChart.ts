@@ -152,7 +152,7 @@ module Haeckel
 						'fill': 'url(#' + gradientID + ')'
 					})
 				.attrs(SVG_NS, BAR_STYLE);
-			this.labeler(bar, rectangle, barGroup);
+			//this.labeler(bar, rectangle, barGroup);
 		}
 
 		render(parent: ElementBuilder, defs: () => ElementBuilder): ElementBuilder

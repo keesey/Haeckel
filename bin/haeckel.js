@@ -4241,7 +4241,6 @@ var Haeckel;
                 'height': rectangle.height + 'px',
                 'fill': 'url(#' + gradientID + ')'
             }).attrs(Haeckel.SVG_NS, BAR_STYLE);
-            this.labeler(bar, rectangle, barGroup);
         };
 
         ProximityBarChart.prototype.render = function (parent, defs) {
