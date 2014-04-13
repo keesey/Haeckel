@@ -870,8 +870,9 @@ declare module Haeckel {
         public barSort: (a: ProximityBar, b: ProximityBar) => number;
         public colorMap: (taxon: Haeckel.Taxic) => Haeckel.Color;
         public distanceMatrix: Haeckel.DistanceMatrix<any>;
-        public nomenclature: Haeckel.Nomenclature;
         public focus: Haeckel.Taxic;
+        public labeler: (bar: ProximityBar, rectangle: Haeckel.Rectangle, builder: Haeckel.ElementBuilder) => void;
+        public nomenclature: Haeckel.Nomenclature;
         public spacing: number;
         public taxa: Haeckel.ExtSet<Haeckel.Taxic>;
         constructor(id: string);

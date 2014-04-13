@@ -4185,6 +4185,9 @@ var Haeckel;
         return Haeckel.BLACK;
     };
 
+    function DEFAULT_LABELER(bar, rectangle, builder) {
+    }
+
     var ProximityBarChart = (function () {
         function ProximityBarChart(id) {
             this.id = id;
@@ -4192,8 +4195,9 @@ var Haeckel;
             this.barSort = DEFAULT_BAR_SORT;
             this.colorMap = DEFAULT_COLOR_MAP;
             this.distanceMatrix = Haeckel.EMPTY_DISTANCE_MATRIX;
-            this.nomenclature = Haeckel.EMPTY_NOMENCLATURE;
             this.focus = Haeckel.EMPTY_SET;
+            this.labeler = DEFAULT_LABELER;
+            this.nomenclature = Haeckel.EMPTY_NOMENCLATURE;
             this.spacing = 1;
         }
         ProximityBarChart.prototype.getBars = function () {
@@ -4229,13 +4233,15 @@ var Haeckel;
                 ratio: (yMax - yMin) / (yBottom - yMin)
             });
             fillBuilder.build();
-            builder.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
-                'x': (x + this.spacing / 2) + 'px',
-                'y': yMin + 'px',
-                'width': (barWidth - this.spacing) + 'px',
-                'height': (yBottom - yMin) + 'px',
+            var rectangle = Haeckel.rec.create(x + this.spacing / 2, yMin, barWidth - this.spacing, yBottom - yMin), barGroup = builder.child(Haeckel.SVG_NS, 'g').attr(Haeckel.SVG_NS, 'id', this.id + '-bar-' + index);
+            barGroup.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
+                'x': rectangle.x + 'px',
+                'y': rectangle.y + 'px',
+                'width': rectangle.width + 'px',
+                'height': rectangle.height + 'px',
                 'fill': 'url(#' + gradientID + ')'
             }).attrs(Haeckel.SVG_NS, BAR_STYLE);
+            this.labeler(bar, rectangle, barGroup);
         };
 
         ProximityBarChart.prototype.render = function (parent, defs) {

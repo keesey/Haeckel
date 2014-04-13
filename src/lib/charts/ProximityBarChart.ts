@@ -8,6 +8,7 @@
 /// <reference path="../functions/ext/each.ts"/>
 /// <reference path="../functions/ext/list.ts"/>
 /// <reference path="../functions/nom/forTaxon.ts"/>
+/// <reference path="../functions/rec/create.ts"/>
 /// <reference path="../functions/rng/multiply.ts"/>
 /// <reference path="../functions/tax/distance.ts"/>
 /// <reference path="../interfaces/Color.ts"/>
@@ -63,6 +64,10 @@ module Haeckel
 		return BLACK;
 	}
 
+	function DEFAULT_LABELER(bar: ProximityBar, rectangle: Rectangle, builder: ElementBuilder): void
+	{
+	}
+
 	export class ProximityBarChart implements Renderer
 	{
 		area: Rectangle = EMPTY_SET;
@@ -72,10 +77,12 @@ module Haeckel
 		colorMap: (taxon: Taxic) => Color = DEFAULT_COLOR_MAP;
 		
 		distanceMatrix = EMPTY_DISTANCE_MATRIX;
+
+		focus: Taxic = EMPTY_SET;
+		
+		labeler: (bar: ProximityBar, rectangle: Rectangle, builder: ElementBuilder) => void = DEFAULT_LABELER;
 		
 		nomenclature = EMPTY_NOMENCLATURE;
-		
-		focus: Taxic = EMPTY_SET;
 		
 		spacing = 1;
 		
@@ -133,17 +140,21 @@ module Haeckel
 				ratio: (yMax - yMin) / (yBottom - yMin)
 			});
 			fillBuilder.build();
-			builder.child(SVG_NS, 'rect')
+			var rectangle = rec.create(x + this.spacing / 2, yMin, barWidth - this.spacing, yBottom - yMin),
+				barGroup = builder.child(SVG_NS, 'g')
+					.attr(SVG_NS, 'id', this.id + '-bar-' + index);
+			barGroup.child(SVG_NS, 'rect')
 				.attrs(SVG_NS,{
-						'x': (x + this.spacing / 2) + 'px',
-						'y': yMin + 'px',
-						'width': (barWidth - this.spacing) + 'px',
-						'height': (yBottom - yMin) + 'px',
+						'x': rectangle.x + 'px',
+						'y': rectangle.y + 'px',
+						'width': rectangle.width + 'px',
+						'height': rectangle.height + 'px',
 						'fill': 'url(#' + gradientID + ')'
 					})
 				.attrs(SVG_NS, BAR_STYLE);
+			this.labeler(bar, rectangle, barGroup);
 		}
-		
+
 		render(parent: ElementBuilder, defs: () => ElementBuilder): ElementBuilder
 		{
 			var g = parent.child(SVG_NS, 'g'),
