@@ -4218,6 +4218,9 @@ var Haeckel;
         };
 
         ProximityBarChart.prototype.renderBar = function (builder, defsBuilder, bar, index, barWidth) {
+            if (bar.normalizedDistance.empty) {
+                return;
+            }
             var x = this.area.left + barWidth * index, yMin = this.area.top + bar.normalizedDistance.min * this.area.height, yMax = this.area.top + bar.normalizedDistance.max * this.area.height, yBottom = this.area.bottom, color = this.colorMap(bar.taxon), gradientID = this.id + '-gradient-' + index;
             if (yMin === yBottom) {
                 yMin -= 1;
@@ -4241,6 +4244,7 @@ var Haeckel;
                 'height': rectangle.height + 'px',
                 'fill': 'url(#' + gradientID + ')'
             }).attrs(Haeckel.SVG_NS, BAR_STYLE);
+            this.labeler(bar, rectangle, barGroup);
         };
 
         ProximityBarChart.prototype.render = function (parent, defs) {

@@ -116,6 +116,10 @@ module Haeckel
 		
 		private renderBar(builder: ElementBuilder, defsBuilder: ElementBuilder, bar: ProximityBar, index: number, barWidth: number)
 		{
+			if (bar.normalizedDistance.empty)
+			{
+				return;
+			}
 			var x = this.area.left + barWidth * index,
 				yMin = this.area.top + bar.normalizedDistance.min * this.area.height,
 				yMax = this.area.top + bar.normalizedDistance.max * this.area.height,
@@ -152,7 +156,7 @@ module Haeckel
 						'fill': 'url(#' + gradientID + ')'
 					})
 				.attrs(SVG_NS, BAR_STYLE);
-			//this.labeler(bar, rectangle, barGroup);
+			this.labeler(bar, rectangle, barGroup);
 		}
 
 		render(parent: ElementBuilder, defs: () => ElementBuilder): ElementBuilder
