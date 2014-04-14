@@ -4297,29 +4297,29 @@ var Haeckel;
                 yMin -= 1;
                 yMax -= 1;
             }
-            var fillBuilder = new Haeckel.LinearGradientBuilder(defsBuilder, gradientID), yMin = this.area.top + bar.normalizedDistance.min * this.area.height, yMax = this.area.top + bar.normalizedDistance.max * this.area.height, yBottom = this.area.bottom;
+            var fillBuilder = new Haeckel.LinearGradientBuilder(defsBuilder, gradientID);
             fillBuilder.startOpacity = 0;
             fillBuilder.start = color;
             fillBuilder.end = color;
             fillBuilder.add({
                 color: color,
+                opacity: 0,
+                ratio: bar.normalizedDistance.min
+            });
+            fillBuilder.add({
+                color: color,
                 opacity: 1,
-                ratio: (yMax - yMin) / (yBottom - yMin)
+                ratio: bar.normalizedDistance.max
             });
             fillBuilder.build();
             var rectangle = Haeckel.rec.create(x + this.spacing / 2, yMin, barWidth - this.spacing, yBottom - yMin), barGroup = builder.child(Haeckel.SVG_NS, 'g').attr(Haeckel.SVG_NS, 'id', this.id + '-bar-' + index);
             barGroup.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
                 'x': rectangle.x + 'px',
-                'y': rectangle.y + 'px',
+                'y': this.area.top + 'px',
                 'width': rectangle.width + 'px',
-                'height': rectangle.height + 'px',
+                'height': this.area.height + 'px',
                 'fill': 'url(#' + gradientID + ')'
             }).attrs(Haeckel.SVG_NS, BAR_STYLE);
-            barGroup.child(Haeckel.SVG_NS, 'path').attrs(Haeckel.SVG_NS, {
-                'd': 'M' + rectangle.x + ' ' + yMid + 'h' + rectangle.width,
-                'stroke': '#000000',
-                'stroke-width': '1px'
-            });
             this.labeler(bar, rectangle, barGroup);
         };
 
