@@ -3,7 +3,9 @@
 /// <reference path="../constants/EMPTY_DISTANCE_MATRIX.ts"/>
 /// <reference path="../constants/EMPTY_NOMENCLATURE.ts"/>
 /// <reference path="../constants/EMPTY_SET.ts"/>
+/// <reference path="../constants/PRECISION.ts"/>
 /// <reference path="../constants/WHITE.ts"/>
+/// <reference path="../functions/precisionEqual.ts"/>
 /// <reference path="../functions/dst/max.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
 /// <reference path="../functions/ext/list.ts"/>
@@ -114,7 +116,7 @@ module Haeckel
 			return bars.sort(this.barSort);
 		}
 		
-		private renderBar(builder: ElementBuilder, defsBuilder: ElementBuilder, bar: ProximityBar, index: number, barWidth: number)
+		private renderBar(builder: ElementBuilder, defs: () => ElementBuilder, bar: ProximityBar, index: number, barWidth: number)
 		{
 			if (bar.normalizedDistance.empty)
 			{
@@ -125,40 +127,54 @@ module Haeckel
 				yMax = this.area.top + bar.normalizedDistance.max * this.area.height,
 				yMid = (yMin + yMax) / 2,
 				yBottom = this.area.bottom,
-				color = this.colorMap(bar.taxon),
-				gradientID = this.id + '-gradient-' + index;
+				color = this.colorMap(bar.taxon);
 			if (yMin === yBottom)
 			{
 				yMin -= 1;
 				yMax -= 1;
 			}
-			var fillBuilder = new LinearGradientBuilder(defsBuilder, gradientID);
-			fillBuilder.startOpacity = 0;
-			fillBuilder.start = color;
-			fillBuilder.end = color;
-			fillBuilder.add({
-				color: color,
-				opacity: 0,
-				ratio: bar.normalizedDistance.min
-			});
-			fillBuilder.add({
-				color: color,
-				opacity: 1,
-				ratio: bar.normalizedDistance.max
-			});
-			fillBuilder.build();
 			var rectangle = rec.create(x + this.spacing / 2, yMin, barWidth - this.spacing, yBottom - yMin),
 				barGroup = builder.child(SVG_NS, 'g')
-					.attr(SVG_NS, 'id', this.id + '-bar-' + index);
-			barGroup.child(SVG_NS, 'rect')
-				.attrs(SVG_NS,{
-						'x': rectangle.x + 'px',
-						'y': this.area.top + 'px',
-						'width': rectangle.width + 'px',
-						'height': this.area.height + 'px',
-						'fill': 'url(#' + gradientID + ')'
-					})
-				.attrs(SVG_NS, BAR_STYLE);
+					.attr(SVG_NS, 'id', this.id + '-bar-' + index),
+				fill: string;
+			if (rectangle.height > 0)
+			{
+				if (precisionEqual(yMin, yMax) && precisionEqual(yMin, this.area.top))
+				{
+					fill = '#000000';
+				}
+				else
+				{
+					var gradientID = this.id + '-gradient-' + index,
+						fillBuilder = new LinearGradientBuilder(defs(), gradientID);
+					fillBuilder.startOpacity = 0;
+					fillBuilder.start = color;
+					fillBuilder.end = color;
+					fillBuilder.add({
+						color: color,
+						opacity: 0,
+						ratio: (bar.normalizedDistance.min === bar.normalizedDistance.max)
+							? (bar.normalizedDistance.min - 1 / PRECISION)
+							: bar.normalizedDistance.min
+					});
+					fillBuilder.add({
+						color: color,
+						opacity: 1,
+						ratio: bar.normalizedDistance.max
+					});
+					fillBuilder.build();
+					fill = 'url(#' + gradientID + ')';
+				}
+				barGroup.child(SVG_NS, 'rect')
+					.attrs(SVG_NS,{
+							'x': rectangle.x + 'px',
+							'y': this.area.top + 'px',
+							'width': rectangle.width + 'px',
+							'height': this.area.height + 'px',
+							'fill': fill
+						})
+					.attrs(SVG_NS, BAR_STYLE);
+			}
 			this.labeler(bar, rectangle, barGroup);
 		}
 
@@ -173,7 +189,7 @@ module Haeckel
 				var barWidth = this.area.width / n;
 				for (i = 0; i < n; ++i)
 				{
-					this.renderBar(g, defs(), bars[i], i, barWidth);
+					this.renderBar(g, defs, bars[i], i, barWidth);
 				}
 			}
 			return g;

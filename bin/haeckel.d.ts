@@ -862,6 +862,9 @@ declare module Haeckel {
 declare module Haeckel {
     var WHITE: Color;
 }
+declare module Haeckel {
+    function precisionEqual(a: number, b: number): boolean;
+}
 declare module Haeckel.dst {
     function max<T>(matrix: Haeckel.DistanceMatrix<T>): number;
 }
@@ -888,7 +891,7 @@ declare module Haeckel {
         public taxa: Haeckel.ExtSet<Haeckel.Taxic>;
         constructor(id: string);
         private getBars();
-        private renderBar(builder, defsBuilder, bar, index, barWidth);
+        private renderBar(builder, defs, bar, index, barWidth);
         public render(parent: Haeckel.ElementBuilder, defs: () => Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
 }
@@ -912,9 +915,6 @@ declare module Haeckel.trg {
 }
 declare module Haeckel.ray {
     function create(origin: Haeckel.Point, angle: number): Haeckel.Ray;
-}
-declare module Haeckel {
-    function precisionEqual(a: number, b: number): boolean;
 }
 declare module Haeckel.pt {
     function angle(a: Haeckel.Point, b: Haeckel.Point): number;

@@ -4180,6 +4180,13 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    function precisionEqual(a, b) {
+        return Math.round(a * Haeckel.PRECISION) / Haeckel.PRECISION === Math.round(b * Haeckel.PRECISION) / Haeckel.PRECISION;
+    }
+    Haeckel.precisionEqual = precisionEqual;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
     (function (dst) {
         function max(matrix) {
             var result = NaN, a, b;
@@ -4288,38 +4295,45 @@ var Haeckel;
             return bars.sort(this.barSort);
         };
 
-        ProximityBarChart.prototype.renderBar = function (builder, defsBuilder, bar, index, barWidth) {
+        ProximityBarChart.prototype.renderBar = function (builder, defs, bar, index, barWidth) {
             if (bar.normalizedDistance.empty) {
                 return;
             }
-            var x = this.area.left + barWidth * index, yMin = this.area.top + bar.normalizedDistance.min * this.area.height, yMax = this.area.top + bar.normalizedDistance.max * this.area.height, yMid = (yMin + yMax) / 2, yBottom = this.area.bottom, color = this.colorMap(bar.taxon), gradientID = this.id + '-gradient-' + index;
+            var x = this.area.left + barWidth * index, yMin = this.area.top + bar.normalizedDistance.min * this.area.height, yMax = this.area.top + bar.normalizedDistance.max * this.area.height, yMid = (yMin + yMax) / 2, yBottom = this.area.bottom, color = this.colorMap(bar.taxon);
             if (yMin === yBottom) {
                 yMin -= 1;
                 yMax -= 1;
             }
-            var fillBuilder = new Haeckel.LinearGradientBuilder(defsBuilder, gradientID);
-            fillBuilder.startOpacity = 0;
-            fillBuilder.start = color;
-            fillBuilder.end = color;
-            fillBuilder.add({
-                color: color,
-                opacity: 0,
-                ratio: bar.normalizedDistance.min
-            });
-            fillBuilder.add({
-                color: color,
-                opacity: 1,
-                ratio: bar.normalizedDistance.max
-            });
-            fillBuilder.build();
-            var rectangle = Haeckel.rec.create(x + this.spacing / 2, yMin, barWidth - this.spacing, yBottom - yMin), barGroup = builder.child(Haeckel.SVG_NS, 'g').attr(Haeckel.SVG_NS, 'id', this.id + '-bar-' + index);
-            barGroup.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
-                'x': rectangle.x + 'px',
-                'y': this.area.top + 'px',
-                'width': rectangle.width + 'px',
-                'height': this.area.height + 'px',
-                'fill': 'url(#' + gradientID + ')'
-            }).attrs(Haeckel.SVG_NS, BAR_STYLE);
+            var rectangle = Haeckel.rec.create(x + this.spacing / 2, yMin, barWidth - this.spacing, yBottom - yMin), barGroup = builder.child(Haeckel.SVG_NS, 'g').attr(Haeckel.SVG_NS, 'id', this.id + '-bar-' + index), fill;
+            if (rectangle.height > 0) {
+                if (Haeckel.precisionEqual(yMin, yMax) && Haeckel.precisionEqual(yMin, this.area.top)) {
+                    fill = '#000000';
+                } else {
+                    var gradientID = this.id + '-gradient-' + index, fillBuilder = new Haeckel.LinearGradientBuilder(defs(), gradientID);
+                    fillBuilder.startOpacity = 0;
+                    fillBuilder.start = color;
+                    fillBuilder.end = color;
+                    fillBuilder.add({
+                        color: color,
+                        opacity: 0,
+                        ratio: (bar.normalizedDistance.min === bar.normalizedDistance.max) ? (bar.normalizedDistance.min - 1 / Haeckel.PRECISION) : bar.normalizedDistance.min
+                    });
+                    fillBuilder.add({
+                        color: color,
+                        opacity: 1,
+                        ratio: bar.normalizedDistance.max
+                    });
+                    fillBuilder.build();
+                    fill = 'url(#' + gradientID + ')';
+                }
+                barGroup.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
+                    'x': rectangle.x + 'px',
+                    'y': this.area.top + 'px',
+                    'width': rectangle.width + 'px',
+                    'height': this.area.height + 'px',
+                    'fill': fill
+                }).attrs(Haeckel.SVG_NS, BAR_STYLE);
+            }
             this.labeler(bar, rectangle, barGroup);
         };
 
@@ -4328,7 +4342,7 @@ var Haeckel;
             if (n !== 0) {
                 var barWidth = this.area.width / n;
                 for (i = 0; i < n; ++i) {
-                    this.renderBar(g, defs(), bars[i], i, barWidth);
+                    this.renderBar(g, defs, bars[i], i, barWidth);
                 }
             }
             return g;
@@ -4447,13 +4461,6 @@ var Haeckel;
         ray.create = create;
     })(Haeckel.ray || (Haeckel.ray = {}));
     var ray = Haeckel.ray;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    function precisionEqual(a, b) {
-        return Math.round(a * Haeckel.PRECISION) / Haeckel.PRECISION === Math.round(b * Haeckel.PRECISION) / Haeckel.PRECISION;
-    }
-    Haeckel.precisionEqual = precisionEqual;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
