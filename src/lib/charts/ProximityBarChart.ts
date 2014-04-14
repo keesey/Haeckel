@@ -123,6 +123,7 @@ module Haeckel
 			var x = this.area.left + barWidth * index,
 				yMin = this.area.top + bar.normalizedDistance.min * this.area.height,
 				yMax = this.area.top + bar.normalizedDistance.max * this.area.height,
+				yMid = (yMin + yMax) / 2,
 				yBottom = this.area.bottom,
 				color = this.colorMap(bar.taxon),
 				gradientID = this.id + '-gradient-' + index;
@@ -156,6 +157,12 @@ module Haeckel
 						'fill': 'url(#' + gradientID + ')'
 					})
 				.attrs(SVG_NS, BAR_STYLE);
+			barGroup.child(SVG_NS, 'path')
+				.attrs(SVG_NS, {
+						'd': 'M' + rectangle.x + ' ' + yMid + 'h' + rectangle.width,
+						'stroke': '#000000',
+						'stroke-width': '1px'
+					});
 			this.labeler(bar, rectangle, barGroup);
 		}
 

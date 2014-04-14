@@ -4292,7 +4292,7 @@ var Haeckel;
             if (bar.normalizedDistance.empty) {
                 return;
             }
-            var x = this.area.left + barWidth * index, yMin = this.area.top + bar.normalizedDistance.min * this.area.height, yMax = this.area.top + bar.normalizedDistance.max * this.area.height, yBottom = this.area.bottom, color = this.colorMap(bar.taxon), gradientID = this.id + '-gradient-' + index;
+            var x = this.area.left + barWidth * index, yMin = this.area.top + bar.normalizedDistance.min * this.area.height, yMax = this.area.top + bar.normalizedDistance.max * this.area.height, yMid = (yMin + yMax) / 2, yBottom = this.area.bottom, color = this.colorMap(bar.taxon), gradientID = this.id + '-gradient-' + index;
             if (yMin === yBottom) {
                 yMin -= 1;
                 yMax -= 1;
@@ -4315,6 +4315,11 @@ var Haeckel;
                 'height': rectangle.height + 'px',
                 'fill': 'url(#' + gradientID + ')'
             }).attrs(Haeckel.SVG_NS, BAR_STYLE);
+            barGroup.child(Haeckel.SVG_NS, 'path').attrs(Haeckel.SVG_NS, {
+                'd': 'M' + rectangle.x + ' ' + yMid + 'h' + rectangle.width,
+                'stroke': '#000000',
+                'stroke-width': '1px'
+            });
             this.labeler(bar, rectangle, barGroup);
         };
 
