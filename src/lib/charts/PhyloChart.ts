@@ -20,9 +20,23 @@ module Haeckel
 		"stroke-opacity": "1"
 	};
 
+	function DEFAULT_VERTEX_RENDERER(builder: ElementBuilder, taxon: Taxic, rectangle: Rectangle): void
+	{
+		builder
+			.child(SVG_NS, 'rect')
+			.attrs(SVG_NS, {
+					x: rectangle.x + 'px',
+					y: rectangle.y + 'px',
+					width: rectangle.width + 'px',
+					height: rectangle.height + 'px'
+				});
+	}
+
 	export class PhyloChart extends ChronoCharChart implements Renderer
 	{
 		phyloSolver: PhyloSolver;
+
+		vertexRenderer: (builder: ElementBuilder, taxon: Taxic, rectangle: Rectangle) => void = DEFAULT_VERTEX_RENDERER;
 
 		render(parent: ElementBuilder): ElementBuilder
 		{
@@ -34,8 +48,13 @@ module Haeckel
 			timeMatrixBuilder.inferStates(solver.dagSolver);
 			var positions: { [hash: string]: Rectangle; } = {},
 				area = this.area;
-			ext.each(graph.vertices, (taxon: Taxic) => positions[taxon.hash] = this.getTaxonRect(taxon));
-			var g = parent.child(SVG_NS, 'g');
+			var arcsGroup = parent.child(SVG_NS, 'g'),
+				verticesGroup = parent.child(SVG_NS, 'g');
+			ext.each(graph.vertices, (taxon: Taxic) =>
+			{
+				var rect = positions[taxon.hash] = this.getTaxonRect(taxon);
+				this.vertexRenderer(verticesGroup, taxon, rect);
+			});
 			ext.each(graph.arcs, (arc: Arc<Taxic>) =>
 			{
 				var source: Rectangle = positions[arc[0].hash],
@@ -50,7 +69,7 @@ module Haeckel
 						+ "L" + source.centerX + " " + source.top
 						+ "V" + source.bottom
 						+ "Z";
-				g.child(SVG_NS, 'path')
+				arcsGroup.child(SVG_NS, 'path')
 					.attr(SVG_NS, 'd', data)
 					.attrs(SVG_NS, PATH_STYLE);
 			});
