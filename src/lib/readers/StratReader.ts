@@ -18,7 +18,7 @@ module Haeckel
 
 	export class StratReader
 	{
-		private _boundaries = {};
+		private _boundaries: { [id: string]: Range; } = {};
 
 		readStrata(data: StratData, builder: ExtSetBuilder<Stratum> = null): ExtSetBuilder<Stratum>
 		{

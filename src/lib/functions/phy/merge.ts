@@ -10,13 +10,13 @@ module Haeckel.phy
 {
 	export function merge(solvers: ExtSet<PhyloSolver>, taxa: ExtSet<Taxic>): PhyloSolver
 	{
-		var builder = new DAGBuilder<Taxic>();
+		var builder: DAGBuilder<Taxic> = new DAGBuilder<Taxic>();
 		// :TODO: Synonymize ancestral nodes with identical descendants.
-		ext.each(graphs, (solver: PhyloSolver) =>
+		ext.each(solvers, (solver: PhyloSolver) =>
 		{
 			builder.addGraph(refine(solver.dagSolver).build());
 		});
-		builder = coarsen(builder, taxa);
+		builder = coarsen(new DAGSolver<Taxic>(builder.build()), taxa);
 		return new PhyloSolver(builder);
 	}
 }

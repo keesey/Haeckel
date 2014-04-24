@@ -6,7 +6,7 @@ module Haeckel
 {
 	export class ExtSetBuilder<T> implements Builder<ExtSet<T>>
 	{
-		private _hashMap = {};
+		private _hashMap: { [hash: string]: T; } = {};
 
 		add(...elements: T[])
 		{

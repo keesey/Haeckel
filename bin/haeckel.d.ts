@@ -14,13 +14,13 @@ declare module Haeckel {
     function isModel(o: Model): boolean;
 }
 declare module Haeckel {
-    interface Set extends Haeckel.Model {
+    interface Set extends Model {
         empty: boolean;
     }
     function isSet(o: Set): boolean;
 }
 declare module Haeckel {
-    interface ExtSet<T> extends Haeckel.Set {
+    interface ExtSet<T> extends Set {
         hashMap: {
             [hash: string]: T;
         };
@@ -29,33 +29,33 @@ declare module Haeckel {
     function isExtSet(o: ExtSet<any>): boolean;
 }
 declare module Haeckel {
-    class ExtSetBuilder<T> implements Haeckel.Builder<Haeckel.ExtSet<T>> {
+    class ExtSetBuilder<T> implements Builder<ExtSet<T>> {
         private _hashMap;
         public add(...elements: T[]): ExtSetBuilder<T>;
         public addList(elements: T[]): ExtSetBuilder<T>;
-        public addSet(elements: Haeckel.ExtSet<T>): ExtSetBuilder<T>;
-        public build(): Haeckel.ExtSet<T>;
+        public addSet(elements: ExtSet<T>): ExtSetBuilder<T>;
+        public build(): ExtSet<T>;
         public contains(element: T): boolean;
         public remove(...elements: T[]): ExtSetBuilder<T>;
         public removeList(elements: T[]): ExtSetBuilder<T>;
-        public removeSet(elements: Haeckel.ExtSet<T>): ExtSetBuilder<T>;
+        public removeSet(elements: ExtSet<T>): ExtSetBuilder<T>;
         public reset(): ExtSetBuilder<T>;
     }
 }
 declare module Haeckel {
-    interface BitSet extends Haeckel.Set {
+    interface BitSet extends Set {
         bits: number;
     }
     function isBitSet(o: BitSet): boolean;
 }
 declare module Haeckel {
-    interface IntSet<T> extends Haeckel.Set {
+    interface IntSet<T> extends Set {
         criterion: (element: T) => boolean;
     }
     function isIntSet(o: IntSet<any>): boolean;
 }
 declare module Haeckel {
-    interface Range extends Haeckel.Set {
+    interface Range extends Set {
         max: number;
         mean: number;
         min: number;
@@ -64,21 +64,21 @@ declare module Haeckel {
     function isRange(o: Range): boolean;
 }
 declare module Haeckel {
-    interface Point extends Haeckel.Model {
+    interface Point extends Model {
         x: number;
         y: number;
     }
     function isPoint(o: Point): boolean;
 }
 declare module Haeckel {
-    interface Ray extends Haeckel.Set {
+    interface Ray extends Set {
         angle: number;
-        origin: Haeckel.Point;
+        origin: Point;
     }
     function isRay(o: any): boolean;
 }
 declare module Haeckel {
-    interface Rectangle extends Haeckel.Point, Haeckel.Set {
+    interface Rectangle extends Point, Set {
         area: number;
         bottom: number;
         centerX: number;
@@ -94,27 +94,27 @@ declare module Haeckel {
     function isRectangle(o: Rectangle): boolean;
 }
 declare module Haeckel {
-    interface Entity extends Haeckel.Model {
+    interface Entity extends Model {
         uid: string;
     }
     function isEntity(o: Entity): boolean;
 }
 declare module Haeckel {
-    interface Taxic extends Haeckel.Set {
-        entities: Haeckel.ExtSet<Haeckel.Entity>;
+    interface Taxic extends Set {
+        entities: ExtSet<Entity>;
         isUnit: boolean;
-        units: Haeckel.ExtSet<Taxic>;
+        units: ExtSet<Taxic>;
     }
     function isTaxic(o: Taxic): boolean;
 }
 declare module Haeckel {
-    interface TypeSet<T> extends Haeckel.Set {
+    interface TypeSet<T> extends Set {
         contains: (element: T) => boolean;
     }
     function isTypeSet(o: TypeSet<any>): boolean;
 }
 declare module Haeckel {
-    interface EmptySet extends Haeckel.ExtSet<any>, Haeckel.BitSet, Haeckel.IntSet<any>, Haeckel.Range, Haeckel.Ray, Haeckel.Rectangle, Haeckel.Taxic, Haeckel.TypeSet<any> {
+    interface EmptySet extends ExtSet<any>, BitSet, IntSet<any>, Range, Ray, Rectangle, Taxic, TypeSet<any> {
     }
 }
 declare module Haeckel {
@@ -124,53 +124,53 @@ declare module Haeckel.arr {
     function each<T>(list: T[], f: (element: T) => any, thisObject?: any): void;
 }
 declare module Haeckel {
-    interface WeightedStates<S extends Haeckel.Set> {
+    interface WeightedStates<S extends Set> {
         states: S;
         weight: number;
     }
     function isWeightedStates(o: any): boolean;
 }
 declare module Haeckel {
-    interface Inferrer<S extends Haeckel.Set> {
-        average: (statesList: Haeckel.WeightedStates<S>[]) => S;
+    interface Inferrer<S extends Set> {
+        average: (statesList: WeightedStates<S>[]) => S;
     }
     function isInferrer(o: any): boolean;
 }
 declare module Haeckel {
-    interface Character<S extends Haeckel.Set> extends Haeckel.Entity {
+    interface Character<S extends Set> extends Entity {
         combine: (statesList: S[]) => S;
         domain: S;
-        distance?: (statesA: S, statesB: S) => Haeckel.Range;
-        inferrer?: Haeckel.Inferrer<S>;
+        distance?: (statesA: S, statesB: S) => Range;
+        inferrer?: Inferrer<S>;
         readStates: (data: any) => S;
         writeStates: (states: S) => any;
     }
     function isCharacter(o: any): boolean;
 }
 declare module Haeckel.chr {
-    function hashMapStates<S extends Haeckel.Set>(map: {
+    function hashMapStates<S extends Set>(map: {
         [hash: string]: S;
-    }, taxon: Haeckel.Taxic, character: Haeckel.Character<S>): S;
+    }, taxon: Taxic, character: Character<S>): S;
 }
 declare module Haeckel {
-    interface CharacterMatrix<S extends Haeckel.Set> {
-        characters: Haeckel.ExtSet<Haeckel.Character<S>>;
-        characterList: Haeckel.Character<S>[];
+    interface CharacterMatrix<S extends Set> {
+        characters: ExtSet<Character<S>>;
+        characterList: Character<S>[];
         hashMap: {
             [unitCharacterCompositeHash: string]: S;
         };
-        taxon: Haeckel.Taxic;
+        taxon: Taxic;
     }
     function isCharacterMatrix(o: any): boolean;
 }
 declare module Haeckel.chr {
-    function states<S extends Haeckel.Set>(matrix: Haeckel.CharacterMatrix<S>, taxon: Haeckel.Taxic, character: Haeckel.Character<S>): S;
+    function states<S extends Set>(matrix: CharacterMatrix<S>, taxon: Taxic, character: Character<S>): S;
 }
 declare module Haeckel.ext {
-    function each<T>(set: Haeckel.ExtSet<T>, f: (element: T) => any, thisObject?: any): void;
+    function each<T>(set: ExtSet<T>, f: (element: T) => any, thisObject?: any): void;
 }
 declare module Haeckel.chr {
-    function definedUnits<S extends Haeckel.Set>(matrix: Haeckel.CharacterMatrix<S>, character: Haeckel.Character<S>): Haeckel.ExtSet<Haeckel.Taxic>;
+    function definedUnits<S extends Set>(matrix: CharacterMatrix<S>, character: Character<S>): ExtSet<Taxic>;
 }
 declare module Haeckel {
     var RANGE_0: Range;
@@ -178,50 +178,50 @@ declare module Haeckel {
 declare module Haeckel.dst {
     function hashMapDistance(hashMap: {
         [hash: string]: {
-            [hash: string]: Haeckel.Range;
+            [hash: string]: Range;
         };
-    }, a: any, b: any): Haeckel.Range;
+    }, a: any, b: any): Range;
 }
 declare module Haeckel {
     interface DistanceMatrix<T> {
         hashMap: {
             [hash: string]: {
-                [hash: string]: Haeckel.Range;
+                [hash: string]: Range;
             };
         };
-        members: Haeckel.ExtSet<T>;
+        members: ExtSet<T>;
     }
     function isDistanceMatrix(o: DistanceMatrix<any>): boolean;
 }
 declare module Haeckel.dst {
-    function get<T>(matrix: Haeckel.DistanceMatrix<T>, a: T, b: T): Haeckel.Range;
+    function get<T>(matrix: DistanceMatrix<T>, a: T, b: T): Range;
 }
 declare module Haeckel.ext {
-    function contains<T>(set: Haeckel.ExtSet<T>, element: T): boolean;
+    function contains<T>(set: ExtSet<T>, element: T): boolean;
 }
 declare module Haeckel {
     function equal(a: any, b: any): boolean;
 }
 declare module Haeckel.ext {
-    function intersect<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): Haeckel.ExtSet<T>;
+    function intersect<T>(a: ExtSet<T>, b: ExtSet<T>): ExtSet<T>;
 }
 declare module Haeckel.ext {
-    function setDiff<T>(minuend: Haeckel.ExtSet<T>, subtrahend: Haeckel.ExtSet<T>): Haeckel.ExtSet<T>;
+    function setDiff<T>(minuend: ExtSet<T>, subtrahend: ExtSet<T>): ExtSet<T>;
 }
 declare module Haeckel.ext {
-    function create<T>(elements: T[]): Haeckel.ExtSet<T>;
+    function create<T>(elements: T[]): ExtSet<T>;
 }
 declare module Haeckel.tax {
-    function createUnitForEntity(entity: Haeckel.Entity): Haeckel.Taxic;
+    function createUnitForEntity(entity: Entity): Taxic;
 }
 declare module Haeckel.tax {
-    function create(entities: Haeckel.ExtSet<Haeckel.Entity>): Haeckel.Taxic;
+    function create(entities: ExtSet<Entity>): Taxic;
 }
 declare module Haeckel.tax {
-    function setDiff(minuend: Haeckel.Taxic, subtrahend: Haeckel.Taxic): Haeckel.Taxic;
+    function setDiff(minuend: Taxic, subtrahend: Taxic): Taxic;
 }
 declare module Haeckel.tax {
-    function union(taxa: Haeckel.Taxic[]): Haeckel.Taxic;
+    function union(taxa: Taxic[]): Taxic;
 }
 declare module Haeckel {
     class SolverCache {
@@ -237,26 +237,26 @@ declare module Haeckel {
     function isArc(o: Arc<any>): boolean;
 }
 declare module Haeckel {
-    interface Digraph<V> extends Array<Haeckel.ExtSet<any>> {
-        arcs: Haeckel.ExtSet<Haeckel.Arc<V>>;
-        vertices: Haeckel.ExtSet<V>;
+    interface Digraph<V> extends Array<ExtSet<any>> {
+        arcs: ExtSet<Arc<V>>;
+        vertices: ExtSet<V>;
     }
     function isDigraph(o: Digraph<any>): boolean;
 }
 declare module Haeckel {
-    class DigraphBuilder<T> implements Haeckel.Builder<Haeckel.Digraph<T>> {
+    class DigraphBuilder<T> implements Builder<Digraph<T>> {
         private _arcs;
         private _vertices;
         public addArc(head: T, tail: T): DigraphBuilder<T>;
-        public addArcs(arcs: Haeckel.ExtSet<Haeckel.Arc<T>>): DigraphBuilder<T>;
-        public addGraph(graph: Haeckel.Digraph<T>): DigraphBuilder<T>;
+        public addArcs(arcs: ExtSet<Arc<T>>): DigraphBuilder<T>;
+        public addGraph(graph: Digraph<T>): DigraphBuilder<T>;
         public addVertex(vertex: T): DigraphBuilder<T>;
-        public addVertices(vertices: Haeckel.ExtSet<T>): DigraphBuilder<T>;
-        public build(): Haeckel.Digraph<T>;
-        public buildArcs(): Haeckel.ExtSet<Haeckel.Arc<T>>;
-        public buildSubgraph(vertices: Haeckel.ExtSet<T>): Haeckel.Digraph<T>;
-        public buildVertices(): Haeckel.ExtSet<T>;
-        public containsArc(arc: Haeckel.Arc<T>): boolean;
+        public addVertices(vertices: ExtSet<T>): DigraphBuilder<T>;
+        public build(): Digraph<T>;
+        public buildArcs(): ExtSet<Arc<T>>;
+        public buildSubgraph(vertices: ExtSet<T>): Digraph<T>;
+        public buildVertices(): ExtSet<T>;
+        public containsArc(arc: Arc<T>): boolean;
         public containsVertex(vertex: T): boolean;
         public removeArc(head: T, tail: T): DigraphBuilder<T>;
         public removeVertex(vertex: T): DigraphBuilder<T>;
@@ -268,26 +268,26 @@ declare module Haeckel {
     var EMPTY_DIGRAPH: Digraph<any>;
 }
 declare module Haeckel.ext {
-    function list<T>(set: Haeckel.ExtSet<T>): T[];
+    function list<T>(set: ExtSet<T>): T[];
 }
 declare module Haeckel {
-    class DAGBuilder<T> implements Haeckel.Builder<Haeckel.Digraph<T>> {
+    class DAGBuilder<T> implements Builder<Digraph<T>> {
         private _builder;
         private _closure;
         private _reduction;
         public addArc(head: T, tail: T): DAGBuilder<T>;
-        public addArcs(arcs: Haeckel.ExtSet<Haeckel.Arc<T>>): DAGBuilder<T>;
-        public addGraph(graph: Haeckel.Digraph<T>): DAGBuilder<T>;
+        public addArcs(arcs: ExtSet<Arc<T>>): DAGBuilder<T>;
+        public addGraph(graph: Digraph<T>): DAGBuilder<T>;
         public addVertex(vertex: T): DAGBuilder<T>;
-        public addVertices(vertices: Haeckel.ExtSet<T>): DAGBuilder<T>;
+        public addVertices(vertices: ExtSet<T>): DAGBuilder<T>;
         public adjacencyMatrix(vertices?: T[]): boolean[][];
-        public build(): Haeckel.Digraph<T>;
-        public buildArcs(): Haeckel.ExtSet<Haeckel.Arc<T>>;
-        public buildClosure(): Haeckel.Digraph<T>;
-        public buildReduction(): Haeckel.Digraph<T>;
-        public buildSubgraph(vertices: Haeckel.ExtSet<T>): Haeckel.Digraph<T>;
-        public buildVertices(): Haeckel.ExtSet<T>;
-        public containsArc(arc: Haeckel.Arc<T>): boolean;
+        public build(): Digraph<T>;
+        public buildArcs(): ExtSet<Arc<T>>;
+        public buildClosure(): Digraph<T>;
+        public buildReduction(): Digraph<T>;
+        public buildSubgraph(vertices: ExtSet<T>): Digraph<T>;
+        public buildVertices(): ExtSet<T>;
+        public containsArc(arc: Arc<T>): boolean;
         public containsVertex(vertex: T): boolean;
         public removeArc(head: T, tail: T): DAGBuilder<T>;
         public removeVertex(vertex: T): DAGBuilder<T>;
@@ -314,45 +314,45 @@ declare module Haeckel {
     var RANGE_POS_INF: Range;
 }
 declare module Haeckel.rng {
-    function create(min: number, max?: number): Haeckel.Range;
+    function create(min: number, max?: number): Range;
 }
 declare module Haeckel {
-    class DistanceMatrixBuilder<T> implements Haeckel.Builder<Haeckel.DistanceMatrix<T>> {
+    class DistanceMatrixBuilder<T> implements Builder<DistanceMatrix<T>> {
         private _hashMap;
         private _members;
         public addDistance(a: T, b: T, d: number): DistanceMatrixBuilder<T>;
-        public addRange(a: T, b: T, range: Haeckel.Range): DistanceMatrixBuilder<T>;
-        public build(): Haeckel.DistanceMatrix<T>;
-        public get(a: T, b: T): Haeckel.Range;
+        public addRange(a: T, b: T, range: Range): DistanceMatrixBuilder<T>;
+        public build(): DistanceMatrix<T>;
+        public get(a: T, b: T): Range;
         public reset(): DistanceMatrixBuilder<T>;
     }
 }
 declare module Haeckel.ext {
-    function union<T>(sets: Haeckel.ExtSet<T>[]): Haeckel.ExtSet<T>;
+    function union<T>(sets: ExtSet<T>[]): ExtSet<T>;
 }
 declare module Haeckel {
     class DAGSolver<T> {
         private _builder;
         private _cache;
         private _graph;
-        public arcs : Haeckel.ExtSet<T[]>;
-        public graph : Haeckel.Digraph<T>;
-        public sinks : Haeckel.ExtSet<T>;
-        public sources : Haeckel.ExtSet<T>;
-        public vertices : Haeckel.ExtSet<T>;
-        constructor(graph: Haeckel.Digraph<T>);
-        public distance(x: T, y: T, traversedBuilder?: Haeckel.ExtSetBuilder<T>): number;
-        public imPrcs(vertex: T): Haeckel.ExtSet<T>;
-        public imSucs(vertex: T): Haeckel.ExtSet<T>;
-        public prcs(vertex: T): Haeckel.ExtSet<T>;
-        public subgraph(vertices: Haeckel.ExtSet<T>): Haeckel.Digraph<T>;
-        public subgraphSolver(vertices: Haeckel.ExtSet<T>): DAGSolver<T>;
-        public sucs(vertex: T): Haeckel.ExtSet<T>;
-        public toDistanceMatrix(): Haeckel.DistanceMatrix<T>;
+        public arcs : ExtSet<T[]>;
+        public graph : Digraph<T>;
+        public sinks : ExtSet<T>;
+        public sources : ExtSet<T>;
+        public vertices : ExtSet<T>;
+        constructor(graph: Digraph<T>);
+        public distance(x: T, y: T, traversedBuilder?: ExtSetBuilder<T>): number;
+        public imPrcs(vertex: T): ExtSet<T>;
+        public imSucs(vertex: T): ExtSet<T>;
+        public prcs(vertex: T): ExtSet<T>;
+        public subgraph(vertices: ExtSet<T>): Digraph<T>;
+        public subgraphSolver(vertices: ExtSet<T>): DAGSolver<T>;
+        public sucs(vertex: T): ExtSet<T>;
+        public toDistanceMatrix(): DistanceMatrix<T>;
     }
 }
 declare module Haeckel {
-    class CharacterMatrixBuilder<S extends Haeckel.Set> implements Haeckel.Builder<Haeckel.CharacterMatrix<S>> {
+    class CharacterMatrixBuilder<S extends Set> implements Builder<CharacterMatrix<S>> {
         private _characterList;
         private _characterMatrix;
         private _characters;
@@ -365,23 +365,23 @@ declare module Haeckel {
         private _inferUnit(character, definedUnits, unit);
         private _runInference();
         private _weightedStates(character, units, focus);
-        public characterList : Haeckel.Character<S>[];
-        public taxon : Haeckel.Taxic;
-        public add(character: Haeckel.Character<S>): CharacterMatrixBuilder<S>;
-        public addListed(character: Haeckel.Character<S>): CharacterMatrixBuilder<S>;
-        public addMatrix(matrix: Haeckel.CharacterMatrix<S>): CharacterMatrixBuilder<S>;
-        public build(): Haeckel.CharacterMatrix<S>;
-        public inferStates(solver: Haeckel.DAGSolver<Haeckel.Taxic>, distanceMatrix?: Haeckel.DistanceMatrix<Haeckel.Taxic>): CharacterMatrixBuilder<S>;
-        public removeCharacter(character: Haeckel.Character<S>): CharacterMatrixBuilder<S>;
-        public removeStates(taxon: Haeckel.Taxic, character: Haeckel.Character<S>): CharacterMatrixBuilder<S>;
-        public removeTaxon(taxon: Haeckel.Taxic): CharacterMatrixBuilder<S>;
+        public characterList : Character<S>[];
+        public taxon : Taxic;
+        public add(character: Character<S>): CharacterMatrixBuilder<S>;
+        public addListed(character: Character<S>): CharacterMatrixBuilder<S>;
+        public addMatrix(matrix: CharacterMatrix<S>): CharacterMatrixBuilder<S>;
+        public build(): CharacterMatrix<S>;
+        public inferStates(solver: DAGSolver<Taxic>, distanceMatrix?: DistanceMatrix<Taxic>): CharacterMatrixBuilder<S>;
+        public removeCharacter(character: Character<S>): CharacterMatrixBuilder<S>;
+        public removeStates(taxon: Taxic, character: Character<S>): CharacterMatrixBuilder<S>;
+        public removeTaxon(taxon: Taxic): CharacterMatrixBuilder<S>;
         public reset(): CharacterMatrixBuilder<S>;
-        public states(taxon: Haeckel.Taxic, character: Haeckel.Character<S>): S;
-        public states(taxon: Haeckel.Taxic, character: Haeckel.Character<S>, states: S): CharacterMatrixBuilder<S>;
+        public states(taxon: Taxic, character: Character<S>): S;
+        public states(taxon: Taxic, character: Character<S>, states: S): CharacterMatrixBuilder<S>;
     }
 }
 declare module Haeckel {
-    class ElementBuilder implements Haeckel.Builder<Element> {
+    class ElementBuilder implements Builder<Element> {
         private document;
         private element;
         private _parent;
@@ -425,28 +425,28 @@ declare module Haeckel {
 }
 declare module Haeckel {
     interface GradientEntry {
-        color: Haeckel.Color;
+        color: Color;
         ratio: number;
         opacity: number;
     }
 }
 declare module Haeckel {
-    class LinearGradientBuilder implements Haeckel.Builder<Haeckel.ElementBuilder> {
+    class LinearGradientBuilder implements Builder<ElementBuilder> {
         private defsBuilder;
         private id;
         public angle: number;
         public bottom: number;
-        public end: Haeckel.Color;
+        public end: Color;
         public endOpacity: number;
         public left: number;
         public right: number;
-        public start: Haeckel.Color;
+        public start: Color;
         public startOpacity: number;
         public top: number;
         private _stops;
-        constructor(defsBuilder: Haeckel.ElementBuilder, id: string);
-        public add(entry: Haeckel.GradientEntry): LinearGradientBuilder;
-        public build(): Haeckel.ElementBuilder;
+        constructor(defsBuilder: ElementBuilder, id: string);
+        public add(entry: GradientEntry): LinearGradientBuilder;
+        public build(): ElementBuilder;
         public reset(): LinearGradientBuilder;
         public resetEntries(): LinearGradientBuilder;
         public resetID(id: string): LinearGradientBuilder;
@@ -455,10 +455,10 @@ declare module Haeckel {
 declare module Haeckel {
     interface Nomenclature {
         nameMap: {
-            [name: string]: Haeckel.Taxic;
+            [name: string]: Taxic;
         };
-        names: Haeckel.ExtSet<string>;
-        taxa: Haeckel.ExtSet<Haeckel.Taxic>;
+        names: ExtSet<string>;
+        taxa: ExtSet<Taxic>;
     }
     function isNomenclature(o: any): boolean;
 }
@@ -469,180 +469,180 @@ declare module Haeckel {
     function guid4(): string;
 }
 declare module Haeckel.tax {
-    function createUnit(): Haeckel.Taxic;
+    function createUnit(): Taxic;
 }
 declare module Haeckel {
-    class NomenclatureBuilder implements Haeckel.Builder<Haeckel.Nomenclature> {
+    class NomenclatureBuilder implements Builder<Nomenclature> {
         private _nameSets;
         private _nameToNameSet;
         public addName(name: string): NomenclatureBuilder;
-        public build(): Haeckel.Nomenclature;
+        public build(): Nomenclature;
         public hyponymize(hyperonym: string, hyponym: string): NomenclatureBuilder;
         public reset(): NomenclatureBuilder;
         public synonymize(nameA: string, nameB: string): NomenclatureBuilder;
     }
 }
 declare module Haeckel {
-    class PathBuilder implements Haeckel.Builder<string> {
+    class PathBuilder implements Builder<string> {
         private points;
-        public add(point: Haeckel.Point): PathBuilder;
+        public add(point: Point): PathBuilder;
         public build(): string;
         public reset(): PathBuilder;
     }
 }
 declare module Haeckel {
-    class RangeBuilder implements Haeckel.Builder<Haeckel.Range> {
+    class RangeBuilder implements Builder<Range> {
         private _max;
         private _min;
         public add(value: number): RangeBuilder;
-        public addRange(range: Haeckel.Range): RangeBuilder;
-        public build(): Haeckel.Range;
+        public addRange(range: Range): RangeBuilder;
+        public build(): Range;
         public reset(): RangeBuilder;
     }
 }
 declare module Haeckel.ext {
-    function power<T>(s: Haeckel.ExtSet<T>): Haeckel.ExtSet<Haeckel.ExtSet<T>>;
+    function power<T>(s: ExtSet<T>): ExtSet<ExtSet<T>>;
 }
 declare module Haeckel.tax {
-    function power<T>(taxon: Haeckel.Taxic): Haeckel.ExtSet<Haeckel.Taxic>;
+    function power<T>(taxon: Taxic): ExtSet<Taxic>;
 }
 declare module Haeckel {
-    class TaxicDistanceMatrixBuilder extends Haeckel.DistanceMatrixBuilder<Haeckel.Taxic> {
-        public addRange(a: Haeckel.Taxic, b: Haeckel.Taxic, range: Haeckel.Range): TaxicDistanceMatrixBuilder;
+    class TaxicDistanceMatrixBuilder extends DistanceMatrixBuilder<Taxic> {
+        public addRange(a: Taxic, b: Taxic, range: Range): TaxicDistanceMatrixBuilder;
     }
 }
 declare module Haeckel.ext {
-    function singleMember<T>(set: Haeckel.ExtSet<T>): T;
+    function singleMember<T>(set: ExtSet<T>): T;
 }
 declare module Haeckel {
-    class TaxonBuilder implements Haeckel.Builder<Haeckel.Taxic> {
+    class TaxonBuilder implements Builder<Taxic> {
         private _entitiesBuilder;
         private _unitsBuilder;
-        public add(taxon: Haeckel.Taxic): TaxonBuilder;
-        public addSet(taxa: Haeckel.ExtSet<Haeckel.Taxic>): TaxonBuilder;
-        public build(): Haeckel.Taxic;
-        public remove(taxon: Haeckel.Taxic): TaxonBuilder;
-        public removeSet(taxa: Haeckel.ExtSet<Haeckel.Taxic>): TaxonBuilder;
+        public add(taxon: Taxic): TaxonBuilder;
+        public addSet(taxa: ExtSet<Taxic>): TaxonBuilder;
+        public build(): Taxic;
+        public remove(taxon: Taxic): TaxonBuilder;
+        public removeSet(taxa: ExtSet<Taxic>): TaxonBuilder;
         public reset(): TaxonBuilder;
     }
 }
 declare module Haeckel.rec {
-    function create(x: number, y: number, width: number, height: number): Haeckel.Rectangle;
+    function create(x: number, y: number, width: number, height: number): Rectangle;
 }
 declare module Haeckel.rec {
     interface BoundingClientRectElement extends SVGElement {
         getBoundingClientRect(): ClientRect;
     }
-    function createFromBoundingClientRect(svg: BoundingClientRectElement): Haeckel.Rectangle;
+    function createFromBoundingClientRect(svg: BoundingClientRectElement): Rectangle;
 }
 declare module Haeckel {
     interface Axis {
         labelFunction?: (value: number) => string;
-        range: Haeckel.Range;
+        range: Range;
         step: number;
     }
     function isAxis(o: Axis): boolean;
 }
 declare module Haeckel {
     interface Renderer {
-        render(parent: Haeckel.ElementBuilder, defsBuilder: () => Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        render(parent: ElementBuilder, defsBuilder: () => ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel {
-    class AxisChart implements Haeckel.Renderer {
-        public area: Haeckel.Rectangle;
-        public axis: Haeckel.Axis;
+    class AxisChart implements Renderer {
+        public area: Rectangle;
+        public axis: Axis;
         public lineStyle: {
             [style: string]: string;
         };
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        public render(parent: ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel {
-    class AxisLabeler implements Haeckel.Renderer {
-        public area: Haeckel.Rectangle;
-        public axis: Haeckel.Axis;
+    class AxisLabeler implements Renderer {
+        public area: Rectangle;
+        public axis: Axis;
         public style: {
             [style: string]: any;
         };
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        public render(parent: ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel {
     class ChronoChart {
-        public area: Haeckel.Rectangle;
-        public time: Haeckel.Range;
+        public area: Rectangle;
+        public time: Range;
         public copyFrom(chart: ChronoChart): ChronoChart;
-        public getTimeY(time: Haeckel.Range): Haeckel.Range;
+        public getTimeY(time: Range): Range;
     }
 }
 declare module Haeckel {
     var EMPTY_CHARACTER_MATRIX: CharacterMatrix<Set>;
 }
 declare module Haeckel.chr {
-    function initiate<S extends Haeckel.Set>(domain: S): Haeckel.Character<S>;
+    function initiate<S extends Set>(domain: S): Character<S>;
 }
 declare module Haeckel.chr {
-    function normalizeWeights<S extends Haeckel.Set>(statesList: Haeckel.WeightedStates<S>[]): Haeckel.WeightedStates<S>[];
+    function normalizeWeights<S extends Set>(statesList: WeightedStates<S>[]): WeightedStates<S>[];
 }
 declare module Haeckel.rng {
-    function combine(ranges: Haeckel.Range[]): Haeckel.Range;
+    function combine(ranges: Range[]): Range;
 }
 declare module Haeckel.rng {
-    function overlap(a: Haeckel.Range, b: Haeckel.Range): boolean;
+    function overlap(a: Range, b: Range): boolean;
 }
 declare module Haeckel.rng {
-    function distance(a: Haeckel.Range, b: Haeckel.Range): Haeckel.Range;
+    function distance(a: Range, b: Range): Range;
 }
 declare module Haeckel.rng {
-    function multiply(r: Haeckel.Range, factor: number): Haeckel.Range;
+    function multiply(r: Range, factor: number): Range;
 }
 declare module Haeckel.rng {
-    function read(data: number): Haeckel.Range;
-    function read(data: number[]): Haeckel.Range;
+    function read(data: number): Range;
+    function read(data: number[]): Range;
 }
 declare module Haeckel.rng {
-    function write(r: Haeckel.Range): any;
+    function write(r: Range): any;
 }
 declare module Haeckel.chr {
-    function createRange(domain: Haeckel.Range, inferrable?: boolean, distance?: boolean): Haeckel.Character<Haeckel.Range>;
+    function createRange(domain: Range, inferrable?: boolean, distance?: boolean): Character<Range>;
 }
 declare module Haeckel {
     var TIME_CHARACTER: Character<Range>;
 }
 declare module Haeckel.rng {
-    function sum(ranges: Haeckel.Range[]): Haeckel.Range;
+    function sum(ranges: Range[]): Range;
 }
 declare module Haeckel.chr {
-    function toDistanceMatrix(matrix: Haeckel.CharacterMatrix<Haeckel.Set>, anchors?: Haeckel.Taxic): Haeckel.DistanceMatrix<Haeckel.Taxic>;
+    function toDistanceMatrix(matrix: CharacterMatrix<Set>, anchors?: Taxic): DistanceMatrix<Taxic>;
 }
 declare module Haeckel.rec {
-    function createFromCoords(x1: number, y1: number, x2: number, y2: number): Haeckel.Rectangle;
+    function createFromCoords(x1: number, y1: number, x2: number, y2: number): Rectangle;
 }
 declare module Haeckel.rng {
-    function add(r: Haeckel.Range, value: number): Haeckel.Range;
+    function add(r: Range, value: number): Range;
 }
 declare module Haeckel.rng {
-    function constrain(original: Haeckel.Range, constraint: Haeckel.Range): Haeckel.Range;
+    function constrain(original: Range, constraint: Range): Range;
 }
 declare module Haeckel {
-    class ChronoCharChart extends Haeckel.ChronoChart {
-        public characterMatrix: Haeckel.CharacterMatrix<Haeckel.Set>;
-        public horizontalRatioMap: (taxon: Haeckel.Taxic) => Haeckel.Range;
-        public copyFrom(chart: Haeckel.ChronoChart): ChronoCharChart;
-        public getTaxonRect(taxon: Haeckel.Taxic): Haeckel.Rectangle;
-        public getTaxonX(taxon: Haeckel.Taxic): Haeckel.Range;
-        public useCharacterMatrixForHorizontal(leftTaxon: Haeckel.Taxic, rightTaxon: Haeckel.Taxic): ChronoCharChart;
+    class ChronoCharChart extends ChronoChart {
+        public characterMatrix: CharacterMatrix<Set>;
+        public horizontalRatioMap: (taxon: Taxic) => Range;
+        public copyFrom(chart: ChronoChart): ChronoCharChart;
+        public getTaxonRect(taxon: Taxic): Rectangle;
+        public getTaxonX(taxon: Taxic): Range;
+        public useCharacterMatrixForHorizontal(leftTaxon: Taxic, rightTaxon: Taxic): ChronoCharChart;
     }
 }
 declare module Haeckel {
     var ORIGIN: Point;
 }
 declare module Haeckel.pt {
-    function create(x: number, y: number): Haeckel.Point;
+    function create(x: number, y: number): Point;
 }
 declare module Haeckel {
-    interface GeoCoords extends Haeckel.Model {
+    interface GeoCoords extends Model {
         lat: number;
         lon: number;
     }
@@ -652,48 +652,48 @@ declare module Haeckel {
     function DEFAULT_PROJECTOR(coords: GeoCoords): Point;
 }
 declare module Haeckel.geo {
-    function project(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>, projector: (coords: Haeckel.GeoCoords) => Haeckel.Point): Haeckel.Point[][];
+    function project(regions: ExtSet<GeoCoords[]>, projector: (coords: GeoCoords) => Point): Point[][];
 }
 declare module Haeckel.pt {
-    function contains(shape: Haeckel.Point[], p: Haeckel.Point): boolean;
+    function contains(shape: Point[], p: Point): boolean;
 }
 declare module Haeckel.pt {
-    function rectangle(shape: Haeckel.Point[]): Haeckel.Rectangle;
+    function rectangle(shape: Point[]): Rectangle;
 }
 declare module Haeckel.pt {
-    function area(shape: Haeckel.Point[]): number;
+    function area(shape: Point[]): number;
 }
 declare module Haeckel.pt {
-    function weight(shape: Haeckel.Point[], area?: number): number;
+    function weight(shape: Point[], area?: number): number;
 }
 declare module Haeckel.pt {
-    function weights(shapes: Haeckel.Point[][], areas?: number[]): number[];
+    function weights(shapes: Point[][], areas?: number[]): number[];
 }
 declare module Haeckel.rec {
-    function random(r: Haeckel.Rectangle, random?: () => number): Haeckel.Point;
+    function random(r: Rectangle, random?: () => number): Point;
 }
 declare module Haeckel.pt {
-    function random(shapes: Haeckel.Point[][], weights?: number[], random?: () => number): Haeckel.Point;
-    function random(a: Haeckel.Point, b: Haeckel.Point, random?: () => number): Haeckel.Point;
+    function random(shapes: Point[][], weights?: number[], random?: () => number): Point;
+    function random(a: Point, b: Point, random?: () => number): Point;
 }
 declare module Haeckel {
-    interface Occurrence extends Haeckel.Model {
-        count: Haeckel.Range;
-        geo: Haeckel.ExtSet<Haeckel.GeoCoords[]>;
-        time: Haeckel.Range;
+    interface Occurrence extends Model {
+        count: Range;
+        geo: ExtSet<GeoCoords[]>;
+        time: Range;
     }
     function isOccurrence(o: any): boolean;
 }
 declare module Haeckel {
-    class GeoChart implements Haeckel.Renderer {
-        public area: Haeckel.Rectangle;
-        public color: Haeckel.Color;
+    class GeoChart implements Renderer {
+        public area: Rectangle;
+        public color: Color;
         public minThickness: number;
-        public occurrences: Haeckel.ExtSet<Haeckel.Occurrence>;
-        public projector: (coords: Haeckel.GeoCoords) => Haeckel.Point;
+        public occurrences: ExtSet<Occurrence>;
+        public projector: (coords: GeoCoords) => Point;
         public random: () => number;
-        public project(coords: Haeckel.GeoCoords): Haeckel.Point;
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        public project(coords: GeoCoords): Point;
+        public render(parent: ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -703,19 +703,19 @@ declare module Haeckel {
     var EMPTY_NOMENCLATURE: Nomenclature;
 }
 declare module Haeckel.ext {
-    function domain<T>(hash: string): Haeckel.ExtSet<T>;
+    function domain<T>(hash: string): ExtSet<T>;
 }
 declare module Haeckel.chr {
-    function createDomain<T>(hash: string, readStates?: (data: any) => Haeckel.ExtSet<T>, writeStates?: (states: Haeckel.ExtSet<T>) => any): Haeckel.Character<Haeckel.ExtSet<T>>;
+    function createDomain<T>(hash: string, readStates?: (data: any) => ExtSet<T>, writeStates?: (states: ExtSet<T>) => any): Character<ExtSet<T>>;
 }
 declare module Haeckel.geo {
-    function createCoords(lat: number, lon: number): Haeckel.GeoCoords;
+    function createCoords(lat: number, lon: number): GeoCoords;
 }
 declare module Haeckel.geo {
-    function readCoords(data: number[]): Haeckel.GeoCoords;
+    function readCoords(data: number[]): GeoCoords;
 }
 declare module Haeckel.geo {
-    function readRegion(data: number[][]): Haeckel.GeoCoords[];
+    function readRegion(data: number[][]): GeoCoords[];
 }
 declare module Haeckel {
     interface GeoData {
@@ -723,8 +723,8 @@ declare module Haeckel {
     }
 }
 declare module Haeckel.geo {
-    function readRegions(data: Haeckel.GeoData): Haeckel.ExtSet<Haeckel.GeoCoords[]>;
-    function readRegions(data: number[][][]): Haeckel.ExtSet<Haeckel.GeoCoords[]>;
+    function readRegions(data: GeoData): ExtSet<GeoCoords[]>;
+    function readRegions(data: number[][][]): ExtSet<GeoCoords[]>;
 }
 declare module Haeckel {
     var GEO_CHARACTER: Character<ExtSet<GeoCoords[]>>;
@@ -733,92 +733,92 @@ declare module Haeckel {
     var DEG_TO_RAD: number;
 }
 declare module Haeckel {
-    interface Point3D extends Haeckel.Point {
+    interface Point3D extends Point {
         z: number;
     }
     function isPoint3D(o: Point3D): boolean;
 }
 declare module Haeckel.geo {
-    function toPoint3D(coords: Haeckel.GeoCoords, radius?: number): Haeckel.Point3D;
+    function toPoint3D(coords: GeoCoords, radius?: number): Point3D;
 }
 declare module Haeckel.geo {
-    function center(regions: Haeckel.ExtSet<Haeckel.GeoCoords[]>): Haeckel.GeoCoords;
-    function center(region: Haeckel.GeoCoords[]): Haeckel.GeoCoords;
+    function center(regions: ExtSet<GeoCoords[]>): GeoCoords;
+    function center(region: GeoCoords[]): GeoCoords;
 }
 declare module Haeckel.nom {
-    function forTaxon(nomenclature: Haeckel.Nomenclature, taxon: Haeckel.Taxic): Haeckel.ExtSet<string>;
+    function forTaxon(nomenclature: Nomenclature, taxon: Taxic): ExtSet<string>;
 }
 declare module Haeckel {
-    class GeoPhyloChart implements Haeckel.Renderer {
-        public color: Haeckel.Color;
+    class GeoPhyloChart implements Renderer {
+        public color: Color;
         public extensions: boolean;
-        public lineAttrs: (source: Haeckel.Taxic, target: Haeckel.Taxic, solver: Haeckel.DAGSolver<Haeckel.Taxic>) => {
+        public lineAttrs: (source: Taxic, target: Taxic, solver: DAGSolver<Taxic>) => {
             [name: string]: string;
         };
-        public mapArea: Haeckel.Rectangle;
-        public nomenclature: Haeckel.Nomenclature;
-        public occurrenceMatrix: Haeckel.CharacterMatrix<Haeckel.Set>;
+        public mapArea: Rectangle;
+        public nomenclature: Nomenclature;
+        public occurrenceMatrix: CharacterMatrix<Set>;
         public paddingY: number;
-        public projector: (coords: Haeckel.GeoCoords) => Haeckel.Point;
+        public projector: (coords: GeoCoords) => Point;
         public rootRadius: number;
-        public solver: Haeckel.DAGSolver<Haeckel.Taxic>;
-        public project(coords: Haeckel.GeoCoords): Haeckel.Point;
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        public solver: DAGSolver<Taxic>;
+        public project(coords: GeoCoords): Point;
+        public render(parent: ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel {
     var COUNT_CHARACTER: Character<Range>;
 }
 declare module Haeckel.occ {
-    function create(count?: Haeckel.Range, geo?: Haeckel.ExtSet<Haeckel.GeoCoords[]>, time?: Haeckel.Range): Haeckel.Occurrence;
+    function create(count?: Range, geo?: ExtSet<GeoCoords[]>, time?: Range): Occurrence;
 }
 declare module Haeckel {
     interface OccurrenceData {
         count?: any;
-        geo?: Haeckel.GeoData;
+        geo?: GeoData;
         time?: any;
     }
 }
 declare module Haeckel.occ {
-    function read(data: Haeckel.OccurrenceData): Haeckel.Occurrence;
+    function read(data: OccurrenceData): Occurrence;
 }
 declare module Haeckel.occ {
-    function readOccurrences(data: Haeckel.OccurrenceData[]): Haeckel.ExtSet<Haeckel.Occurrence>;
+    function readOccurrences(data: OccurrenceData[]): ExtSet<Occurrence>;
     function readOccurrences(data: {
-        [key: string]: Haeckel.OccurrenceData;
-    }): Haeckel.ExtSet<Haeckel.Occurrence>;
+        [key: string]: OccurrenceData;
+    }): ExtSet<Occurrence>;
 }
 declare module Haeckel {
     var OCCURRENCE_CHARACTER: Character<ExtSet<Occurrence>>;
 }
 declare module Haeckel.rec {
-    function contains(r: Haeckel.Rectangle, p: Haeckel.Point): boolean;
+    function contains(r: Rectangle, p: Point): boolean;
 }
 declare module Haeckel.rec {
-    function overlap(a: Haeckel.Rectangle, b: Haeckel.Rectangle): boolean;
+    function overlap(a: Rectangle, b: Rectangle): boolean;
 }
 declare module Haeckel.rec {
-    function intersect(a: Haeckel.Rectangle, b: Haeckel.Rectangle): Haeckel.Rectangle;
+    function intersect(a: Rectangle, b: Rectangle): Rectangle;
 }
 declare module Haeckel {
-    class OccurrencePlotChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
+    class OccurrencePlotChart extends ChronoCharChart implements Renderer {
         public radius: number;
         public random: () => number;
         private createPoint(builder, p, unit, withinMinimum);
         private drawPoints(builder, plots, area, unit, count);
         private drawRect(builder, plots, area, unit);
         private getIndividualPoint(plots, area);
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        public render(parent: ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel.ext {
-    function includes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
+    function includes<T>(a: ExtSet<T>, b: ExtSet<T>): boolean;
 }
 declare module Haeckel.tax {
-    function includes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
+    function includes(a: Taxic, b: Taxic): boolean;
 }
 declare module Haeckel.tax {
-    function intersect(a: Haeckel.Taxic, b: Haeckel.Taxic): Haeckel.Taxic;
+    function intersect(a: Taxic, b: Taxic): Taxic;
 }
 declare module Haeckel {
     class PhyloSolver {
@@ -826,34 +826,35 @@ declare module Haeckel {
         private _dagSolver;
         private _graph;
         private _taxonBuilder;
-        public dagSolver : Haeckel.DAGSolver<Haeckel.Taxic>;
-        public graph : Haeckel.Digraph<Haeckel.Taxic>;
-        public universal : Haeckel.Taxic;
-        constructor(graph: Haeckel.Digraph<Haeckel.Taxic>);
-        constructor(builder: Haeckel.DAGBuilder<Haeckel.Taxic>);
-        constructor(solver: Haeckel.DAGSolver<Haeckel.Taxic>);
-        public branch(internal: Haeckel.Taxic, external: Haeckel.Taxic): Haeckel.Taxic;
-        public clade(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public cladogen(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public crown(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
-        public distance(x: Haeckel.Taxic, y: Haeckel.Taxic): number;
-        public isCladogen(taxon: Haeckel.Taxic): boolean;
-        public max(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public min(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public prcIntersect(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public prcUnion(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public subgraph(taxon: Haeckel.Taxic): Haeckel.Digraph<Haeckel.Taxic>;
-        public subgraphSolver(taxon: Haeckel.Taxic): PhyloSolver;
-        public sucIntersect(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public sucUnion(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public synPrc(apomorphic: Haeckel.Taxic, representative: Haeckel.Taxic): Haeckel.Taxic;
-        public total(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
+        public dagSolver : DAGSolver<Taxic>;
+        public graph : Digraph<Taxic>;
+        public universal : Taxic;
+        constructor(graph: Digraph<Taxic>);
+        constructor(builder: DAGBuilder<Taxic>);
+        constructor(solver: DAGSolver<Taxic>);
+        public branch(internal: Taxic, external: Taxic): Taxic;
+        public clade(taxon: Taxic): Taxic;
+        public cladogen(taxon: Taxic): Taxic;
+        public crown(specifiers: Taxic, extant: Taxic): Taxic;
+        public distance(x: Taxic, y: Taxic): number;
+        public isCladogen(taxon: Taxic): boolean;
+        public max(taxon: Taxic): Taxic;
+        public min(taxon: Taxic): Taxic;
+        public prcIntersect(taxon: Taxic): Taxic;
+        public prcUnion(taxon: Taxic): Taxic;
+        public subgraph(taxon: Taxic): Digraph<Taxic>;
+        public subgraphSolver(taxon: Taxic): PhyloSolver;
+        public sucIntersect(taxon: Taxic): Taxic;
+        public sucUnion(taxon: Taxic): Taxic;
+        public synPrc(apomorphic: Taxic, representative: Taxic): Taxic;
+        public total(specifiers: Taxic, extant: Taxic): Taxic;
     }
 }
 declare module Haeckel {
-    class PhyloChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
-        public phyloSolver: Haeckel.PhyloSolver;
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+    class PhyloChart extends ChronoCharChart implements Renderer {
+        public phyloSolver: PhyloSolver;
+        public vertexRenderer: (builder: ElementBuilder, taxon: Taxic, rectangle: Rectangle) => void;
+        public render(parent: ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -866,96 +867,96 @@ declare module Haeckel {
     function precisionEqual(a: number, b: number): boolean;
 }
 declare module Haeckel.dst {
-    function max<T>(matrix: Haeckel.DistanceMatrix<T>): number;
+    function max<T>(matrix: DistanceMatrix<T>): number;
 }
 declare module Haeckel.tax {
-    function distance(matrix: Haeckel.DistanceMatrix<Haeckel.Taxic>, focus: Haeckel.Taxic, taxon: Haeckel.Taxic): Haeckel.Range;
+    function distance(matrix: DistanceMatrix<Taxic>, focus: Taxic, taxon: Taxic): Range;
 }
 declare module Haeckel {
     interface ProximityBar {
-        distance: Haeckel.Range;
-        names: Haeckel.ExtSet<string>;
-        normalizedDistance: Haeckel.Range;
-        taxon: Haeckel.Taxic;
+        distance: Range;
+        names: ExtSet<string>;
+        normalizedDistance: Range;
+        taxon: Taxic;
     }
-    class ProximityBarChart implements Haeckel.Renderer {
+    class ProximityBarChart implements Renderer {
         private id;
-        public area: Haeckel.Rectangle;
+        public area: Rectangle;
         public barSort: (a: ProximityBar, b: ProximityBar) => number;
-        public colorMap: (taxon: Haeckel.Taxic) => Haeckel.Color;
-        public distanceMatrix: Haeckel.DistanceMatrix<any>;
-        public focus: Haeckel.Taxic;
-        public labeler: (bar: ProximityBar, rectangle: Haeckel.Rectangle, builder: Haeckel.ElementBuilder) => void;
-        public nomenclature: Haeckel.Nomenclature;
+        public colorMap: (taxon: Taxic) => Color;
+        public distanceMatrix: DistanceMatrix<any>;
+        public focus: Taxic;
+        public labeler: (bar: ProximityBar, rectangle: Rectangle, builder: ElementBuilder) => void;
+        public nomenclature: Nomenclature;
         public spacing: number;
-        public taxa: Haeckel.ExtSet<Haeckel.Taxic>;
+        public taxa: ExtSet<Taxic>;
         constructor(id: string);
         private getBars();
         private renderBar(builder, defs, bar, index, barWidth);
-        public render(parent: Haeckel.ElementBuilder, defs: () => Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        public render(parent: ElementBuilder, defs: () => ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel {
     var TAU: number;
 }
 declare module Haeckel.pt {
-    function add(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Point;
+    function add(a: Point, b: Point): Point;
 }
 declare module Haeckel.pt {
-    function distance(a: Haeckel.Point, b: Haeckel.Point): number;
+    function distance(a: Point, b: Point): number;
 }
 declare module Haeckel.pt {
-    function furthest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
+    function furthest(source: Point, points: Point[]): Point;
 }
 declare module Haeckel.pt {
-    function nearest(source: Haeckel.Point, points: Haeckel.Point[]): Haeckel.Point;
+    function nearest(source: Point, points: Point[]): Point;
 }
 declare module Haeckel.trg {
     function normalize(radians: number): number;
 }
 declare module Haeckel.ray {
-    function create(origin: Haeckel.Point, angle: number): Haeckel.Ray;
+    function create(origin: Point, angle: number): Ray;
 }
 declare module Haeckel.pt {
-    function angle(a: Haeckel.Point, b: Haeckel.Point): number;
+    function angle(a: Point, b: Point): number;
 }
 declare module Haeckel.ray {
-    function contains(ray: Haeckel.Ray, p: Haeckel.Point): boolean;
+    function contains(ray: Ray, p: Point): boolean;
 }
 declare module Haeckel.ray {
-    function intersectSegment(ray: Haeckel.Ray, segment: Haeckel.Point[]): Haeckel.Point[];
+    function intersectSegment(ray: Ray, segment: Point[]): Point[];
 }
 declare module Haeckel.ray {
-    function intersectSegments(ray: Haeckel.Ray, segments: Haeckel.Point[][]): Haeckel.Point[];
+    function intersectSegments(ray: Ray, segments: Point[][]): Point[];
 }
 declare module Haeckel.rec {
-    function combine(rectangles: Haeckel.Rectangle[]): Haeckel.Rectangle;
+    function combine(rectangles: Rectangle[]): Rectangle;
 }
 declare module Haeckel.rec {
-    function segments(rects: Haeckel.Rectangle[]): Haeckel.Point[][];
+    function segments(rects: Rectangle[]): Point[][];
 }
 declare module Haeckel {
-    interface Vector extends Haeckel.Model {
+    interface Vector extends Model {
         angle: number;
         distance: number;
     }
     function isVector(o: any): boolean;
 }
 declare module Haeckel.vec {
-    function create(radians: number, distance: number): Haeckel.Vector;
+    function create(radians: number, distance: number): Vector;
 }
 declare module Haeckel.vec {
-    function point(v: Haeckel.Vector): Haeckel.Point;
+    function point(v: Vector): Point;
 }
 declare module Haeckel {
     interface Region {
-        taxon: Haeckel.Taxic;
-        typeRect: Haeckel.Rectangle;
-        rectangles: Haeckel.Rectangle[];
+        taxon: Taxic;
+        typeRect: Rectangle;
+        rectangles: Rectangle[];
     }
     interface RegionTaxon {
-        taxon: Haeckel.Taxic;
-        type?: Haeckel.Taxic;
+        taxon: Taxic;
+        type?: Taxic;
     }
     interface RegionLabel {
         angle: number;
@@ -964,13 +965,13 @@ declare module Haeckel {
         };
         label: string;
     }
-    class RegionChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
-        public labels: (taxon: Haeckel.Taxic) => RegionLabel;
+    class RegionChart extends ChronoCharChart implements Renderer {
+        public labels: (taxon: Taxic) => RegionLabel;
         public margin: number;
         public minPointDistance: number;
         public pointsPerRegion: number;
         public smoothing: number;
-        public shapeAttrFunction: (taxon?: Haeckel.Taxic) => {
+        public shapeAttrFunction: (taxon?: Taxic) => {
             [attr: string]: string;
         };
         public shapeAttrs: {
@@ -979,48 +980,48 @@ declare module Haeckel {
         public taxa: RegionTaxon[];
         private addMargins(rect);
         private getRegions();
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        public render(parent: ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel.rng {
-    function compare(a: Haeckel.Range, b: Haeckel.Range): number;
+    function compare(a: Range, b: Range): number;
 }
 declare module Haeckel {
-    interface Stratum extends Haeckel.Model {
+    interface Stratum extends Model {
         type: string;
         name: string;
-        start: Haeckel.Range;
-        end: Haeckel.Range;
+        start: Range;
+        end: Range;
     }
     function isStratum(o: any): boolean;
 }
 declare module Haeckel {
-    class StratChart extends Haeckel.ChronoChart implements Haeckel.Renderer {
+    class StratChart extends ChronoChart implements Renderer {
         public minStrokeWidth: number;
-        public strata: Haeckel.ExtSet<Haeckel.Stratum>;
+        public strata: ExtSet<Stratum>;
         public type: string;
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        public render(parent: ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel {
-    class StratLabeler implements Haeckel.Renderer {
-        public chart: Haeckel.StratChart;
+    class StratLabeler implements Renderer {
+        public chart: StratChart;
         public fontSize: number;
         public margin: number;
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        public render(parent: ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel {
     var VECTOR_0: Vector;
 }
 declare module Haeckel {
-    class VectorChronoLabeler implements Haeckel.Renderer {
-        public chart: Haeckel.ChronoCharChart;
-        public nameVectorMap: (name: string) => Haeckel.Vector;
-        public names: Haeckel.ExtSet<string>;
-        public nomenclature: Haeckel.Nomenclature;
+    class VectorChronoLabeler implements Renderer {
+        public chart: ChronoCharChart;
+        public nameVectorMap: (name: string) => Vector;
+        public names: ExtSet<string>;
+        public nomenclature: Nomenclature;
         public sizeMap: (area: number) => number;
-        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        public render(parent: ElementBuilder): ElementBuilder;
     }
 }
 declare module Haeckel {
@@ -1054,123 +1055,123 @@ declare module Haeckel.arr {
     function where<T>(list: T[], f: (element: T) => boolean, thisObject?: any): T[];
 }
 declare module Haeckel.bit {
-    function contains(s: Haeckel.BitSet, n: number): boolean;
+    function contains(s: BitSet, n: number): boolean;
 }
 declare module Haeckel.bit {
-    function createFromBits(bits: number): Haeckel.BitSet;
+    function createFromBits(bits: number): BitSet;
 }
 declare module Haeckel.bit {
-    function create(members: number[]): Haeckel.BitSet;
+    function create(members: number[]): BitSet;
 }
 declare module Haeckel.bit {
-    function intersect(a: Haeckel.BitSet, b: Haeckel.BitSet): Haeckel.BitSet;
+    function intersect(a: BitSet, b: BitSet): BitSet;
 }
 declare module Haeckel.bit {
-    function size(s: Haeckel.BitSet): number;
+    function size(s: BitSet): number;
 }
 declare module Haeckel.bit {
-    function distance(a: Haeckel.BitSet, b: Haeckel.BitSet): Haeckel.Range;
+    function distance(a: BitSet, b: BitSet): Range;
 }
 declare module Haeckel.bit {
-    function each(s: Haeckel.BitSet, f: (value: number) => any, thisObject?: any): void;
+    function each(s: BitSet, f: (value: number) => any, thisObject?: any): void;
 }
 declare module Haeckel.bit {
-    function forAll(s: Haeckel.BitSet, f: (value: number) => boolean, thisObject?: any): boolean;
+    function forAll(s: BitSet, f: (value: number) => boolean, thisObject?: any): boolean;
 }
 declare module Haeckel.bit {
-    function forSome(s: Haeckel.BitSet, f: (value: number) => boolean, thisObject?: any): boolean;
+    function forSome(s: BitSet, f: (value: number) => boolean, thisObject?: any): boolean;
 }
 declare module Haeckel.bit {
-    function includes(superset: Haeckel.BitSet, subset: Haeckel.BitSet): boolean;
+    function includes(superset: BitSet, subset: BitSet): boolean;
 }
 declare module Haeckel.bit {
-    function prIncludes(superset: Haeckel.BitSet, subset: Haeckel.BitSet): boolean;
+    function prIncludes(superset: BitSet, subset: BitSet): boolean;
 }
 declare module Haeckel.bit {
-    function read(data: number): Haeckel.BitSet;
-    function read(data: number[]): Haeckel.BitSet;
+    function read(data: number): BitSet;
+    function read(data: number[]): BitSet;
 }
 declare module Haeckel.bit {
-    function setDiff(minuend: Haeckel.BitSet, subtrahend: Haeckel.BitSet): Haeckel.BitSet;
+    function setDiff(minuend: BitSet, subtrahend: BitSet): BitSet;
 }
 declare module Haeckel.bit {
-    function union(sets: Haeckel.BitSet[]): Haeckel.BitSet;
+    function union(sets: BitSet[]): BitSet;
 }
 declare module Haeckel.bit {
-    function write(set: Haeckel.BitSet): any;
+    function write(set: BitSet): any;
 }
 declare module Haeckel {
     function combiner<S extends Set>(union: (sets: S[]) => S): (sets: S[]) => S;
 }
 declare module Haeckel.chr {
-    function createBit(domain: Haeckel.BitSet, inferrable?: boolean, distance?: boolean): Haeckel.Character<Haeckel.BitSet>;
+    function createBit(domain: BitSet, inferrable?: boolean, distance?: boolean): Character<BitSet>;
 }
 declare module Haeckel.ext {
-    function distance<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): Haeckel.Range;
+    function distance<T>(a: ExtSet<T>, b: ExtSet<T>): Range;
 }
 declare module Haeckel.ext {
-    function read<T>(data: any): Haeckel.ExtSet<T>;
+    function read<T>(data: any): ExtSet<T>;
 }
 declare module Haeckel.chr {
-    function createExt<T>(domain: Haeckel.ExtSet<T>, inferrable?: boolean, distance?: boolean): Haeckel.Character<Haeckel.ExtSet<T>>;
+    function createExt<T>(domain: ExtSet<T>, inferrable?: boolean, distance?: boolean): Character<ExtSet<T>>;
 }
 declare module Haeckel.ist {
-    function create<T>(criterion: (element: T) => boolean): Haeckel.IntSet<T>;
+    function create<T>(criterion: (element: T) => boolean): IntSet<T>;
 }
 declare module Haeckel.chr {
-    function createInt<T>(criterion: (element: T) => boolean, combine?: (sets: Haeckel.IntSet<T>[]) => Haeckel.IntSet<T>, readStates?: (data: any) => Haeckel.IntSet<T>, writeStates?: (states: Haeckel.IntSet<T>) => any): Haeckel.Character<Haeckel.IntSet<T>>;
+    function createInt<T>(criterion: (element: T) => boolean, combine?: (sets: IntSet<T>[]) => IntSet<T>, readStates?: (data: any) => IntSet<T>, writeStates?: (states: IntSet<T>) => any): Character<IntSet<T>>;
 }
 declare module Haeckel.clr {
-    function create(r: number, g: number, b: number): Haeckel.Color;
+    function create(r: number, g: number, b: number): Color;
 }
 declare module Haeckel {
-    interface Dating extends Haeckel.Model {
-        taxa: Haeckel.ExtSet<Haeckel.Taxic>;
-        time: Haeckel.Range;
+    interface Dating extends Model {
+        taxa: ExtSet<Taxic>;
+        time: Range;
     }
     function isDating(o: Dating): boolean;
 }
 declare module Haeckel.dat {
-    function toCharacterMatrixBuilder(datings: Haeckel.ExtSet<Haeckel.Dating>, phyloSolver: Haeckel.PhyloSolver): Haeckel.CharacterMatrixBuilder<Haeckel.Range>;
+    function toCharacterMatrixBuilder(datings: ExtSet<Dating>, phyloSolver: PhyloSolver): CharacterMatrixBuilder<Range>;
 }
 declare module Haeckel {
     interface DistanceAxis {
-        distance: Haeckel.Range;
-        endpoints: Haeckel.ExtSet<number>;
+        distance: Range;
+        endpoints: ExtSet<number>;
     }
 }
 declare module Haeckel.dst {
-    function axes<T>(matrix: Haeckel.DistanceMatrix<T>): Haeckel.DistanceAxis[];
+    function axes<T>(matrix: DistanceMatrix<T>): DistanceAxis[];
 }
 declare module Haeckel {
     interface DistanceItem<T> {
-        distance: Haeckel.Range;
+        distance: Range;
         item: T;
     }
 }
 declare module Haeckel.dst {
-    function list<T>(matrix: Haeckel.DistanceMatrix<T>, focus: T): Haeckel.DistanceItem<T>[];
+    function list<T>(matrix: DistanceMatrix<T>, focus: T): DistanceItem<T>[];
 }
 declare module Haeckel.dst {
-    function mapAround<T>(matrix: Haeckel.DistanceMatrix<T>, focus: T): (element: T) => Haeckel.Range;
+    function mapAround<T>(matrix: DistanceMatrix<T>, focus: T): (element: T) => Range;
 }
 declare module Haeckel.dst {
-    function normalize<T>(matrix: Haeckel.DistanceMatrix<T>): Haeckel.DistanceMatrix<T>;
+    function normalize<T>(matrix: DistanceMatrix<T>): DistanceMatrix<T>;
 }
 declare module Haeckel.ext {
-    function forAll<T>(set: Haeckel.ExtSet<T>, f: (element: T) => boolean, thisObject?: any): boolean;
+    function forAll<T>(set: ExtSet<T>, f: (element: T) => boolean, thisObject?: any): boolean;
 }
 declare module Haeckel.ext {
-    function forSome<T>(set: Haeckel.ExtSet<T>, f: (element: T) => boolean, thisObject?: any): boolean;
+    function forSome<T>(set: ExtSet<T>, f: (element: T) => boolean, thisObject?: any): boolean;
 }
 declare module Haeckel.ext {
-    function map<X, Y>(set: Haeckel.ExtSet<X>, f: (element: X) => Y, thisObject?: any): Haeckel.ExtSet<Y>;
+    function map<X, Y>(set: ExtSet<X>, f: (element: X) => Y, thisObject?: any): ExtSet<Y>;
 }
 declare module Haeckel.ext {
-    function prIncludes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
+    function prIncludes<T>(a: ExtSet<T>, b: ExtSet<T>): boolean;
 }
 declare module Haeckel.ext {
-    function where<T>(set: Haeckel.ExtSet<T>, f: (element: T) => boolean, thisObject?: any): Haeckel.ExtSet<T>;
+    function where<T>(set: ExtSet<T>, f: (element: T) => boolean, thisObject?: any): ExtSet<T>;
 }
 declare module Haeckel {
     interface DataSourceMetadata {
@@ -1187,34 +1188,34 @@ declare module Haeckel {
     }
     interface DataSource {
         characterMatrices: {
-            [name: string]: Haeckel.CharacterMatrix<Haeckel.Set>;
+            [name: string]: CharacterMatrix<Set>;
         };
         datings: {
-            [name: string]: Haeckel.ExtSet<Haeckel.Dating>;
+            [name: string]: ExtSet<Dating>;
         };
         distanceMatrices: {
-            [name: string]: Haeckel.DistanceMatrix<Haeckel.Taxic>;
+            [name: string]: DistanceMatrix<Taxic>;
         };
         metadata: DataSourceMetadata;
-        nomenclature: Haeckel.Nomenclature;
-        occurrences: Haeckel.CharacterMatrix<Haeckel.Set>;
+        nomenclature: Nomenclature;
+        occurrences: CharacterMatrix<Set>;
         phylogenies: {
-            [name: string]: Haeckel.Digraph<Haeckel.Taxic>;
+            [name: string]: Digraph<Taxic>;
         };
-        strata: Haeckel.ExtSet<Haeckel.Stratum>;
+        strata: ExtSet<Stratum>;
     }
 }
 declare module Haeckel {
     interface DataSources {
-        nomenclature: Haeckel.Nomenclature;
+        nomenclature: Nomenclature;
         sources: {
-            [filename: string]: Haeckel.DataSource;
+            [filename: string]: DataSource;
         };
     }
 }
 declare module Haeckel {
     interface PNGAssets {
-        image(builder: Haeckel.ElementBuilder, filename: string): Haeckel.ElementBuilder;
+        image(builder: ElementBuilder, filename: string): ElementBuilder;
     }
     interface Figure {
         assets?: {
@@ -1224,7 +1225,7 @@ declare module Haeckel {
         height: number;
         sources?: string[];
         width: number;
-        render(builder: Haeckel.ElementBuilder, sources: Haeckel.DataSources, defs: () => Haeckel.ElementBuilder, pngAssets: PNGAssets): void;
+        render(builder: ElementBuilder, sources: DataSources, defs: () => ElementBuilder, pngAssets: PNGAssets): void;
     }
 }
 declare module Haeckel {
@@ -1238,10 +1239,10 @@ declare module Haeckel {
     }
 }
 declare module Haeckel.nom {
-    function read(data: any, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+    function read(data: any, builder?: NomenclatureBuilder): NomenclatureBuilder;
 }
 declare module Haeckel.tax {
-    function byName(nomenclature: Haeckel.Nomenclature, name: string): Haeckel.Taxic;
+    function byName(nomenclature: Nomenclature, name: string): Taxic;
 }
 declare module Haeckel {
     interface CharacterMapData {
@@ -1249,21 +1250,21 @@ declare module Haeckel {
             [characterKey: string]: any;
         };
     }
-    class CharacterMapReader<S extends Haeckel.Set> {
-        public characterMap: (key: string) => Haeckel.Character<S>;
-        public nomenclature: Haeckel.Nomenclature;
+    class CharacterMapReader<S extends Set> {
+        public characterMap: (key: string) => Character<S>;
+        public nomenclature: Nomenclature;
         constructor();
-        public readCharacterMatrix(data: CharacterMapData, builder?: Haeckel.CharacterMatrixBuilder<S>): Haeckel.CharacterMatrixBuilder<S>;
-        public readNomenclature(data: any, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+        public readCharacterMatrix(data: CharacterMapData, builder?: CharacterMatrixBuilder<S>): CharacterMatrixBuilder<S>;
+        public readNomenclature(data: any, builder?: NomenclatureBuilder): NomenclatureBuilder;
     }
 }
 declare module Haeckel {
     class TempNomenclature {
-        public nomenclature: Haeckel.Nomenclature;
+        public nomenclature: Nomenclature;
         public warn: boolean;
         private _otherNameMap;
-        constructor(nomenclature?: Haeckel.Nomenclature);
-        public taxon(name: string): Haeckel.Taxic;
+        constructor(nomenclature?: Nomenclature);
+        public taxon(name: string): Taxic;
     }
 }
 declare module Haeckel {
@@ -1274,9 +1275,9 @@ declare module Haeckel {
         };
     }
     class CharacterScoresReader {
-        public nomenclature: Haeckel.Nomenclature;
-        public readCharacterMatrix(data: CharacterScoresData, builder?: Haeckel.CharacterMatrixBuilder<Haeckel.Set>): Haeckel.CharacterMatrixBuilder<Haeckel.Set>;
-        public readNomenclature(data: CharacterScoresData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+        public nomenclature: Nomenclature;
+        public readCharacterMatrix(data: CharacterScoresData, builder?: CharacterMatrixBuilder<Set>): CharacterMatrixBuilder<Set>;
+        public readNomenclature(data: CharacterScoresData, builder?: NomenclatureBuilder): NomenclatureBuilder;
     }
 }
 declare module Haeckel {
@@ -1285,9 +1286,9 @@ declare module Haeckel {
         time: number[];
     }
     class DatingReader {
-        public nomenclature: Haeckel.Nomenclature;
-        public readDatings(data: DatingData[], builder?: Haeckel.ExtSetBuilder<Haeckel.Dating>): Haeckel.ExtSetBuilder<Haeckel.Dating>;
-        public readNomenclature(data: DatingData[], builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+        public nomenclature: Nomenclature;
+        public readDatings(data: DatingData[], builder?: ExtSetBuilder<Dating>): ExtSetBuilder<Dating>;
+        public readNomenclature(data: DatingData[], builder?: NomenclatureBuilder): NomenclatureBuilder;
     }
 }
 declare module Haeckel {
@@ -1296,9 +1297,9 @@ declare module Haeckel {
         names: string[];
     }
     class DistanceMatrixReader {
-        public nomenclature: Haeckel.Nomenclature;
-        public readDistanceMatrix(data: DistanceData[], builder?: Haeckel.DistanceMatrixBuilder<Haeckel.Taxic>): Haeckel.DistanceMatrixBuilder<Haeckel.Taxic>;
-        public readNomenclature(data: DistanceData[], builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+        public nomenclature: Nomenclature;
+        public readDistanceMatrix(data: DistanceData[], builder?: DistanceMatrixBuilder<Taxic>): DistanceMatrixBuilder<Taxic>;
+        public readNomenclature(data: DistanceData[], builder?: NomenclatureBuilder): NomenclatureBuilder;
     }
 }
 declare module Haeckel {
@@ -1307,24 +1308,24 @@ declare module Haeckel {
         synonymies?: string[][];
     }
     class NomenclatureRelationsReader {
-        public readNomenclature(data: NomenclatureRelationsData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+        public readNomenclature(data: NomenclatureRelationsData, builder?: NomenclatureBuilder): NomenclatureBuilder;
     }
 }
 declare module Haeckel {
     interface OccurrencesData {
-        [name: string]: Haeckel.OccurrenceData;
+        [name: string]: OccurrenceData;
     }
     class OccurrencesReader {
-        public nomenclature: Haeckel.Nomenclature;
-        public readCharacterMatrix(data: OccurrencesData, builder?: Haeckel.CharacterMatrixBuilder<Haeckel.Set>): Haeckel.CharacterMatrixBuilder<Haeckel.Set>;
-        public readNomenclature(data: OccurrencesData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+        public nomenclature: Nomenclature;
+        public readCharacterMatrix(data: OccurrencesData, builder?: CharacterMatrixBuilder<Set>): CharacterMatrixBuilder<Set>;
+        public readNomenclature(data: OccurrencesData, builder?: NomenclatureBuilder): NomenclatureBuilder;
     }
 }
 declare module Haeckel {
     class PhyloArcsReader {
-        public nomenclature: Haeckel.Nomenclature;
-        public readDAG(data: string[][], builder?: Haeckel.DAGBuilder<Haeckel.Taxic>): Haeckel.DAGBuilder<Haeckel.Taxic>;
-        public readNomenclature(data: string[][], builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+        public nomenclature: Nomenclature;
+        public readDAG(data: string[][], builder?: DAGBuilder<Taxic>): DAGBuilder<Taxic>;
+        public readNomenclature(data: string[][], builder?: NomenclatureBuilder): NomenclatureBuilder;
     }
 }
 declare module Haeckel {
@@ -1342,45 +1343,45 @@ declare module Haeckel {
     }
     class StratReader {
         private _boundaries;
-        public readStrata(data: StratData, builder?: Haeckel.ExtSetBuilder<Haeckel.Stratum>): Haeckel.ExtSetBuilder<Haeckel.Stratum>;
+        public readStrata(data: StratData, builder?: ExtSetBuilder<Stratum>): ExtSetBuilder<Stratum>;
     }
 }
 declare module Haeckel {
     class TopologyReader {
-        public nomenclature: Haeckel.Nomenclature;
-        public readDAG(data: string, builder?: Haeckel.DAGBuilder<Haeckel.Taxic>): Haeckel.DAGBuilder<Haeckel.Taxic>;
-        public readDAG(data: any[], builder?: Haeckel.DAGBuilder<Haeckel.Taxic>): Haeckel.DAGBuilder<Haeckel.Taxic>;
-        public readNomenclature(data: string, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
-        public readNomenclature(data: any[], builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+        public nomenclature: Nomenclature;
+        public readDAG(data: string, builder?: DAGBuilder<Taxic>): DAGBuilder<Taxic>;
+        public readDAG(data: any[], builder?: DAGBuilder<Taxic>): DAGBuilder<Taxic>;
+        public readNomenclature(data: string, builder?: NomenclatureBuilder): NomenclatureBuilder;
+        public readNomenclature(data: any[], builder?: NomenclatureBuilder): NomenclatureBuilder;
     }
 }
 declare module Haeckel {
     interface SourceData {
         characterMaps?: {
-            [name: string]: Haeckel.CharacterMapData;
+            [name: string]: CharacterMapData;
         };
         characterScores?: {
-            [name: string]: Haeckel.CharacterScoresData;
+            [name: string]: CharacterScoresData;
         };
         datings?: {
-            [name: string]: Haeckel.DatingData[];
+            [name: string]: DatingData[];
         };
         distances?: {
-            [name: string]: Haeckel.DistanceData[];
+            [name: string]: DistanceData[];
         };
-        nomenclature?: Haeckel.NomenclatureRelationsData;
-        occurrences?: Haeckel.OccurrencesData;
+        nomenclature?: NomenclatureRelationsData;
+        occurrences?: OccurrencesData;
         phyloGraphs?: {
             [name: string]: string[][];
         };
-        stratigraphy?: Haeckel.StratData;
+        stratigraphy?: StratData;
         topologies?: {
             [name: string]: any;
         };
     }
     interface DataSourceData {
         data: SourceData;
-        metadata: Haeckel.DataSourceMetadata;
+        metadata: DataSourceMetadata;
     }
     class DataSourceReader {
         private _nomenclature;
@@ -1393,84 +1394,93 @@ declare module Haeckel {
         private phyloArcsReader;
         private stratReader;
         private topologyReader;
-        public nomenclature : Haeckel.Nomenclature;
-        public readDataSource(data: DataSourceData): Haeckel.DataSource;
-        public readNomenclature(data: DataSourceData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
+        public nomenclature : Nomenclature;
+        public readDataSource(data: DataSourceData): DataSource;
+        public readNomenclature(data: DataSourceData, builder?: NomenclatureBuilder): NomenclatureBuilder;
     }
 }
 declare module Haeckel {
     class DataSourcesReader {
-        public read(files: Haeckel.FileCache, filenames: string[]): Haeckel.DataSources;
+        public read(files: FileCache, filenames: string[]): DataSources;
     }
 }
 declare module Haeckel.fig {
-    function render(figure: Haeckel.Figure, document: Document, files: Haeckel.FileCache, serializer: XMLSerializer): string;
+    function render(figure: Figure, document: Document, files: FileCache, serializer: XMLSerializer): string;
 }
 declare module Haeckel.ist {
-    function contains<T>(set: Haeckel.IntSet<T>, element: T): boolean;
+    function contains<T>(set: IntSet<T>, element: T): boolean;
 }
 declare module Haeckel.ist {
-    function intersect<T>(a: Haeckel.IntSet<T>, b: Haeckel.IntSet<T>): Haeckel.IntSet<T>;
+    function intersect<T>(a: IntSet<T>, b: IntSet<T>): IntSet<T>;
 }
 declare module Haeckel.ist {
-    function setDiff<T>(minuend: Haeckel.IntSet<T>, subtrahend: Haeckel.IntSet<T>): Haeckel.IntSet<T>;
+    function setDiff<T>(minuend: IntSet<T>, subtrahend: IntSet<T>): IntSet<T>;
 }
 declare module Haeckel.ist {
-    function union<T>(sets: Haeckel.IntSet<T>[]): Haeckel.IntSet<T>;
+    function union<T>(sets: IntSet<T>[]): IntSet<T>;
 }
 declare module Haeckel.nom {
-    function forSubtaxa(nomenclature: Haeckel.Nomenclature, taxon: Haeckel.Taxic): Haeckel.ExtSet<string>;
+    function forSubtaxa(nomenclature: Nomenclature, taxon: Taxic): ExtSet<string>;
 }
 declare module Haeckel.rng {
-    function intersect(a: Haeckel.Range, b: Haeckel.Range): Haeckel.Range;
+    function intersect(a: Range, b: Range): Range;
 }
 declare module Haeckel.occ {
-    function timeSlice(time: Haeckel.Range, occurrences: Haeckel.ExtSet<Haeckel.Occurrence>): Haeckel.ExtSet<Haeckel.Occurrence>;
+    function timeSlice(time: Range, occurrences: ExtSet<Occurrence>): ExtSet<Occurrence>;
+}
+declare module Haeckel.phy {
+    function coarsen(solver: DAGSolver<Taxic>, taxa: ExtSet<Taxic>): DAGBuilder<Taxic>;
+}
+declare module Haeckel.phy {
+    function merge(solvers: ExtSet<PhyloSolver>, taxa: ExtSet<Taxic>): PhyloSolver;
+}
+declare module Haeckel.phy {
+    function refine(solver: DAGSolver<Taxic>): DAGBuilder<Taxic>;
 }
 declare module Haeckel.pt {
-    function create3D(x: number, y: number, z: number): Haeckel.Point3D;
+    function create3D(x: number, y: number, z: number): Point3D;
 }
 declare module Haeckel.pt {
-    function equal(a: Haeckel.Point, b: Haeckel.Point): boolean;
+    function equal(a: Point, b: Point): boolean;
 }
 declare module Haeckel.rec {
     interface BBoxElement extends SVGElement {
         getBBox(): SVGRect;
     }
-    function createFromBBox(svg: BBoxElement): Haeckel.Rectangle;
+    function createFromBBox(svg: BBoxElement): Rectangle;
 }
 declare module Haeckel.rec {
-    function createFromPoints(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Rectangle;
+    function createFromPoints(a: Point, b: Point): Rectangle;
 }
 declare module Haeckel.rng {
-    function contains(r: Haeckel.Range, n: number): boolean;
+    function contains(r: Range, n: number): boolean;
 }
 declare module Haeckel.rng {
-    function includes(superset: Haeckel.Range, subset: Haeckel.Range): boolean;
+    function includes(superset: Range, subset: Range): boolean;
 }
 declare module Haeckel.rng {
-    function prIncludes(superset: Haeckel.Range, subset: Haeckel.Range): boolean;
+    function prIncludes(superset: Range, subset: Range): boolean;
 }
 declare module Haeckel.tax {
-    function prIncludes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
+    function prIncludes(a: Taxic, b: Taxic): boolean;
 }
 declare module Haeckel.typ {
-    function contains<T>(set: Haeckel.TypeSet<T>, element: T): boolean;
+    function contains<T>(set: TypeSet<T>, element: T): boolean;
 }
 declare module Haeckel.typ {
-    function create<T>(typeObject: any): Haeckel.TypeSet<T>;
+    function create<T>(typeObject: any): TypeSet<T>;
 }
 declare module Haeckel {
     class CharacterScoresWriter {
-        public nomenclature: Haeckel.Nomenclature;
+        public nomenclature: Nomenclature;
         private getName(taxon);
-        public write(matrix: Haeckel.CharacterMatrix<Haeckel.Set>): Haeckel.CharacterScoresData;
+        public write(matrix: CharacterMatrix<Set>): CharacterScoresData;
     }
 }
 declare module Haeckel {
     class DistanceMatrixWriter {
-        public nomenclature: Haeckel.Nomenclature;
+        public nomenclature: Nomenclature;
         private getName(taxon);
-        public write(matrix: Haeckel.DistanceMatrix<Haeckel.Taxic>): Haeckel.DistanceData[];
+        public write(matrix: DistanceMatrix<Taxic>): DistanceData[];
     }
 }

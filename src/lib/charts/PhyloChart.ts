@@ -73,7 +73,7 @@ module Haeckel
 					.attr(SVG_NS, 'd', data)
 					.attrs(SVG_NS, PATH_STYLE);
 			});
-			return g;
+			return parent;
 		}		
 	}
 }

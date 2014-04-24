@@ -1316,8 +1316,8 @@ var Haeckel;
         });
 
         DAGSolver.prototype.distance = function (x, y, traversedBuilder) {
-            if (typeof traversedBuilder === "undefined") { traversedBuilder = null; }
             var _this = this;
+            if (typeof traversedBuilder === "undefined") { traversedBuilder = null; }
             if (x === y) {
                 return 0;
             }
@@ -2413,8 +2413,8 @@ var Haeckel;
             this.nomenclature = Haeckel.EMPTY_NOMENCLATURE;
         }
         DatingReader.prototype.readDatings = function (data, builder) {
-            if (typeof builder === "undefined") { builder = null; }
             var _this = this;
+            if (typeof builder === "undefined") { builder = null; }
             if (!builder) {
                 builder = new Haeckel.ExtSetBuilder();
             }
@@ -2826,9 +2826,13 @@ var Haeckel;
             if (typeof count === "undefined") { count = null; }
             if (typeof geo === "undefined") { geo = null; }
             if (typeof time === "undefined") { time = null; }
+            var occGeo = Haeckel.EMPTY_SET;
+            if (geo) {
+                occGeo = geo;
+            }
             var occurrence = {
                 count: count ? count : Haeckel.EMPTY_SET,
-                geo: geo ? geo : Haeckel.EMPTY_SET,
+                geo: occGeo,
                 hash: null,
                 time: time ? time : Haeckel.EMPTY_SET
             };

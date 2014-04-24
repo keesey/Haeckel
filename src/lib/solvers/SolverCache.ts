@@ -3,7 +3,7 @@ module Haeckel
 {
 	export class SolverCache
 	{
-		private _results = {};
+		private _results: { [key: string]: any; } = {};
 
 		get<T>(key: string): T
 		{

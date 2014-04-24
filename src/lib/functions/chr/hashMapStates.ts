@@ -9,7 +9,7 @@ module Haeckel.chr
 		{
 			return null;
 		}
-		var states: Set = null;
+		var states: S = null;
 		if (taxon.isUnit)
 		{
 			states = map[taxon.hash + '@' + character.hash];

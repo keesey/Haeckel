@@ -1214,8 +1214,8 @@ var Haeckel;
         });
 
         DAGSolver.prototype.distance = function (x, y, traversedBuilder) {
-            if (typeof traversedBuilder === "undefined") { traversedBuilder = null; }
             var _this = this;
+            if (typeof traversedBuilder === "undefined") { traversedBuilder = null; }
             if (x === y) {
                 return 0;
             }
@@ -2614,13 +2614,16 @@ var Haeckel;
         function toDistanceMatrix(matrix, anchors) {
             if (typeof anchors === "undefined") { anchors = null; }
             var hashMap = {};
+            var nCharsMap = {};
             if (anchors === null) {
                 anchors = matrix.taxon;
             }
-            var allUnits = Haeckel.ext.union([anchors.units, matrix.taxon.units]), nChars = matrix.characters.size;
+            var allUnits = Haeckel.ext.union([anchors.units, matrix.taxon.units]);
             Haeckel.ext.each(allUnits, function (x) {
-                return hashMap[x.hash] = {};
+                hashMap[x.hash] = {};
+                nCharsMap[x.hash] = {};
             });
+            var xHash, yHash;
             Haeckel.ext.each(matrix.characters, function (character) {
                 if (typeof character.distance !== 'function') {
                     console.warn('Cannot compute distance of character:', character);
@@ -2629,6 +2632,7 @@ var Haeckel;
                 var charHashMap = {};
                 Haeckel.ext.each(anchors.units, function (x) {
                     var xStates = Haeckel.chr.states(matrix, x, character);
+                    var xIsEmpty = xStates && xStates.empty;
                     if (charHashMap[x.hash] === undefined) {
                         charHashMap[x.hash] = {};
                     }
@@ -2637,22 +2641,41 @@ var Haeckel;
                             charHashMap[y.hash] = {};
                         }
                         var yStates = Haeckel.chr.states(matrix, y, character);
-                        charHashMap[x.hash][y.hash] = charHashMap[y.hash][x.hash] = character.distance(xStates, yStates);
+                        if (!(xIsEmpty && yStates && yStates.empty)) {
+                            charHashMap[x.hash][y.hash] = charHashMap[y.hash][x.hash] = character.distance(xStates, yStates);
+                            var nChars = nCharsMap[x.hash][y.hash];
+                            if (nChars === undefined) {
+                                nChars = 0;
+                            }
+                            nCharsMap[x.hash][y.hash] = nCharsMap[y.hash][x.hash] = ++nChars;
+                        }
                     });
                 });
-                var xHash, yHash;
                 for (xHash in charHashMap) {
                     var sourceRow = charHashMap[xHash], targetRow = hashMap[xHash];
                     for (yHash in sourceRow) {
                         var sourceD = sourceRow[yHash], targetD = targetRow[yHash];
-                        if (targetD === undefined) {
-                            targetRow[yHash] = sourceD;
-                        } else {
-                            targetRow[yHash] = Haeckel.rng.sum([targetD, sourceD]);
+                        if (sourceD !== undefined) {
+                            if (targetD === undefined) {
+                                targetRow[yHash] = sourceD;
+                            } else {
+                                targetRow[yHash] = Haeckel.rng.sum([targetD, sourceD]);
+                            }
                         }
                     }
                 }
             });
+            for (xHash in hashMap) {
+                for (yHash in hashMap) {
+                    var d = hashMap[xHash][yHash];
+                    if (d === undefined) {
+                        hashMap[xHash][yHash] = Haeckel.EMPTY_SET;
+                        hashMap[yHash][xHash] = Haeckel.EMPTY_SET;
+                    } else {
+                        hashMap[xHash][yHash] = hashMap[yHash][xHash] = Haeckel.rng.multiply(d, 1 / nCharsMap[xHash][yHash]);
+                    }
+                }
+            }
             return Object.freeze({
                 hashMap: Object.freeze(hashMap),
                 members: allUnits
@@ -3522,9 +3545,13 @@ var Haeckel;
             if (typeof count === "undefined") { count = null; }
             if (typeof geo === "undefined") { geo = null; }
             if (typeof time === "undefined") { time = null; }
+            var occGeo = Haeckel.EMPTY_SET;
+            if (geo) {
+                occGeo = geo;
+            }
             var occurrence = {
                 count: count ? count : Haeckel.EMPTY_SET,
-                geo: geo ? geo : Haeckel.EMPTY_SET,
+                geo: occGeo,
                 hash: null,
                 time: time ? time : Haeckel.EMPTY_SET
             };
@@ -4133,10 +4160,20 @@ var Haeckel;
         "stroke-opacity": "1"
     };
 
+    function DEFAULT_VERTEX_RENDERER(builder, taxon, rectangle) {
+        builder.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
+            x: rectangle.x + 'px',
+            y: rectangle.y + 'px',
+            width: rectangle.width + 'px',
+            height: rectangle.height + 'px'
+        });
+    }
+
     var PhyloChart = (function (_super) {
         __extends(PhyloChart, _super);
         function PhyloChart() {
             _super.apply(this, arguments);
+            this.vertexRenderer = DEFAULT_VERTEX_RENDERER;
         }
         PhyloChart.prototype.render = function (parent) {
             var _this = this;
@@ -4146,19 +4183,20 @@ var Haeckel;
             });
             timeMatrixBuilder.inferStates(solver.dagSolver);
             var positions = {}, area = this.area;
+            var arcsGroup = parent.child(Haeckel.SVG_NS, 'g'), verticesGroup = parent.child(Haeckel.SVG_NS, 'g');
             Haeckel.ext.each(graph.vertices, function (taxon) {
-                return positions[taxon.hash] = _this.getTaxonRect(taxon);
+                var rect = positions[taxon.hash] = _this.getTaxonRect(taxon);
+                _this.vertexRenderer(verticesGroup, taxon, rect);
             });
-            var g = parent.child(Haeckel.SVG_NS, 'g');
             Haeckel.ext.each(graph.arcs, function (arc) {
                 var source = positions[arc[0].hash], target = positions[arc[1].hash];
                 if (!source || !target || source.empty || target.empty) {
                     return;
                 }
                 var data = "M" + source.centerX + " " + source.bottom + "L" + target.centerX + " " + target.bottom + "V" + target.top + "L" + source.centerX + " " + source.top + "V" + source.bottom + "Z";
-                g.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', data).attrs(Haeckel.SVG_NS, PATH_STYLE);
+                arcsGroup.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', data).attrs(Haeckel.SVG_NS, PATH_STYLE);
             });
-            return g;
+            return parent;
         };
         return PhyloChart;
     })(Haeckel.ChronoCharChart);
@@ -4474,20 +4512,20 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    (function (ray) {
+    (function (_ray) {
         function contains(ray, p) {
             if (isNaN(p.x) || isNaN(p.y) || ray.empty) {
                 return false;
             }
             return Haeckel.precisionEqual(ray.angle, Haeckel.pt.angle(ray.origin, p));
         }
-        ray.contains = contains;
+        _ray.contains = contains;
     })(Haeckel.ray || (Haeckel.ray = {}));
     var ray = Haeckel.ray;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    (function (ray) {
+    (function (_ray) {
         function intersectSegment(ray, segment) {
             if (!(segment.length >= 2)) {
                 throw new Error("Not a line segment: " + segment + '.');
@@ -4495,12 +4533,12 @@ var Haeckel;
             if (ray.empty) {
                 return [];
             }
-            if (Haeckel.ray.contains(ray, segment[0])) {
-                if (Haeckel.ray.contains(ray, segment[1])) {
+            if (Haeckel._ray.contains(ray, segment[0])) {
+                if (Haeckel._ray.contains(ray, segment[1])) {
                     return segment;
                 }
                 return [segment[0]];
-            } else if (Haeckel.ray.contains(ray, segment[1])) {
+            } else if (Haeckel._ray.contains(ray, segment[1])) {
                 return [segment[1]];
             }
             var x0 = segment[0].x, x1 = segment[1].x, y0 = segment[0].y, y1 = segment[1].y, a1 = Math.sin(ray.angle), b1 = -Math.cos(ray.angle), c1 = a1 * ray.origin.x + b1 * ray.origin.y, a2 = y1 - y0, b2 = x0 - x1, c2 = a2 * x0 + b2 * y0, det = a1 * b2 - a2 * b1;
@@ -4508,26 +4546,26 @@ var Haeckel;
                 return [];
             }
             var point = Haeckel.pt.create((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det);
-            if (point.x >= Math.min(x0, x1) - 1 / Haeckel.PRECISION && point.x <= Math.max(x0, x1) + 1 / Haeckel.PRECISION && point.y >= Math.min(y0, y1) - 1 / Haeckel.PRECISION && point.y <= Math.max(y0, y1) + 1 / Haeckel.PRECISION && Haeckel.ray.contains(ray, point)) {
+            if (point.x >= Math.min(x0, x1) - 1 / Haeckel.PRECISION && point.x <= Math.max(x0, x1) + 1 / Haeckel.PRECISION && point.y >= Math.min(y0, y1) - 1 / Haeckel.PRECISION && point.y <= Math.max(y0, y1) + 1 / Haeckel.PRECISION && Haeckel._ray.contains(ray, point)) {
                 return [point];
             }
             return [];
         }
-        ray.intersectSegment = intersectSegment;
+        _ray.intersectSegment = intersectSegment;
     })(Haeckel.ray || (Haeckel.ray = {}));
     var ray = Haeckel.ray;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    (function (ray) {
+    (function (_ray) {
         function intersectSegments(ray, segments) {
             var points = [];
             for (var i = 0, n = segments.length; i < n; ++i) {
-                points = points.concat(Haeckel.ray.intersectSegment(ray, segments[i]));
+                points = points.concat(Haeckel._ray.intersectSegment(ray, segments[i]));
             }
             return points;
         }
-        ray.intersectSegments = intersectSegments;
+        _ray.intersectSegments = intersectSegments;
     })(Haeckel.ray || (Haeckel.ray = {}));
     var ray = Haeckel.ray;
 })(Haeckel || (Haeckel = {}));
@@ -5895,8 +5933,8 @@ var Haeckel;
             this.nomenclature = Haeckel.EMPTY_NOMENCLATURE;
         }
         DatingReader.prototype.readDatings = function (data, builder) {
-            if (typeof builder === "undefined") { builder = null; }
             var _this = this;
+            if (typeof builder === "undefined") { builder = null; }
             if (!builder) {
                 builder = new Haeckel.ExtSetBuilder();
             }
@@ -6620,6 +6658,73 @@ var Haeckel;
         occ.timeSlice = timeSlice;
     })(Haeckel.occ || (Haeckel.occ = {}));
     var occ = Haeckel.occ;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (phy) {
+        function coarsen(solver, taxa) {
+            var taxonMap = {};
+            Haeckel.ext.each(solver.vertices, function (vertex) {
+                taxonMap[vertex.hash] = vertex;
+                Haeckel.ext.each(taxa, function (taxon) {
+                    if (Haeckel.tax.includes(taxon, vertex)) {
+                        taxonMap[vertex.hash] = taxon;
+                        return false;
+                    }
+                    return true;
+                });
+            });
+            var builder = new Haeckel.DAGBuilder();
+            Haeckel.ext.each(solver.vertices, function (vertex) {
+                var taxon = taxonMap[vertex.hash];
+                Haeckel.ext.each(solver.imSucs(vertex), function (imSuc) {
+                    var sucTaxon = taxonMap[imSuc.hash];
+                    if (sucTaxon !== taxon) {
+                        builder.addArc(taxon, sucTaxon);
+                    }
+                });
+            });
+            return builder;
+        }
+        phy.coarsen = coarsen;
+    })(Haeckel.phy || (Haeckel.phy = {}));
+    var phy = Haeckel.phy;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (phy) {
+        function merge(solvers, taxa) {
+            var builder = new Haeckel.DAGBuilder();
+
+            Haeckel.ext.each(solvers, function (solver) {
+                builder.addGraph(Haeckel.phy.refine(solver.dagSolver).build());
+            });
+            builder = Haeckel.phy.coarsen(new Haeckel.DAGSolver(builder.build()), taxa);
+            return new Haeckel.PhyloSolver(builder);
+        }
+        phy.merge = merge;
+    })(Haeckel.phy || (Haeckel.phy = {}));
+    var phy = Haeckel.phy;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (phy) {
+        function refine(solver) {
+            var builder = new Haeckel.DAGBuilder();
+            Haeckel.ext.each(solver.vertices, function (vertex) {
+                Haeckel.ext.each(solver.imSucs(vertex), function (imSuc) {
+                    Haeckel.ext.each(imSuc.units, function (imSucUnit) {
+                        Haeckel.ext.each(vertex.units, function (vertexUnit) {
+                            builder.addArc(vertexUnit, imSucUnit);
+                        });
+                    });
+                });
+            });
+            return builder;
+        }
+        phy.refine = refine;
+    })(Haeckel.phy || (Haeckel.phy = {}));
+    var phy = Haeckel.phy;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
