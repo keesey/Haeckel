@@ -39,9 +39,9 @@ module.exports = function(grunt)
         options: 
         {
           target: 'es5',
-          base_path: 'src/lib',
+          basePath: 'src/lib',
           declaration: true,
-          sourcemap: false,
+          sourceMap: false,
           noImplicitAny: true
         }
       },
@@ -52,9 +52,9 @@ module.exports = function(grunt)
         options: 
         {
           target: 'es5',
-          base_path: 'src',
+          basePath: 'src',
           declaration: false,
-          sourcemap: false,
+          sourceMap: false,
           noImplicitAny: true
         }
       },
