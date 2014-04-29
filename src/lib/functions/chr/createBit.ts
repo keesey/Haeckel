@@ -1,8 +1,10 @@
 ///<reference path="combiner.ts" />
 ///<reference path="initiate.ts" />
 ///<reference path="normalizeWeights.ts" />
+///<reference path="overlapper.ts" />
 ///<reference path="../bit/createFromBits.ts" />
 ///<reference path="../bit/distance.ts" />
+///<reference path="../bit/intersect.ts" />
 ///<reference path="../bit/read.ts" />
 ///<reference path="../bit/union.ts" />
 ///<reference path="../bit/write.ts" />
@@ -36,6 +38,7 @@ module Haeckel.chr
 	{
 		var c = initiate(domain);
 		c.combine = combiner(bit.union);
+		c.overlap = overlapper<BitSet>(bit.intersect);
 		c.readStates = bit.read;
 		c.writeStates = bit.write;
 		if (distance)

@@ -1,8 +1,10 @@
 ///<reference path="initiate.ts" />
 ///<reference path="normalizeWeights.ts" />
+///<reference path="overlapper.ts" />
 ///<reference path="../rng/combine.ts" />
 ///<reference path="../rng/create.ts" />
 ///<reference path="../rng/distance.ts" />
+///<reference path="../rng/intersect.ts" />
 ///<reference path="../rng/multiply.ts" />
 ///<reference path="../rng/read.ts" />
 ///<reference path="../rng/write.ts" />
@@ -46,6 +48,7 @@ module Haeckel.chr
 	{
 		var c = initiate(domain);
 		c.combine = rng.combine;
+		c.overlap = overlapper<Range>(rng.intersect);
 		c.readStates = rng.read;
 		c.writeStates = rng.write;
 		if (distance)

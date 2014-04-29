@@ -1,7 +1,9 @@
 ///<reference path="combiner.ts" />
 ///<reference path="initiate.ts" />
 ///<reference path="normalizeWeights.ts" />
+///<reference path="overlapper.ts" />
 ///<reference path="../ext/distance.ts" />
+///<reference path="../ext/intersect.ts" />
 ///<reference path="../ext/list.ts" />
 ///<reference path="../ext/read.ts" />
 ///<reference path="../ext/union.ts" />
@@ -36,6 +38,7 @@ module Haeckel.chr
 	{
 		var c = initiate(domain);
 		c.combine = combiner<ExtSet<T>>(ext.union);
+		c.overlap = overlapper<ExtSet<T>>(ext.intersect);
 		c.readStates = (data: T[]) => ext.read<T>(data);
 		c.writeStates = ext.list;
 		if (distance)

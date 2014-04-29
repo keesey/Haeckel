@@ -1,5 +1,7 @@
 ///<reference path="initiate.ts" />
+///<reference path="overlapper.ts" />
 ///<reference path="../ext/domain.ts" />
+///<reference path="../ext/intersect.ts" />
 ///<reference path="../ext/union.ts" />
 ///<reference path="../../interfaces/Character.ts" />
 ///<reference path="../../interfaces/ExtSet.ts" />
@@ -12,6 +14,7 @@ module Haeckel.chr
 	{
 		var c = initiate(ext.domain<T>(hash));
 		c.combine = ext.union;
+		c.overlap = overlapper<ExtSet<T>>(ext.intersect);
 		c.readStates = readStates;
 		c.writeStates = writeStates;
 		return Object.freeze(c);

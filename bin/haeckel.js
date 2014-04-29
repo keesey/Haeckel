@@ -1214,8 +1214,8 @@ var Haeckel;
         });
 
         DAGSolver.prototype.distance = function (x, y, traversedBuilder) {
-            var _this = this;
             if (typeof traversedBuilder === "undefined") { traversedBuilder = null; }
+            var _this = this;
             if (x === y) {
                 return 0;
             }
@@ -2370,6 +2370,7 @@ var Haeckel;
                 combine: null,
                 domain: domain,
                 hash: uid,
+                overlap: null,
                 readStates: null,
                 uid: uid,
                 writeStates: null
@@ -2411,6 +2412,18 @@ var Haeckel;
         chr.normalizeWeights = normalizeWeights;
     })(Haeckel.chr || (Haeckel.chr = {}));
     var chr = Haeckel.chr;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    function overlapper(intersect) {
+        return function (a, b) {
+            if (a === null || b === null) {
+                return null;
+            }
+            return !intersect(a, b).empty;
+        };
+    }
+    Haeckel.overlapper = overlapper;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -2468,6 +2481,22 @@ var Haeckel;
             return Haeckel.rng.create(Math.min(maxToMin, minToMax), Math.max(maxToMin, minToMax));
         }
         rng.distance = distance;
+    })(Haeckel.rng || (Haeckel.rng = {}));
+    var rng = Haeckel.rng;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rng) {
+        function intersect(a, b) {
+            if (!a || !b || !Haeckel.rng.overlap(a, b)) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (a.hash === b.hash) {
+                return a;
+            }
+            return Haeckel.rng.create(Math.max(a.min, b.min), Math.min(a.max, b.max));
+        }
+        rng.intersect = intersect;
     })(Haeckel.rng || (Haeckel.rng = {}));
     var rng = Haeckel.rng;
 })(Haeckel || (Haeckel = {}));
@@ -2557,6 +2586,7 @@ var Haeckel;
         function createRange(domain, inferrable, distance) {
             var c = Haeckel.chr.initiate(domain);
             c.combine = Haeckel.rng.combine;
+            c.overlap = Haeckel.overlapper(Haeckel.rng.intersect);
             c.readStates = Haeckel.rng.read;
             c.writeStates = Haeckel.rng.write;
             if (distance) {
@@ -3219,6 +3249,7 @@ var Haeckel;
         function createDomain(hash, readStates, writeStates) {
             var c = Haeckel.chr.initiate(Haeckel.ext.domain(hash));
             c.combine = Haeckel.ext.union;
+            c.overlap = Haeckel.overlapper(Haeckel.ext.intersect);
             c.readStates = readStates;
             c.writeStates = writeStates;
             return Object.freeze(c);
@@ -4512,20 +4543,20 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    (function (_ray) {
+    (function (ray) {
         function contains(ray, p) {
             if (isNaN(p.x) || isNaN(p.y) || ray.empty) {
                 return false;
             }
             return Haeckel.precisionEqual(ray.angle, Haeckel.pt.angle(ray.origin, p));
         }
-        _ray.contains = contains;
+        ray.contains = contains;
     })(Haeckel.ray || (Haeckel.ray = {}));
     var ray = Haeckel.ray;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    (function (_ray) {
+    (function (ray) {
         function intersectSegment(ray, segment) {
             if (!(segment.length >= 2)) {
                 throw new Error("Not a line segment: " + segment + '.');
@@ -4533,12 +4564,12 @@ var Haeckel;
             if (ray.empty) {
                 return [];
             }
-            if (Haeckel._ray.contains(ray, segment[0])) {
-                if (Haeckel._ray.contains(ray, segment[1])) {
+            if (Haeckel.ray.contains(ray, segment[0])) {
+                if (Haeckel.ray.contains(ray, segment[1])) {
                     return segment;
                 }
                 return [segment[0]];
-            } else if (Haeckel._ray.contains(ray, segment[1])) {
+            } else if (Haeckel.ray.contains(ray, segment[1])) {
                 return [segment[1]];
             }
             var x0 = segment[0].x, x1 = segment[1].x, y0 = segment[0].y, y1 = segment[1].y, a1 = Math.sin(ray.angle), b1 = -Math.cos(ray.angle), c1 = a1 * ray.origin.x + b1 * ray.origin.y, a2 = y1 - y0, b2 = x0 - x1, c2 = a2 * x0 + b2 * y0, det = a1 * b2 - a2 * b1;
@@ -4546,26 +4577,26 @@ var Haeckel;
                 return [];
             }
             var point = Haeckel.pt.create((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det);
-            if (point.x >= Math.min(x0, x1) - 1 / Haeckel.PRECISION && point.x <= Math.max(x0, x1) + 1 / Haeckel.PRECISION && point.y >= Math.min(y0, y1) - 1 / Haeckel.PRECISION && point.y <= Math.max(y0, y1) + 1 / Haeckel.PRECISION && Haeckel._ray.contains(ray, point)) {
+            if (point.x >= Math.min(x0, x1) - 1 / Haeckel.PRECISION && point.x <= Math.max(x0, x1) + 1 / Haeckel.PRECISION && point.y >= Math.min(y0, y1) - 1 / Haeckel.PRECISION && point.y <= Math.max(y0, y1) + 1 / Haeckel.PRECISION && Haeckel.ray.contains(ray, point)) {
                 return [point];
             }
             return [];
         }
-        _ray.intersectSegment = intersectSegment;
+        ray.intersectSegment = intersectSegment;
     })(Haeckel.ray || (Haeckel.ray = {}));
     var ray = Haeckel.ray;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    (function (_ray) {
+    (function (ray) {
         function intersectSegments(ray, segments) {
             var points = [];
             for (var i = 0, n = segments.length; i < n; ++i) {
-                points = points.concat(Haeckel._ray.intersectSegment(ray, segments[i]));
+                points = points.concat(Haeckel.ray.intersectSegment(ray, segments[i]));
             }
             return points;
         }
-        _ray.intersectSegments = intersectSegments;
+        ray.intersectSegments = intersectSegments;
     })(Haeckel.ray || (Haeckel.ray = {}));
     var ray = Haeckel.ray;
 })(Haeckel || (Haeckel = {}));
@@ -5360,6 +5391,7 @@ var Haeckel;
         function createBit(domain, inferrable, distance) {
             var c = Haeckel.chr.initiate(domain);
             c.combine = Haeckel.combiner(Haeckel.bit.union);
+            c.overlap = Haeckel.overlapper(Haeckel.bit.intersect);
             c.readStates = Haeckel.bit.read;
             c.writeStates = Haeckel.bit.write;
             if (distance) {
@@ -5428,6 +5460,7 @@ var Haeckel;
         function createExt(domain, inferrable, distance) {
             var c = Haeckel.chr.initiate(domain);
             c.combine = Haeckel.combiner(Haeckel.ext.union);
+            c.overlap = Haeckel.overlapper(Haeckel.ext.intersect);
             c.readStates = function (data) {
                 return Haeckel.ext.read(data);
             };
@@ -5461,12 +5494,31 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    (function (ist) {
+        function intersect(a, b) {
+            if (a.empty || b.empty) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (Haeckel.equal(a, b)) {
+                return a;
+            }
+            return Haeckel.ist.create(function (element) {
+                return a.criterion(element) && b.criterion(element);
+            });
+        }
+        ist.intersect = intersect;
+    })(Haeckel.ist || (Haeckel.ist = {}));
+    var ist = Haeckel.ist;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
     (function (chr) {
         function createInt(criterion, combine, readStates, writeStates) {
             var domain = Haeckel.ist.create(criterion), c = Haeckel.chr.initiate(domain);
             c.combine = combine ? combine : Haeckel.combiner(function (sets) {
                 return Haeckel.ist.union(sets);
             });
+            c.overlap = Haeckel.overlapper(Haeckel.ist.intersect);
             c.readStates = readStates;
             c.writeStates = writeStates;
             return Object.freeze(c);
@@ -5933,8 +5985,8 @@ var Haeckel;
             this.nomenclature = Haeckel.EMPTY_NOMENCLATURE;
         }
         DatingReader.prototype.readDatings = function (data, builder) {
-            var _this = this;
             if (typeof builder === "undefined") { builder = null; }
+            var _this = this;
             if (!builder) {
                 builder = new Haeckel.ExtSetBuilder();
             }
@@ -6543,24 +6595,6 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (ist) {
-        function intersect(a, b) {
-            if (a.empty || b.empty) {
-                return Haeckel.EMPTY_SET;
-            }
-            if (Haeckel.equal(a, b)) {
-                return a;
-            }
-            return Haeckel.ist.create(function (element) {
-                return a.criterion(element) && b.criterion(element);
-            });
-        }
-        ist.intersect = intersect;
-    })(Haeckel.ist || (Haeckel.ist = {}));
-    var ist = Haeckel.ist;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (ist) {
         function setDiff(minuend, subtrahend) {
             if (minuend.empty) {
                 return Haeckel.EMPTY_SET;
@@ -6622,22 +6656,6 @@ var Haeckel;
         nom.forSubtaxa = forSubtaxa;
     })(Haeckel.nom || (Haeckel.nom = {}));
     var nom = Haeckel.nom;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (rng) {
-        function intersect(a, b) {
-            if (!a || !b || !Haeckel.rng.overlap(a, b)) {
-                return Haeckel.EMPTY_SET;
-            }
-            if (a.hash === b.hash) {
-                return a;
-            }
-            return Haeckel.rng.create(Math.max(a.min, b.min), Math.min(a.max, b.max));
-        }
-        rng.intersect = intersect;
-    })(Haeckel.rng || (Haeckel.rng = {}));
-    var rng = Haeckel.rng;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {

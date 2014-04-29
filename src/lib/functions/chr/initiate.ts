@@ -14,6 +14,7 @@ module Haeckel.chr
 			combine: null,
 			domain: domain,
 			hash: uid,
+			overlap: null,
 			readStates: null,
 			uid: uid,
 			writeStates: null

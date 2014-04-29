@@ -1316,8 +1316,8 @@ var Haeckel;
         });
 
         DAGSolver.prototype.distance = function (x, y, traversedBuilder) {
-            var _this = this;
             if (typeof traversedBuilder === "undefined") { traversedBuilder = null; }
+            var _this = this;
             if (x === y) {
                 return 0;
             }
@@ -2115,6 +2115,7 @@ var Haeckel;
                 combine: null,
                 domain: domain,
                 hash: uid,
+                overlap: null,
                 readStates: null,
                 uid: uid,
                 writeStates: null
@@ -2156,6 +2157,18 @@ var Haeckel;
         chr.normalizeWeights = normalizeWeights;
     })(Haeckel.chr || (Haeckel.chr = {}));
     var chr = Haeckel.chr;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    function overlapper(intersect) {
+        return function (a, b) {
+            if (a === null || b === null) {
+                return null;
+            }
+            return !intersect(a, b).empty;
+        };
+    }
+    Haeckel.overlapper = overlapper;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -2266,6 +2279,7 @@ var Haeckel;
         function createBit(domain, inferrable, distance) {
             var c = Haeckel.chr.initiate(domain);
             c.combine = Haeckel.combiner(Haeckel.bit.union);
+            c.overlap = Haeckel.overlapper(Haeckel.bit.intersect);
             c.readStates = Haeckel.bit.read;
             c.writeStates = Haeckel.bit.write;
             if (distance) {
@@ -2413,8 +2427,8 @@ var Haeckel;
             this.nomenclature = Haeckel.EMPTY_NOMENCLATURE;
         }
         DatingReader.prototype.readDatings = function (data, builder) {
-            var _this = this;
             if (typeof builder === "undefined") { builder = null; }
+            var _this = this;
             if (!builder) {
                 builder = new Haeckel.ExtSetBuilder();
             }
@@ -2607,6 +2621,22 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (rng) {
+        function intersect(a, b) {
+            if (!a || !b || !Haeckel.rng.overlap(a, b)) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (a.hash === b.hash) {
+                return a;
+            }
+            return Haeckel.rng.create(Math.max(a.min, b.min), Math.min(a.max, b.max));
+        }
+        rng.intersect = intersect;
+    })(Haeckel.rng || (Haeckel.rng = {}));
+    var rng = Haeckel.rng;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rng) {
         function multiply(r, factor) {
             if (!isFinite(factor)) {
                 throw new Error("Not a finite number: " + factor + ".");
@@ -2669,6 +2699,7 @@ var Haeckel;
         function createRange(domain, inferrable, distance) {
             var c = Haeckel.chr.initiate(domain);
             c.combine = Haeckel.rng.combine;
+            c.overlap = Haeckel.overlapper(Haeckel.rng.intersect);
             c.readStates = Haeckel.rng.read;
             c.writeStates = Haeckel.rng.write;
             if (distance) {
@@ -2714,6 +2745,7 @@ var Haeckel;
         function createDomain(hash, readStates, writeStates) {
             var c = Haeckel.chr.initiate(Haeckel.ext.domain(hash));
             c.combine = Haeckel.ext.union;
+            c.overlap = Haeckel.overlapper(Haeckel.ext.intersect);
             c.readStates = readStates;
             c.writeStates = writeStates;
             return Object.freeze(c);
