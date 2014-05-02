@@ -142,8 +142,12 @@ declare module Haeckel {
         domain: S;
         distance?: (statesA: S, statesB: S) => Haeckel.Range;
         inferrer?: Haeckel.Inferrer<S>;
+        label?: string;
+        labelStates?: (states: S) => string;
         overlap: (statesA: S, statesB: S) => boolean;
         readStates: (data: any) => S;
+        stateLabels?: string[];
+        type?: string;
         writeStates: (states: S) => any;
     }
     function isCharacter(o: any): boolean;
@@ -1278,8 +1282,14 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    interface CharacterData {
+        name: string;
+        states?: string[];
+        type?: string;
+    }
     interface CharacterScoresData {
         characterType?: string;
+        characters?: CharacterData[];
         scores: {
             [name: string]: any[];
         };

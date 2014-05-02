@@ -3,6 +3,7 @@
 /// <reference path="../builders/NomenclatureBuilder.ts"/>
 /// <reference path="../builders/RangeBuilder.ts"/>
 /// <reference path="../constants/EMPTY_NOMENCLATURE.ts"/>
+/// <reference path="../functions/bit/contains.ts"/>
 /// <reference path="../functions/bit/createFromBits.ts"/>
 /// <reference path="../functions/bit/read.ts"/>
 /// <reference path="../functions/chr/createBit.ts"/>
@@ -14,9 +15,21 @@
 /// <reference path="../interfaces/Set.ts"/>
 module Haeckel
 {
+	var BIT_BUILDER: BitCharacterBuilder = null;
+
+	var RANGE_BUILDER: RangeCharacterBuilder = null;
+
+	export interface CharacterData
+	{
+		name: string;
+		states?: string[];
+		type?: string;
+	}
+
 	export interface CharacterScoresData
 	{
 		characterType?: string;
+		characters?: CharacterData[];
 		scores: {
 			[name: string]: any[];
 		};
@@ -25,18 +38,49 @@ module Haeckel
 	interface CharacterBuilder<S extends Set> extends Builder<Character<S>>
 	{
 		build(): Character<S>;
-		readStates(data: any): void;
+		readStateData(data: string[]): void;
+		readScore(data: any): void;
 		reset(): CharacterBuilder<S>;
 	}
 
 	class BitCharacterBuilder implements CharacterBuilder<BitSet>
 	{
 		private domainBits = 0;
+		private labelStates: (states: BitSet) => string;
 		build()
 		{
-			return chr.createBit(bit.createFromBits(this.domainBits), true, true);
+			var result = chr.createBit(bit.createFromBits(this.domainBits), true, true);
+			if (this.labelStates)
+			{
+				result.labelStates = this.labelStates;
+			}
+			return result;
 		}
-		readStates(data: any): void
+		readStateData(data: string[])
+		{
+			var n = data.length;
+			this.labelStates = (states: BitSet) =>
+			{
+				if (!states)
+				{
+					return '?';
+				}
+				if (states.empty)
+				{
+					return '—';
+				}
+				var labels: string[] = [];
+				for (var i = 0; i < n; ++i)
+				{
+					if (bit.contains(states, i))
+					{
+						labels.push(data[i]);
+					}
+				}
+				return labels.join(' or ') || '—';
+			};
+		}
+		readScore(data: any)
 		{
 			var states = bit.read(data);
 			if (states !== null)
@@ -44,9 +88,10 @@ module Haeckel
 				this.domainBits |= states.bits;
 			}
 		}
-		reset(): BitCharacterBuilder
+		reset()
 		{
 			this.domainBits = 0;
+			this.labelStates = null;
 			return this;
 		}
 	}
@@ -54,15 +99,41 @@ module Haeckel
 	class RangeCharacterBuilder implements CharacterBuilder<Range>
 	{
 		private domainBuilder: RangeBuilder;
+		private labelStates: (states: Range) => string;
 		constructor()
 		{
 			this.domainBuilder = new RangeBuilder();
 		}
 		build()
 		{
-			return chr.createRange(this.domainBuilder.build(), true, true);
+			var result = chr.createRange(this.domainBuilder.build(), true, true);
+			if (this.labelStates)
+			{
+				result.labelStates = this.labelStates;
+			}
+			return result;
 		}
-		readStates(data: any): void
+		readStateData(data: string[])
+		{
+			var n = data.length;
+			this.labelStates = (states: Range) =>
+			{
+				if (!states)
+				{
+					return '?';
+				}
+				if (states.empty)
+				{
+					return '—';
+				}
+				if (states.size === 0)
+				{
+					return data[states.min];
+				}
+				return data[states.min] + "–" + data[states.max];
+			};
+		}
+		readScore(data: any)
 		{
 			var range = rng.read(data);
 			if (range !== null)
@@ -73,18 +144,27 @@ module Haeckel
 		reset()
 		{
 			this.domainBuilder.reset();
+			this.labelStates = null;
 			return this;
 		}
 	}
 
-    function createCharacterBuilder(data: CharacterScoresData): CharacterBuilder<Set>
-    {
-        if (data.characterType === "range")
-        {
-            return new RangeCharacterBuilder();
-        }
-        return new BitCharacterBuilder();
-    }
+	function getCharacterBuilder(type: string): CharacterBuilder<Set>
+	{
+		if (type === 'range')
+		{
+			if (!RANGE_BUILDER)
+			{
+				RANGE_BUILDER = new RangeCharacterBuilder();
+			}
+			return RANGE_BUILDER;
+		}
+		if (!BIT_BUILDER)
+		{
+			BIT_BUILDER = new BitCharacterBuilder();
+		}
+		return BIT_BUILDER;
+	}
 
     function readNumChars(data: CharacterScoresData): number
     {
@@ -102,22 +182,59 @@ module Haeckel
                 throw new Error("Inconsistent number of characters in matrix.");
             }
         }
+        if (data.characters)
+        {
+        	if (num !== data.characters.length)
+        	{
+                throw new Error("Inconsistent number of characters.");
+        	}
+        }
         return isNaN(num) ? 0 : num;
     }
 
     function readCharacters(data: CharacterScoresData, builder: CharacterMatrixBuilder<Set>, numChars: number): Character<Set>[]
     {
-        var characterBuilder = createCharacterBuilder(data);
-        for (var i = 0; i < numChars; ++i)
-        {
-            characterBuilder.reset();
-            for (var name in data.scores)
-            {
-                var row = data.scores[name];
-                characterBuilder.readStates(row[i]);
-            }
-            builder.addListed(characterBuilder.build());
-        }
+    	var i = 0;
+    	var character: Character<Set>;
+    	var characterBuilder: CharacterBuilder<Set>;
+    	var characterType: string;
+    	if (data.characters)
+    	{
+	        for ( ; i < numChars; ++i)
+	        {
+	        	var characterData = data.characters[i];
+	        	characterType = (characterData.type || data.characterType) || 'discrete';
+	        	characterBuilder = getCharacterBuilder(characterType);
+	        	if (characterData.states)
+	        	{
+		        	characterBuilder.readStateData(characterData.states);
+		        }
+ 	            character = characterBuilder.build();
+	            characterBuilder.reset();
+	            character.label = characterData.name;
+	            character.stateLabels = characterData.states;
+	            character.type = characterType;
+	            builder.addListed(character);
+	        }
+    	}
+    	else
+    	{
+    		characterType = data.characterType || 'discrete'
+			characterBuilder = getCharacterBuilder(characterType);
+	        for ( ; i < numChars; ++i)
+	        {
+	            for (var name in data.scores)
+	            {
+	                var row = data.scores[name];
+	                characterBuilder.readScore(row[i]);
+	            }
+	            character = characterBuilder.build();
+	            characterBuilder.reset();
+	            character.label = '#' + (i + 1);
+	            character.type = characterType;
+	            builder.addListed(character);
+	        }
+	    }
         return builder.characterList;
     }
 

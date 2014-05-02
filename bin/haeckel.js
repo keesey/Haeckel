@@ -5875,14 +5875,40 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    var BIT_BUILDER = null;
+
+    var RANGE_BUILDER = null;
+
     var BitCharacterBuilder = (function () {
         function BitCharacterBuilder() {
             this.domainBits = 0;
         }
         BitCharacterBuilder.prototype.build = function () {
-            return Haeckel.chr.createBit(Haeckel.bit.createFromBits(this.domainBits), true, true);
+            var result = Haeckel.chr.createBit(Haeckel.bit.createFromBits(this.domainBits), true, true);
+            if (this.labelStates) {
+                result.labelStates = this.labelStates;
+            }
+            return result;
         };
-        BitCharacterBuilder.prototype.readStates = function (data) {
+        BitCharacterBuilder.prototype.readStateData = function (data) {
+            var n = data.length;
+            this.labelStates = function (states) {
+                if (!states) {
+                    return '?';
+                }
+                if (states.empty) {
+                    return '—';
+                }
+                var labels = [];
+                for (var i = 0; i < n; ++i) {
+                    if (Haeckel.bit.contains(states, i)) {
+                        labels.push(data[i]);
+                    }
+                }
+                return labels.join(' or ') || '—';
+            };
+        };
+        BitCharacterBuilder.prototype.readScore = function (data) {
             var states = Haeckel.bit.read(data);
             if (states !== null) {
                 this.domainBits |= states.bits;
@@ -5890,6 +5916,7 @@ var Haeckel;
         };
         BitCharacterBuilder.prototype.reset = function () {
             this.domainBits = 0;
+            this.labelStates = null;
             return this;
         };
         return BitCharacterBuilder;
@@ -5900,9 +5927,28 @@ var Haeckel;
             this.domainBuilder = new Haeckel.RangeBuilder();
         }
         RangeCharacterBuilder.prototype.build = function () {
-            return Haeckel.chr.createRange(this.domainBuilder.build(), true, true);
+            var result = Haeckel.chr.createRange(this.domainBuilder.build(), true, true);
+            if (this.labelStates) {
+                result.labelStates = this.labelStates;
+            }
+            return result;
         };
-        RangeCharacterBuilder.prototype.readStates = function (data) {
+        RangeCharacterBuilder.prototype.readStateData = function (data) {
+            var n = data.length;
+            this.labelStates = function (states) {
+                if (!states) {
+                    return '?';
+                }
+                if (states.empty) {
+                    return '—';
+                }
+                if (states.size === 0) {
+                    return data[states.min];
+                }
+                return data[states.min] + "–" + data[states.max];
+            };
+        };
+        RangeCharacterBuilder.prototype.readScore = function (data) {
             var range = Haeckel.rng.read(data);
             if (range !== null) {
                 this.domainBuilder.addRange(range);
@@ -5910,16 +5956,23 @@ var Haeckel;
         };
         RangeCharacterBuilder.prototype.reset = function () {
             this.domainBuilder.reset();
+            this.labelStates = null;
             return this;
         };
         return RangeCharacterBuilder;
     })();
 
-    function createCharacterBuilder(data) {
-        if (data.characterType === "range") {
-            return new RangeCharacterBuilder();
+    function getCharacterBuilder(type) {
+        if (type === 'range') {
+            if (!RANGE_BUILDER) {
+                RANGE_BUILDER = new RangeCharacterBuilder();
+            }
+            return RANGE_BUILDER;
         }
-        return new BitCharacterBuilder();
+        if (!BIT_BUILDER) {
+            BIT_BUILDER = new BitCharacterBuilder();
+        }
+        return BIT_BUILDER;
     }
 
     function readNumChars(data) {
@@ -5931,18 +5984,48 @@ var Haeckel;
                 throw new Error("Inconsistent number of characters in matrix.");
             }
         }
+        if (data.characters) {
+            if (num !== data.characters.length) {
+                throw new Error("Inconsistent number of characters.");
+            }
+        }
         return isNaN(num) ? 0 : num;
     }
 
     function readCharacters(data, builder, numChars) {
-        var characterBuilder = createCharacterBuilder(data);
-        for (var i = 0; i < numChars; ++i) {
-            characterBuilder.reset();
-            for (var name in data.scores) {
-                var row = data.scores[name];
-                characterBuilder.readStates(row[i]);
+        var i = 0;
+        var character;
+        var characterBuilder;
+        var characterType;
+        if (data.characters) {
+            for (; i < numChars; ++i) {
+                var characterData = data.characters[i];
+                characterType = (characterData.type || data.characterType) || 'discrete';
+                characterBuilder = getCharacterBuilder(characterType);
+                if (characterData.states) {
+                    characterBuilder.readStateData(characterData.states);
+                }
+                character = characterBuilder.build();
+                characterBuilder.reset();
+                character.label = characterData.name;
+                character.stateLabels = characterData.states;
+                character.type = characterType;
+                builder.addListed(character);
             }
-            builder.addListed(characterBuilder.build());
+        } else {
+            characterType = data.characterType || 'discrete';
+            characterBuilder = getCharacterBuilder(characterType);
+            for (; i < numChars; ++i) {
+                for (var name in data.scores) {
+                    var row = data.scores[name];
+                    characterBuilder.readScore(row[i]);
+                }
+                character = characterBuilder.build();
+                characterBuilder.reset();
+                character.label = '#' + (i + 1);
+                character.type = characterType;
+                builder.addListed(character);
+            }
         }
         return builder.characterList;
     }
@@ -6884,6 +6967,8 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    var INDEX_LABEL_REGEX = /^#\d+$/;
+
     var CharacterScoresWriter = (function () {
         function CharacterScoresWriter() {
             this.nomenclature = Haeckel.EMPTY_NOMENCLATURE;
@@ -6903,30 +6988,43 @@ var Haeckel;
 
         CharacterScoresWriter.prototype.write = function (matrix) {
             var _this = this;
-            function getCharacterType() {
-                if (Haeckel.arr.forAll(matrix.characterList, function (character) {
-                    return Haeckel.isRange(character.domain);
-                })) {
-                    return "range";
-                }
-                if (Haeckel.arr.forAll(matrix.characterList, function (character) {
-                    return Haeckel.isBitSet(character.domain) || Haeckel.isExtSet(character.domain);
-                })) {
-                    return "discrete";
-                }
-                throw new Error("Characters are not of a consistent recognized type; cannot be written as a scored matrix.");
-            }
-
             var result = {
-                characterType: getCharacterType(),
                 scores: {}
             };
 
-            Haeckel.arr.each(matrix.characterList, function (character) {
+            var allRange = true;
+            var listCharacters = false;
+
+            for (var i = 0, n = matrix.characterList.length; i < n; ++i) {
+                var character = matrix.characterList[i];
                 if (typeof character.writeStates !== "function") {
-                    console.warn('Character has no method for writing. Output will be null.', character);
+                    console.warn('Character has no method for writing. Output will be null.', character.label);
                 }
-            });
+                allRange = allRange && character.type === 'range';
+                listCharacters = listCharacters || (typeof character.label === 'string' && !INDEX_LABEL_REGEX.test(character.label));
+                if (!allRange && listCharacters) {
+                    break;
+                }
+            }
+
+            result.characterType = allRange ? 'range' : 'discrete';
+
+            if (listCharacters) {
+                result.characters = new Array(n);
+                for (i = 0; i < n; ++i) {
+                    var character = matrix.characterList[i];
+                    var charData = {
+                        name: character.label
+                    };
+                    if (character.stateLabels) {
+                        charData.states = character.stateLabels;
+                    }
+                    if (character.type !== result.characterType) {
+                        charData.type = character.type;
+                    }
+                    result.characters[i] = charData;
+                }
+            }
 
             Haeckel.ext.each(matrix.taxon.units, function (unit) {
                 var name = _this.getName(unit), row = [];

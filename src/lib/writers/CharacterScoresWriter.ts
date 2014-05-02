@@ -1,20 +1,18 @@
 /// <reference path="../constants/EMPTY_NOMENCLATURE.ts"/>
 /// <reference path="../functions/arr/each.ts"/>
-/// <reference path="../functions/arr/forAll.ts"/>
 /// <reference path="../functions/chr/states.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
 /// <reference path="../functions/ext/list.ts"/>
 /// <reference path="../functions/nom/forTaxon.ts"/>
 /// <reference path="../interfaces/Character.ts"/>
 /// <reference path="../interfaces/CharacterMatrix.ts"/>
-/// <reference path="../interfaces/BitSet.ts"/>
-/// <reference path="../interfaces/ExtSet.ts"/>
-/// <reference path="../interfaces/Range.ts"/>
 /// <reference path="../interfaces/Set.ts"/>
 /// <reference path="../interfaces/Taxic.ts"/>
 /// <reference path="../readers/CharacterScoresReader.ts"/>
 module Haeckel
 {
+	var INDEX_LABEL_REGEX = /^#\d+$/;
+
 	export class CharacterScoresWriter
 	{
 		nomenclature = EMPTY_NOMENCLATURE;
@@ -38,32 +36,51 @@ module Haeckel
 
 		write(matrix: CharacterMatrix<Set>): CharacterScoresData
 		{
-			function getCharacterType()
-			{
-				if (arr.forAll(matrix.characterList, (character: Character<any>) => isRange(character.domain)))
-				{
-					return "range";
-				}
-				if (arr.forAll(matrix.characterList, (character: Character<any>) => isBitSet(character.domain) || isExtSet(character.domain)))
-				{
-					return "discrete";
-				}
-				throw new Error("Characters are not of a consistent recognized type; cannot be written as a scored matrix.");
-			}
-
 			var result: CharacterScoresData =
 			{
-				characterType: getCharacterType(),
 				scores: {}
 			};
 
-			arr.each(matrix.characterList, (character: Character<any>) =>
+			var allRange = true;
+			var listCharacters = false;
+
+			for (var i = 0, n = matrix.characterList.length; i < n; ++i)
 			{
+				var character = matrix.characterList[i];
 				if (typeof character.writeStates !== "function")
 				{
-					console.warn('Character has no method for writing. Output will be null.', character);
+					console.warn('Character has no method for writing. Output will be null.', character.label);
 				}
-			});
+				allRange = allRange && character.type === 'range';
+				listCharacters = listCharacters || (typeof character.label === 'string' && !INDEX_LABEL_REGEX.test(character.label));
+				if (!allRange && listCharacters)
+				{
+					break;
+				}
+			}
+
+			result.characterType = allRange ? 'range' : 'discrete';
+
+			if (listCharacters)
+			{
+				result.characters = new Array<CharacterData>(n);
+				for (i = 0; i < n; ++i)
+				{
+					var character = matrix.characterList[i];
+					var charData: CharacterData = {
+						name: character.label
+					};
+					if (character.stateLabels)
+					{
+						charData.states = character.stateLabels;
+					}
+					if (character.type !== result.characterType)
+					{
+						charData.type = character.type;
+					}
+					result.characters[i] = charData;
+				}
+			}
 
 			ext.each(matrix.taxon.units, (unit: Taxic) =>
 			{
