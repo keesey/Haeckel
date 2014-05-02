@@ -115,6 +115,11 @@ module Haeckel
 		}
 		readStateData(data: string[])
 		{
+			function getLabel(value: number): string
+			{
+				return data[value] || String(value);
+			}
+
 			var n = data.length;
 			this.labelStates = (states: Range) =>
 			{
@@ -128,9 +133,9 @@ module Haeckel
 				}
 				if (states.size === 0)
 				{
-					return data[states.min];
+					return getLabel(states.min);
 				}
-				return data[states.min] + "–" + data[states.max];
+				return getLabel(states.min) + "–" + getLabel(states.max);
 			};
 		}
 		readScore(data: any)
