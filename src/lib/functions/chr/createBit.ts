@@ -34,9 +34,10 @@ module Haeckel.chr
 		return bit.createFromBits(bits);
 	}
 
-	export function createBit(domain: BitSet, inferrable?: boolean, distance?: boolean): Character<BitSet>
+	export function createBit(domain: BitSet, inferrable?: boolean, distance?: boolean,
+		label?: string, labelStates?: (s: BitSet) => string, stateLabels?: string[]): Character<BitSet>
 	{
-		var c = initiate(domain);
+		var c = initiate(domain, label, labelStates, stateLabels, 'discrete');
 		c.combine = combiner(bit.union);
 		c.overlap = overlapper<BitSet>(bit.intersect);
 		c.readStates = bit.read;

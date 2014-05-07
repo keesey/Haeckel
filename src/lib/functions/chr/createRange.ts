@@ -44,9 +44,10 @@ module Haeckel.chr
         return rng.create(min / total, max / total);
 	}
 
-	export function createRange(domain: Range, inferrable?: boolean, distance?: boolean): Character<Range>
+	export function createRange(domain: Range, inferrable?: boolean, distance?: boolean,
+		label?: string, labelStates?: (s: Range) => string, stateLabels?: string[]): Character<Range>
 	{
-		var c = initiate(domain);
+		var c = initiate(domain, label, labelStates, stateLabels, 'range');
 		c.combine = rng.combine;
 		c.overlap = overlapper<Range>(rng.intersect);
 		c.readStates = rng.read;

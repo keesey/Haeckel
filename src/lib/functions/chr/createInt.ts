@@ -8,10 +8,13 @@ module Haeckel.chr
 	export function createInt<T>(criterion: (element: T) => boolean,
 		combine?: (sets: IntSet<T>[]) => IntSet<T>,
 		readStates?: (data: any) => IntSet<T>,
-		writeStates?: (states: IntSet<T>) => any): Character<IntSet<T>>
+		writeStates?: (states: IntSet<T>) => any,
+		label?: string,
+		labelStates?: (s: IntSet<T>) => string,
+		stateLabels?: string[]): Character<IntSet<T>>
 	{
 		var domain = ist.create(criterion),
-			c = initiate(domain);
+			c = initiate(domain, label, labelStates, stateLabels);
 		c.combine = combine ? combine : combiner<IntSet<T>>((sets: IntSet<T>[]) => ist.union<T>(sets));
 		c.overlap = overlapper<IntSet<T>>(ist.intersect);
 		c.readStates = readStates;

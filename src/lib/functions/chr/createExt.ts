@@ -34,9 +34,10 @@ module Haeckel.chr
 		return builder.build();
 	}
 
-	export function createExt<T>(domain: ExtSet<T>, inferrable?: boolean, distance?: boolean): Character<ExtSet<T>>
+	export function createExt<T>(domain: ExtSet<T>, inferrable?: boolean, distance?: boolean,
+		label?: string, labelStates?: (s: ExtSet<T>) => string, stateLabels?: string[]): Character<ExtSet<T>>
 	{
-		var c = initiate(domain);
+		var c = initiate(domain, label, labelStates, stateLabels);
 		c.combine = combiner<ExtSet<T>>(ext.union);
 		c.overlap = overlapper<ExtSet<T>>(ext.intersect);
 		c.readStates = (data: T[]) => ext.read<T>(data);

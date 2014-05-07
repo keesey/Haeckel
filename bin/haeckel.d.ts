@@ -585,7 +585,7 @@ declare module Haeckel {
     var EMPTY_CHARACTER_MATRIX: CharacterMatrix<Set>;
 }
 declare module Haeckel.chr {
-    function initiate<S extends Haeckel.Set>(domain: S): Haeckel.Character<S>;
+    function initiate<S extends Haeckel.Set>(domain: S, label: string, labelStates: (s: S) => string, stateLabels: string[], type?: string): Haeckel.Character<S>;
 }
 declare module Haeckel.chr {
     function normalizeWeights<S extends Haeckel.Set>(statesList: Haeckel.WeightedStates<S>[]): Haeckel.WeightedStates<S>[];
@@ -616,7 +616,7 @@ declare module Haeckel.rng {
     function write(r: Haeckel.Range): any;
 }
 declare module Haeckel.chr {
-    function createRange(domain: Haeckel.Range, inferrable?: boolean, distance?: boolean): Haeckel.Character<Haeckel.Range>;
+    function createRange(domain: Haeckel.Range, inferrable?: boolean, distance?: boolean, label?: string, labelStates?: (s: Haeckel.Range) => string, stateLabels?: string[]): Haeckel.Character<Haeckel.Range>;
 }
 declare module Haeckel {
     var TIME_CHARACTER: Character<Range>;
@@ -717,7 +717,7 @@ declare module Haeckel.ext {
     function domain<T>(hash: string): Haeckel.ExtSet<T>;
 }
 declare module Haeckel.chr {
-    function createDomain<T>(hash: string, readStates?: (data: any) => Haeckel.ExtSet<T>, writeStates?: (states: Haeckel.ExtSet<T>) => any): Haeckel.Character<Haeckel.ExtSet<T>>;
+    function createDomain<T>(hash: string, readStates?: (data: any) => Haeckel.ExtSet<T>, writeStates?: (states: Haeckel.ExtSet<T>) => any, label?: string, labelStates?: (s: Haeckel.ExtSet<T>) => string, stateLabels?: string[]): Haeckel.Character<Haeckel.ExtSet<T>>;
 }
 declare module Haeckel.geo {
     function createCoords(lat: number, lon: number): Haeckel.GeoCoords;
@@ -1115,7 +1115,7 @@ declare module Haeckel {
     function combiner<S extends Set>(union: (sets: S[]) => S): (sets: S[]) => S;
 }
 declare module Haeckel.chr {
-    function createBit(domain: Haeckel.BitSet, inferrable?: boolean, distance?: boolean): Haeckel.Character<Haeckel.BitSet>;
+    function createBit(domain: Haeckel.BitSet, inferrable?: boolean, distance?: boolean, label?: string, labelStates?: (s: Haeckel.BitSet) => string, stateLabels?: string[]): Haeckel.Character<Haeckel.BitSet>;
 }
 declare module Haeckel.ext {
     function distance<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): Haeckel.Range;
@@ -1124,7 +1124,7 @@ declare module Haeckel.ext {
     function read<T>(data: any): Haeckel.ExtSet<T>;
 }
 declare module Haeckel.chr {
-    function createExt<T>(domain: Haeckel.ExtSet<T>, inferrable?: boolean, distance?: boolean): Haeckel.Character<Haeckel.ExtSet<T>>;
+    function createExt<T>(domain: Haeckel.ExtSet<T>, inferrable?: boolean, distance?: boolean, label?: string, labelStates?: (s: Haeckel.ExtSet<T>) => string, stateLabels?: string[]): Haeckel.Character<Haeckel.ExtSet<T>>;
 }
 declare module Haeckel.ist {
     function create<T>(criterion: (element: T) => boolean): Haeckel.IntSet<T>;
@@ -1133,7 +1133,7 @@ declare module Haeckel.ist {
     function intersect<T>(a: Haeckel.IntSet<T>, b: Haeckel.IntSet<T>): Haeckel.IntSet<T>;
 }
 declare module Haeckel.chr {
-    function createInt<T>(criterion: (element: T) => boolean, combine?: (sets: Haeckel.IntSet<T>[]) => Haeckel.IntSet<T>, readStates?: (data: any) => Haeckel.IntSet<T>, writeStates?: (states: Haeckel.IntSet<T>) => any): Haeckel.Character<Haeckel.IntSet<T>>;
+    function createInt<T>(criterion: (element: T) => boolean, combine?: (sets: Haeckel.IntSet<T>[]) => Haeckel.IntSet<T>, readStates?: (data: any) => Haeckel.IntSet<T>, writeStates?: (states: Haeckel.IntSet<T>) => any, label?: string, labelStates?: (s: Haeckel.IntSet<T>) => string, stateLabels?: string[]): Haeckel.Character<Haeckel.IntSet<T>>;
 }
 declare module Haeckel.clr {
     function create(r: number, g: number, b: number): Haeckel.Color;

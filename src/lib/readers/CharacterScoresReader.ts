@@ -37,27 +37,56 @@ module Haeckel
 
 	interface CharacterBuilder<S extends Set> extends Builder<Character<S>>
 	{
+		label: string;
 		build(): Character<S>;
 		readStateData(data: string[]): void;
 		readScore(data: any): void;
 		reset(): CharacterBuilder<S>;
 	}
 
-	class BitCharacterBuilder implements CharacterBuilder<BitSet>
+	class AbstractCharacterBuilder<S extends Set> implements CharacterBuilder<S>
 	{
-		private domainBits = 0;
-		private labelStates: (states: BitSet) => string;
-		build()
+		label: string = null;
+		labelStates: (states: S) => string;
+		stateLabels: string[];
+		build(): Character<S>
 		{
-			var result = chr.createBit(bit.createFromBits(this.domainBits), true, true);
-			if (this.labelStates)
-			{
-				result.labelStates = this.labelStates;
-			}
-			return result;
+			return null;
+		}
+		readScore(data: any): void
+		{
 		}
 		readStateData(data: string[])
 		{
+			this.stateLabels = data.concat();
+		}
+		reset(): CharacterBuilder<S>
+		{
+			this.label = null;
+			this.labelStates = null;
+			this.stateLabels = null;
+			return this;
+		}
+	}
+
+	class BitCharacterBuilder extends AbstractCharacterBuilder<BitSet>
+	{
+		private domainBits = 0;
+		build()
+		{
+			return chr.createBit(bit.createFromBits(this.domainBits), true, true, this.label, this.labelStates, this.stateLabels);
+		}
+		readScore(data: any)
+		{
+			var states = bit.read(data);
+			if (states !== null)
+			{
+				this.domainBits |= states.bits;
+			}
+		}
+		readStateData(data: string[])
+		{
+			super.readStateData(data);
 			var n = data.length;
 			this.domainBits = (1 << n) - 1;
 			this.labelStates = (states: BitSet) =>
@@ -81,38 +110,33 @@ module Haeckel
 				return labels.join(' or ') || '—';
 			};
 		}
-		readScore(data: any)
-		{
-			var states = bit.read(data);
-			if (states !== null)
-			{
-				this.domainBits |= states.bits;
-			}
-		}
 		reset()
 		{
+			super.reset();
 			this.domainBits = 0;
-			this.labelStates = null;
 			return this;
 		}
 	}
 
-	class RangeCharacterBuilder implements CharacterBuilder<Range>
+	class RangeCharacterBuilder extends AbstractCharacterBuilder<Range>
 	{
 		private domainBuilder: RangeBuilder;
-		private labelStates: (states: Range) => string;
 		constructor()
 		{
+			super();
 			this.domainBuilder = new RangeBuilder();
 		}
 		build()
 		{
-			var result = chr.createRange(this.domainBuilder.build(), true, true);
-			if (this.labelStates)
+			return chr.createRange(this.domainBuilder.build(), true, true, this.label, this.labelStates, this.stateLabels);
+		}
+		readScore(data: any)
+		{
+			var range = rng.read(data);
+			if (range !== null && !range.empty)
 			{
-				result.labelStates = this.labelStates;
+				this.domainBuilder.addRange(range);
 			}
-			return result;
 		}
 		readStateData(data: string[])
 		{
@@ -121,6 +145,7 @@ module Haeckel
 				return data[value] || String(value);
 			}
 
+			super.readStateData(data);
 			var n = data.length;
 			this.domainBuilder.add(0);
 			this.domainBuilder.add(n - 1);
@@ -141,18 +166,10 @@ module Haeckel
 				return getLabel(states.min) + "–" + getLabel(states.max);
 			};
 		}
-		readScore(data: any)
-		{
-			var range = rng.read(data);
-			if (range !== null)
-			{
-				this.domainBuilder.addRange(range);
-			}
-		}
 		reset()
 		{
+			super.reset();
 			this.domainBuilder.reset();
-			this.labelStates = null;
 			return this;
 		}
 	}
@@ -203,7 +220,6 @@ module Haeckel
     function readCharacters(data: CharacterScoresData, builder: CharacterMatrixBuilder<Set>, numChars: number): Character<Set>[]
     {
     	var i = 0;
-    	var character: Character<Set>;
     	var characterBuilder: CharacterBuilder<Set>;
     	var characterType: string;
     	if (data.characters)
@@ -213,16 +229,13 @@ module Haeckel
 	        	var characterData = data.characters[i];
 	        	characterType = (characterData.type || data.characterType) || 'discrete';
 	        	characterBuilder = getCharacterBuilder(characterType);
+	        	characterBuilder.label = characterData.name;
 	        	if (characterData.states)
 	        	{
 		        	characterBuilder.readStateData(characterData.states);
 		        }
- 	            character = characterBuilder.build();
+	            builder.addListed(characterBuilder.build());
 	            characterBuilder.reset();
-	            character.label = characterData.name;
-	            character.stateLabels = characterData.states;
-	            character.type = characterType;
-	            builder.addListed(character);
 	        }
     	}
     	else
@@ -231,16 +244,14 @@ module Haeckel
 			characterBuilder = getCharacterBuilder(characterType);
 	        for ( ; i < numChars; ++i)
 	        {
+	            characterBuilder.label = '#' + (i + 1);
 	            for (var name in data.scores)
 	            {
 	                var row = data.scores[name];
 	                characterBuilder.readScore(row[i]);
 	            }
-	            character = characterBuilder.build();
+	            builder.addListed(characterBuilder.build());
 	            characterBuilder.reset();
-	            character.label = '#' + (i + 1);
-	            character.type = characterType;
-	            builder.addListed(character);
 	        }
 	    }
         return builder.characterList;

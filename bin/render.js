@@ -2116,7 +2116,7 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (chr) {
-        function initiate(domain) {
+        function initiate(domain, label, labelStates, stateLabels, type) {
             if (domain.empty) {
                 throw new Error("Can't have a character with an empty domain.");
             }
@@ -2125,8 +2125,12 @@ var Haeckel;
                 combine: null,
                 domain: domain,
                 hash: uid,
+                label: label,
+                labelStates: labelStates,
                 overlap: null,
                 readStates: null,
+                stateLabels: stateLabels ? Object.freeze(stateLabels.concat()) : undefined,
+                type: type,
                 uid: uid,
                 writeStates: null
             };
@@ -2286,8 +2290,8 @@ var Haeckel;
             return Haeckel.bit.createFromBits(bits);
         }
 
-        function createBit(domain, inferrable, distance) {
-            var c = Haeckel.chr.initiate(domain);
+        function createBit(domain, inferrable, distance, label, labelStates, stateLabels) {
+            var c = Haeckel.chr.initiate(domain, label, labelStates, stateLabels, 'discrete');
             c.combine = Haeckel.combiner(Haeckel.bit.union);
             c.overlap = Haeckel.overlapper(Haeckel.bit.intersect);
             c.readStates = Haeckel.bit.read;
@@ -2325,24 +2329,56 @@ var Haeckel;
     })(Haeckel.rng || (Haeckel.rng = {}));
     var rng = Haeckel.rng;
 })(Haeckel || (Haeckel = {}));
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
 var Haeckel;
 (function (Haeckel) {
     var BIT_BUILDER = null;
 
     var RANGE_BUILDER = null;
 
-    var BitCharacterBuilder = (function () {
+    var AbstractCharacterBuilder = (function () {
+        function AbstractCharacterBuilder() {
+            this.label = null;
+        }
+        AbstractCharacterBuilder.prototype.build = function () {
+            return null;
+        };
+        AbstractCharacterBuilder.prototype.readScore = function (data) {
+        };
+        AbstractCharacterBuilder.prototype.readStateData = function (data) {
+            this.stateLabels = data.concat();
+        };
+        AbstractCharacterBuilder.prototype.reset = function () {
+            this.label = null;
+            this.labelStates = null;
+            this.stateLabels = null;
+            return this;
+        };
+        return AbstractCharacterBuilder;
+    })();
+
+    var BitCharacterBuilder = (function (_super) {
+        __extends(BitCharacterBuilder, _super);
         function BitCharacterBuilder() {
+            _super.apply(this, arguments);
             this.domainBits = 0;
         }
         BitCharacterBuilder.prototype.build = function () {
-            var result = Haeckel.chr.createBit(Haeckel.bit.createFromBits(this.domainBits), true, true);
-            if (this.labelStates) {
-                result.labelStates = this.labelStates;
+            return Haeckel.chr.createBit(Haeckel.bit.createFromBits(this.domainBits), true, true, this.label, this.labelStates, this.stateLabels);
+        };
+        BitCharacterBuilder.prototype.readScore = function (data) {
+            var states = Haeckel.bit.read(data);
+            if (states !== null) {
+                this.domainBits |= states.bits;
             }
-            return result;
         };
         BitCharacterBuilder.prototype.readStateData = function (data) {
+            _super.prototype.readStateData.call(this, data);
             var n = data.length;
             this.domainBits = (1 << n) - 1;
             this.labelStates = function (states) {
@@ -2361,36 +2397,35 @@ var Haeckel;
                 return labels.join(' or ') || '—';
             };
         };
-        BitCharacterBuilder.prototype.readScore = function (data) {
-            var states = Haeckel.bit.read(data);
-            if (states !== null) {
-                this.domainBits |= states.bits;
-            }
-        };
         BitCharacterBuilder.prototype.reset = function () {
+            _super.prototype.reset.call(this);
             this.domainBits = 0;
-            this.labelStates = null;
             return this;
         };
         return BitCharacterBuilder;
-    })();
+    })(AbstractCharacterBuilder);
 
-    var RangeCharacterBuilder = (function () {
+    var RangeCharacterBuilder = (function (_super) {
+        __extends(RangeCharacterBuilder, _super);
         function RangeCharacterBuilder() {
+            _super.call(this);
             this.domainBuilder = new Haeckel.RangeBuilder();
         }
         RangeCharacterBuilder.prototype.build = function () {
-            var result = Haeckel.chr.createRange(this.domainBuilder.build(), true, true);
-            if (this.labelStates) {
-                result.labelStates = this.labelStates;
+            return Haeckel.chr.createRange(this.domainBuilder.build(), true, true, this.label, this.labelStates, this.stateLabels);
+        };
+        RangeCharacterBuilder.prototype.readScore = function (data) {
+            var range = Haeckel.rng.read(data);
+            if (range !== null && !range.empty) {
+                this.domainBuilder.addRange(range);
             }
-            return result;
         };
         RangeCharacterBuilder.prototype.readStateData = function (data) {
             function getLabel(value) {
                 return data[value] || String(value);
             }
 
+            _super.prototype.readStateData.call(this, data);
             var n = data.length;
             this.domainBuilder.add(0);
             this.domainBuilder.add(n - 1);
@@ -2407,19 +2442,13 @@ var Haeckel;
                 return getLabel(states.min) + "–" + getLabel(states.max);
             };
         };
-        RangeCharacterBuilder.prototype.readScore = function (data) {
-            var range = Haeckel.rng.read(data);
-            if (range !== null) {
-                this.domainBuilder.addRange(range);
-            }
-        };
         RangeCharacterBuilder.prototype.reset = function () {
+            _super.prototype.reset.call(this);
             this.domainBuilder.reset();
-            this.labelStates = null;
             return this;
         };
         return RangeCharacterBuilder;
-    })();
+    })(AbstractCharacterBuilder);
 
     function getCharacterBuilder(type) {
         if (type === 'range') {
@@ -2453,7 +2482,6 @@ var Haeckel;
 
     function readCharacters(data, builder, numChars) {
         var i = 0;
-        var character;
         var characterBuilder;
         var characterType;
         if (data.characters) {
@@ -2461,29 +2489,24 @@ var Haeckel;
                 var characterData = data.characters[i];
                 characterType = (characterData.type || data.characterType) || 'discrete';
                 characterBuilder = getCharacterBuilder(characterType);
+                characterBuilder.label = characterData.name;
                 if (characterData.states) {
                     characterBuilder.readStateData(characterData.states);
                 }
-                character = characterBuilder.build();
+                builder.addListed(characterBuilder.build());
                 characterBuilder.reset();
-                character.label = characterData.name;
-                character.stateLabels = characterData.states;
-                character.type = characterType;
-                builder.addListed(character);
             }
         } else {
             characterType = data.characterType || 'discrete';
             characterBuilder = getCharacterBuilder(characterType);
             for (; i < numChars; ++i) {
+                characterBuilder.label = '#' + (i + 1);
                 for (var name in data.scores) {
                     var row = data.scores[name];
                     characterBuilder.readScore(row[i]);
                 }
-                character = characterBuilder.build();
+                builder.addListed(characterBuilder.build());
                 characterBuilder.reset();
-                character.label = '#' + (i + 1);
-                character.type = characterType;
-                builder.addListed(character);
             }
         }
         return builder.characterList;
@@ -2796,8 +2819,8 @@ var Haeckel;
             return Haeckel.rng.create(min / total, max / total);
         }
 
-        function createRange(domain, inferrable, distance) {
-            var c = Haeckel.chr.initiate(domain);
+        function createRange(domain, inferrable, distance, label, labelStates, stateLabels) {
+            var c = Haeckel.chr.initiate(domain, label, labelStates, stateLabels, 'range');
             c.combine = Haeckel.rng.combine;
             c.overlap = Haeckel.overlapper(Haeckel.rng.intersect);
             c.readStates = Haeckel.rng.read;
@@ -2842,8 +2865,8 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (chr) {
-        function createDomain(hash, readStates, writeStates) {
-            var c = Haeckel.chr.initiate(Haeckel.ext.domain(hash));
+        function createDomain(hash, readStates, writeStates, label, labelStates, stateLabels) {
+            var c = Haeckel.chr.initiate(Haeckel.ext.domain(hash), label, labelStates, stateLabels);
             c.combine = Haeckel.ext.union;
             c.overlap = Haeckel.overlapper(Haeckel.ext.intersect);
             c.readStates = readStates;
