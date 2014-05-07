@@ -59,6 +59,7 @@ module Haeckel
 		readStateData(data: string[])
 		{
 			var n = data.length;
+			this.domainBits = (1 << n) - 1;
 			this.labelStates = (states: BitSet) =>
 			{
 				if (!states)
@@ -121,6 +122,8 @@ module Haeckel
 			}
 
 			var n = data.length;
+			this.domainBuilder.add(0);
+			this.domainBuilder.add(n - 1);
 			this.labelStates = (states: Range) =>
 			{
 				if (!states)

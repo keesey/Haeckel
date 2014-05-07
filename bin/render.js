@@ -2344,6 +2344,7 @@ var Haeckel;
         };
         BitCharacterBuilder.prototype.readStateData = function (data) {
             var n = data.length;
+            this.domainBits = (1 << n) - 1;
             this.labelStates = function (states) {
                 if (!states) {
                     return '?';
@@ -2391,6 +2392,8 @@ var Haeckel;
             }
 
             var n = data.length;
+            this.domainBuilder.add(0);
+            this.domainBuilder.add(n - 1);
             this.labelStates = function (states) {
                 if (!states) {
                     return '?';
