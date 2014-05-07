@@ -8,99 +8,53 @@ module Haeckel.chr
 {
 	export function toDistanceMatrix(matrix: CharacterMatrix<Set>, anchors: Taxic = null): DistanceMatrix<Taxic>
 	{
-		var hashMap: { [hash: string]: { [hash: string]: Range; }; } = {};
-		var nCharsMap: { [hash: string]: { [hash: string]: number; }; } = {};
 		if (anchors === null)
 		{
 			anchors = matrix.taxon;
 		}
 		var allUnits = ext.union([ anchors.units, matrix.taxon.units ]);
-		ext.each(allUnits, (x: Taxic) =>
+		var hashMap: { [hash: string]: { [hash: string]: Range; }; } = {};
+		ext.each(anchors.units, (x: Taxic) =>
 		{
-			hashMap[x.hash] = {};
-			nCharsMap[x.hash] = {};
-		});
-		var xHash: string,
-			yHash: string;
-		ext.each(matrix.characters, (character: Character<Set>) =>
-		{
-			if (typeof character.distance !== 'function')
+			var xHash = x.hash;
+			var xRow = hashMap[xHash];
+			if (!xRow)
 			{
-				console.warn('Cannot compute distance of character:', character);
-				return;
+				xRow = hashMap[xHash] = {};
 			}
-			var charHashMap: { [hash: string]: { [hash: string]: Range; }; } = {};
-			ext.each(anchors.units, (x: Taxic) =>
+			ext.each(allUnits, (y: Taxic) =>
 			{
-				var xStates = states(matrix, x, character);
-				var xIsEmpty = xStates && xStates.empty;
-				if (charHashMap[x.hash] === undefined)
+				var yHash = y.hash;
+				var yRow = hashMap[yHash];
+				if (!yRow)
 				{
-					charHashMap[x.hash] = {};
+					yRow = hashMap[yHash] = {};
 				}
-				ext.each(allUnits, (y: Taxic) =>
+				if (yRow[xHash])
 				{
-					if (charHashMap[y.hash] === undefined)
-					{
-						charHashMap[y.hash] = {};
-					}
+					return;
+				}
+				var distances: Range[] = [];
+				ext.each(matrix.characters, (character: Character<Set>) =>
+				{
+					var xStates = states(matrix, x, character);
 					var yStates = states(matrix, y, character);
-					if (!(xIsEmpty && yStates && yStates.empty))
+					var d = character.distance(xStates, yStates);
+					if (d && !d.empty)
 					{
-						charHashMap[x.hash][y.hash]
-							= charHashMap[y.hash][x.hash]
-							= character.distance(xStates, yStates);
-						var nChars = nCharsMap[x.hash][y.hash];
-						if (nChars === undefined)
-						{
-							nChars = 0;
-						}
-						nCharsMap[x.hash][y.hash]
-							= nCharsMap[y.hash][x.hash]
-							= ++nChars;
+						distances.push(d);
 					}
 				});
-			});
-			for (xHash in charHashMap)
-			{
-				var sourceRow = charHashMap[xHash],
-					targetRow = hashMap[xHash];
-				for (yHash in sourceRow)
+				if (distances.length > 0)
 				{
-					var sourceD: Range = sourceRow[yHash],
-						targetD: Range = targetRow[yHash];
-					if (sourceD !== undefined)
-					{
-						if (targetD === undefined)
-						{
-							targetRow[yHash] = sourceD;
-						}
-						else
-						{
-							targetRow[yHash] = rng.sum([ targetD, sourceD ]);
-						}
-					}
-				}
-			}
-		});
-		for (xHash in hashMap)
-		{
-			for (yHash in hashMap)
-			{
-				var d = hashMap[xHash][yHash];
-				if (d === undefined)
-				{
-					hashMap[xHash][yHash] = EMPTY_SET;
-					hashMap[yHash][xHash] = EMPTY_SET;
+					xRow[yHash] = yRow[xHash] = rng.multiply(rng.sum(distances), 1 / distances.length);
 				}
 				else
 				{
-					hashMap[xHash][yHash]
-						= hashMap[yHash][xHash]
-						= rng.multiply(d, 1 / nCharsMap[xHash][yHash]);
+					xRow[yHash] = yRow[xHash] = EMPTY_SET;
 				}
-			}
-		}
+			});
+		});
 		return Object.freeze({
 			hashMap: Object.freeze(hashMap),
 			members: allUnits

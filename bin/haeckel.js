@@ -2643,69 +2643,42 @@ var Haeckel;
     (function (chr) {
         function toDistanceMatrix(matrix, anchors) {
             if (typeof anchors === "undefined") { anchors = null; }
-            var hashMap = {};
-            var nCharsMap = {};
             if (anchors === null) {
                 anchors = matrix.taxon;
             }
             var allUnits = Haeckel.ext.union([anchors.units, matrix.taxon.units]);
-            Haeckel.ext.each(allUnits, function (x) {
-                hashMap[x.hash] = {};
-                nCharsMap[x.hash] = {};
-            });
-            var xHash, yHash;
-            Haeckel.ext.each(matrix.characters, function (character) {
-                if (typeof character.distance !== 'function') {
-                    console.warn('Cannot compute distance of character:', character);
-                    return;
+            var hashMap = {};
+            Haeckel.ext.each(anchors.units, function (x) {
+                var xHash = x.hash;
+                var xRow = hashMap[xHash];
+                if (!xRow) {
+                    xRow = hashMap[xHash] = {};
                 }
-                var charHashMap = {};
-                Haeckel.ext.each(anchors.units, function (x) {
-                    var xStates = Haeckel.chr.states(matrix, x, character);
-                    var xIsEmpty = xStates && xStates.empty;
-                    if (charHashMap[x.hash] === undefined) {
-                        charHashMap[x.hash] = {};
+                Haeckel.ext.each(allUnits, function (y) {
+                    var yHash = y.hash;
+                    var yRow = hashMap[yHash];
+                    if (!yRow) {
+                        yRow = hashMap[yHash] = {};
                     }
-                    Haeckel.ext.each(allUnits, function (y) {
-                        if (charHashMap[y.hash] === undefined) {
-                            charHashMap[y.hash] = {};
-                        }
+                    if (yRow[xHash]) {
+                        return;
+                    }
+                    var distances = [];
+                    Haeckel.ext.each(matrix.characters, function (character) {
+                        var xStates = Haeckel.chr.states(matrix, x, character);
                         var yStates = Haeckel.chr.states(matrix, y, character);
-                        if (!(xIsEmpty && yStates && yStates.empty)) {
-                            charHashMap[x.hash][y.hash] = charHashMap[y.hash][x.hash] = character.distance(xStates, yStates);
-                            var nChars = nCharsMap[x.hash][y.hash];
-                            if (nChars === undefined) {
-                                nChars = 0;
-                            }
-                            nCharsMap[x.hash][y.hash] = nCharsMap[y.hash][x.hash] = ++nChars;
+                        var d = character.distance(xStates, yStates);
+                        if (d && !d.empty) {
+                            distances.push(d);
                         }
                     });
-                });
-                for (xHash in charHashMap) {
-                    var sourceRow = charHashMap[xHash], targetRow = hashMap[xHash];
-                    for (yHash in sourceRow) {
-                        var sourceD = sourceRow[yHash], targetD = targetRow[yHash];
-                        if (sourceD !== undefined) {
-                            if (targetD === undefined) {
-                                targetRow[yHash] = sourceD;
-                            } else {
-                                targetRow[yHash] = Haeckel.rng.sum([targetD, sourceD]);
-                            }
-                        }
-                    }
-                }
-            });
-            for (xHash in hashMap) {
-                for (yHash in hashMap) {
-                    var d = hashMap[xHash][yHash];
-                    if (d === undefined) {
-                        hashMap[xHash][yHash] = Haeckel.EMPTY_SET;
-                        hashMap[yHash][xHash] = Haeckel.EMPTY_SET;
+                    if (distances.length > 0) {
+                        xRow[yHash] = yRow[xHash] = Haeckel.rng.multiply(Haeckel.rng.sum(distances), 1 / distances.length);
                     } else {
-                        hashMap[xHash][yHash] = hashMap[yHash][xHash] = Haeckel.rng.multiply(d, 1 / nCharsMap[xHash][yHash]);
+                        xRow[yHash] = yRow[xHash] = Haeckel.EMPTY_SET;
                     }
-                }
-            }
+                });
+            });
             return Object.freeze({
                 hashMap: Object.freeze(hashMap),
                 members: allUnits
