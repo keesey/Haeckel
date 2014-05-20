@@ -1989,6 +1989,155 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    (function (ext) {
+        function includes(a, b) {
+            if (a.hash === b.hash) {
+                return true;
+            }
+            if (b.size > a.size) {
+                return false;
+            }
+            if (a.size === Infinity) {
+                return true;
+            }
+            for (var h in b.hashMap) {
+                if (a.hashMap[h] === undefined) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        ext.includes = includes;
+    })(Haeckel.ext || (Haeckel.ext = {}));
+    var ext = Haeckel.ext;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (tax) {
+        function includes(a, b) {
+            return Haeckel.ext.includes(a.entities, b.entities);
+        }
+        tax.includes = includes;
+    })(Haeckel.tax || (Haeckel.tax = {}));
+    var tax = Haeckel.tax;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    var PhyloBuilder = (function () {
+        function PhyloBuilder() {
+            this.dagBuilder = new Haeckel.DAGBuilder();
+        }
+        PhyloBuilder.prototype.addPhylogeny = function (g) {
+            var _this = this;
+            Haeckel.ext.each(g.arcs, function (arc) {
+                _this.addPrecedence(arc[0], arc[1]);
+            }, this);
+            return this;
+        };
+
+        PhyloBuilder.prototype.addPrecedence = function (prc, suc) {
+            var _this = this;
+            Haeckel.ext.each(prc.units, function (prcUnit) {
+                Haeckel.ext.each(suc.units, function (sucUnit) {
+                    _this.dagBuilder.addArc(prcUnit, sucUnit);
+                }, _this);
+            }, this);
+            return this;
+        };
+
+        PhyloBuilder.prototype.addTaxon = function (taxon) {
+            var _this = this;
+            Haeckel.ext.each(taxon.units, function (unit) {
+                _this.dagBuilder.addVertex(unit);
+            }, this);
+            return this;
+        };
+
+        PhyloBuilder.prototype.build = function () {
+            return this.dagBuilder.buildReduction();
+        };
+
+        PhyloBuilder.prototype.buildCoarser = function (taxa) {
+            var unitMap = {};
+
+            function coarsen(unit) {
+                return unitMap[unit.hash] || unit;
+            }
+
+            Haeckel.ext.each(taxa, function (taxon) {
+                Haeckel.ext.each(taxon.units, function (unit) {
+                    unitMap[unit.hash] = taxon;
+                });
+            });
+            var builder = new Haeckel.DAGBuilder();
+            Haeckel.ext.each(this.dagBuilder.buildArcs(), function (arc) {
+                builder.addArc(coarsen(arc[0]), coarsen(arc[1]));
+            });
+            return builder.buildReduction();
+        };
+
+        PhyloBuilder.prototype.mergePredecessors = function (exclude) {
+            var _this = this;
+            exclude = exclude || Haeckel.EMPTY_SET;
+            var prcsSucsMap = {};
+            var solver = new Haeckel.DAGSolver(this.dagBuilder.build());
+            var prcs = Haeckel.ext.setDiff(solver.vertices, solver.sinks);
+            Haeckel.ext.each(prcs, function (prc) {
+                var prcsSucsHash = Haeckel.hash([solver.imPrcs(prc), solver.imSucs(prc)]);
+                var replacement = prcsSucsMap[prcsSucsHash];
+                if (replacement) {
+                    var excluded = Haeckel.tax.includes(exclude, prc);
+                    if (excluded) {
+                        if (!Haeckel.tax.includes(exclude, replacement)) {
+                            _this.dagBuilder.replaceVertex(replacement, prc);
+                            prcsSucsMap[prcsSucsHash] = prc;
+                        }
+                    } else {
+                        _this.dagBuilder.replaceVertex(prc, replacement);
+                    }
+                } else {
+                    prcsSucsMap[prcsSucsHash] = prc;
+                }
+            }, this);
+            return this;
+        };
+
+        PhyloBuilder.prototype.removePhylogeny = function (g) {
+            var _this = this;
+            Haeckel.ext.each(g.arcs, function (arc) {
+                _this.removePrecedence(arc[0], arc[1]);
+            }, this);
+            return this;
+        };
+
+        PhyloBuilder.prototype.removePrecedence = function (prc, suc) {
+            var _this = this;
+            Haeckel.ext.each(prc.units, function (prcUnit) {
+                Haeckel.ext.each(suc.units, function (sucUnit) {
+                    _this.dagBuilder.removeArc(prcUnit, sucUnit);
+                }, _this);
+            }, this);
+            return this;
+        };
+
+        PhyloBuilder.prototype.removeTaxon = function (taxon) {
+            var _this = this;
+            Haeckel.ext.each(taxon.units, function (unit) {
+                _this.dagBuilder.removeVertex(unit);
+            }, this);
+            return this;
+        };
+
+        PhyloBuilder.prototype.reset = function () {
+            this.dagBuilder.reset();
+            return this;
+        };
+        return PhyloBuilder;
+    })();
+    Haeckel.PhyloBuilder = PhyloBuilder;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
     var RangeBuilder = (function () {
         function RangeBuilder() {
             this._max = NaN;
@@ -3785,40 +3934,6 @@ var Haeckel;
         return OccurrencePlotChart;
     })(Haeckel.ChronoCharChart);
     Haeckel.OccurrencePlotChart = OccurrencePlotChart;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (ext) {
-        function includes(a, b) {
-            if (a.hash === b.hash) {
-                return true;
-            }
-            if (b.size > a.size) {
-                return false;
-            }
-            if (a.size === Infinity) {
-                return true;
-            }
-            for (var h in b.hashMap) {
-                if (a.hashMap[h] === undefined) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        ext.includes = includes;
-    })(Haeckel.ext || (Haeckel.ext = {}));
-    var ext = Haeckel.ext;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (tax) {
-        function includes(a, b) {
-            return Haeckel.ext.includes(a.entities, b.entities);
-        }
-        tax.includes = includes;
-    })(Haeckel.tax || (Haeckel.tax = {}));
-    var tax = Haeckel.tax;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -6756,73 +6871,6 @@ var Haeckel;
         occ.timeSlice = timeSlice;
     })(Haeckel.occ || (Haeckel.occ = {}));
     var occ = Haeckel.occ;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (phy) {
-        function coarsen(solver, taxa) {
-            var taxonMap = {};
-            Haeckel.ext.each(solver.vertices, function (vertex) {
-                taxonMap[vertex.hash] = vertex;
-                Haeckel.ext.each(taxa, function (taxon) {
-                    if (Haeckel.tax.includes(taxon, vertex)) {
-                        taxonMap[vertex.hash] = taxon;
-                        return false;
-                    }
-                    return true;
-                });
-            });
-            var builder = new Haeckel.DAGBuilder();
-            Haeckel.ext.each(solver.vertices, function (vertex) {
-                var taxon = taxonMap[vertex.hash];
-                Haeckel.ext.each(solver.imSucs(vertex), function (imSuc) {
-                    var sucTaxon = taxonMap[imSuc.hash];
-                    if (sucTaxon !== taxon) {
-                        builder.addArc(taxon, sucTaxon);
-                    }
-                });
-            });
-            return builder;
-        }
-        phy.coarsen = coarsen;
-    })(Haeckel.phy || (Haeckel.phy = {}));
-    var phy = Haeckel.phy;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (phy) {
-        function merge(solvers, taxa) {
-            var builder = new Haeckel.DAGBuilder();
-
-            Haeckel.ext.each(solvers, function (solver) {
-                builder.addGraph(Haeckel.phy.refine(solver.dagSolver).build());
-            });
-            builder = Haeckel.phy.coarsen(new Haeckel.DAGSolver(builder.build()), taxa);
-            return new Haeckel.PhyloSolver(builder);
-        }
-        phy.merge = merge;
-    })(Haeckel.phy || (Haeckel.phy = {}));
-    var phy = Haeckel.phy;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (phy) {
-        function refine(solver) {
-            var builder = new Haeckel.DAGBuilder();
-            Haeckel.ext.each(solver.vertices, function (vertex) {
-                Haeckel.ext.each(solver.imSucs(vertex), function (imSuc) {
-                    Haeckel.ext.each(imSuc.units, function (imSucUnit) {
-                        Haeckel.ext.each(vertex.units, function (vertexUnit) {
-                            builder.addArc(vertexUnit, imSucUnit);
-                        });
-                    });
-                });
-            });
-            return builder;
-        }
-        phy.refine = refine;
-    })(Haeckel.phy || (Haeckel.phy = {}));
-    var phy = Haeckel.phy;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {

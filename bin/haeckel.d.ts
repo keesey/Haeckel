@@ -495,6 +495,27 @@ declare module Haeckel {
         public reset(): PathBuilder;
     }
 }
+declare module Haeckel.ext {
+    function includes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
+}
+declare module Haeckel.tax {
+    function includes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
+}
+declare module Haeckel {
+    class PhyloBuilder implements Haeckel.Builder<Haeckel.Digraph<Haeckel.Taxic>> {
+        private dagBuilder;
+        public addPhylogeny(g: Haeckel.Digraph<Haeckel.Taxic>): PhyloBuilder;
+        public addPrecedence(prc: Haeckel.Taxic, suc: Haeckel.Taxic): PhyloBuilder;
+        public addTaxon(taxon: Haeckel.Taxic): PhyloBuilder;
+        public build(): Haeckel.Digraph<Haeckel.Taxic>;
+        public buildCoarser(taxa: Haeckel.ExtSet<Haeckel.Taxic>): Haeckel.Digraph<Haeckel.Taxic>;
+        public mergePredecessors(exclude?: Haeckel.Taxic): PhyloBuilder;
+        public removePhylogeny(g: Haeckel.Digraph<Haeckel.Taxic>): PhyloBuilder;
+        public removePrecedence(prc: Haeckel.Taxic, suc: Haeckel.Taxic): PhyloBuilder;
+        public removeTaxon(taxon: Haeckel.Taxic): PhyloBuilder;
+        public reset(): PhyloBuilder;
+    }
+}
 declare module Haeckel {
     class RangeBuilder implements Haeckel.Builder<Haeckel.Range> {
         private _max;
@@ -821,12 +842,6 @@ declare module Haeckel {
         private getIndividualPoint(plots, area);
         public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
-}
-declare module Haeckel.ext {
-    function includes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
-}
-declare module Haeckel.tax {
-    function includes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
 }
 declare module Haeckel.tax {
     function intersect(a: Haeckel.Taxic, b: Haeckel.Taxic): Haeckel.Taxic;
@@ -1441,15 +1456,6 @@ declare module Haeckel.nom {
 }
 declare module Haeckel.occ {
     function timeSlice(time: Haeckel.Range, occurrences: Haeckel.ExtSet<Haeckel.Occurrence>): Haeckel.ExtSet<Haeckel.Occurrence>;
-}
-declare module Haeckel.phy {
-    function coarsen(solver: Haeckel.DAGSolver<Haeckel.Taxic>, taxa: Haeckel.ExtSet<Haeckel.Taxic>): Haeckel.DAGBuilder<Haeckel.Taxic>;
-}
-declare module Haeckel.phy {
-    function merge(solvers: Haeckel.ExtSet<Haeckel.PhyloSolver>, taxa: Haeckel.ExtSet<Haeckel.Taxic>): Haeckel.PhyloSolver;
-}
-declare module Haeckel.phy {
-    function refine(solver: Haeckel.DAGSolver<Haeckel.Taxic>): Haeckel.DAGBuilder<Haeckel.Taxic>;
 }
 declare module Haeckel.pt {
     function create3D(x: number, y: number, z: number): Haeckel.Point3D;
