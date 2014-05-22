@@ -1,14 +1,17 @@
 /// <reference path="DAGBuilder.ts"/>
 /// <reference path="../constants/EMPTY_SET.ts"/>
+/// <reference path="../functions/equal.ts"/>
 /// <reference path="../functions/hash.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
 /// <reference path="../functions/ext/setDiff.ts"/>
 /// <reference path="../functions/tax/includes.ts"/>
+/// <reference path="../functions/tax/setDiff.ts"/>
 /// <reference path="../interfaces/Builder.ts"/>
 /// <reference path="../interfaces/Digraph.ts"/>
 /// <reference path="../interfaces/ExtSet.ts"/>
 /// <reference path="../interfaces/Taxic.ts"/>
 /// <reference path="../solvers/DAGSolver.ts"/>
+/// <reference path="../solvers/PhyloSolver.ts"/>
 module Haeckel
 {
 	export class PhyloBuilder implements Builder<Digraph<Taxic>>
@@ -52,16 +55,34 @@ module Haeckel
 
 		buildCoarser(taxa: ExtSet<Taxic>)
 		{
-			var unitMap: { [unitHash: string]: Taxic; } = {};
-
 			function coarsen(unit: Taxic): Taxic
 			{
 				return unitMap[unit.hash] || unit;
 			}
+			
+			var solver = new PhyloSolver(this.dagBuilder);
+			var expandedMap: { [taxonHash: string]: Taxic; } = {};
+			
+			ext.each(taxa, (taxon: Taxic) =>
+			{
+				var cladogen = solver.cladogen(taxon);
+				if (equal(cladogen, taxon))
+				{
+					expandedMap[taxon.hash] = taxon;
+				}
+				else
+				{
+					var properPrcs = tax.setDiff(solver.prcIntersect(cladogen), cladogen);
+					expandedMap[taxon.hash] = tax.setDiff(solver.prcUnion(taxon), properPrcs);
+				}
+			});
+
+			var unitMap: { [unitHash: string]: Taxic; } = {};
 
 			ext.each(taxa, (taxon: Taxic) =>
 			{
-				ext.each(taxon.units, (unit: Taxic) =>
+				var expanded = expandedMap[taxon.hash];
+				ext.each(expanded.units, (unit: Taxic) =>
 				{
 					unitMap[unit.hash] = taxon;
 				});
@@ -69,7 +90,12 @@ module Haeckel
 			var builder = new DAGBuilder<Taxic>();
 			ext.each(this.dagBuilder.buildArcs(), (arc: Taxic[]) =>
 			{
-				builder.addArc(coarsen(arc[0]), coarsen(arc[1]));
+				var prc = coarsen(arc[0]);
+				var suc = coarsen(arc[1]);
+				if (!equal(prc, suc))
+				{
+					builder.addArc(prc, suc);
+				}
 			});
 			return builder.buildReduction();
 		}
