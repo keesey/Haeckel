@@ -2500,22 +2500,19 @@ var Haeckel;
 
             var unitMap = {};
 
-            var prcsSucsMap = {};
+            var maxSucsMap = {};
             var prcs = Haeckel.ext.setDiff(solver.dagSolver.vertices, solver.dagSolver.sinks);
-            var prcsSucsHash;
+            var h;
             Haeckel.ext.each(prcs, function (prc) {
-                prcsSucsHash = Haeckel.hash([
-                    Haeckel.tax.union(Haeckel.ext.list(solver.dagSolver.imPrcs(prc))),
-                    Haeckel.tax.union(Haeckel.ext.list(solver.dagSolver.imSucs(prc)))
-                ]);
-                var builder = prcsSucsMap[prcsSucsHash];
+                h = Haeckel.hash(solver.max(solver.sucUnion(prc)));
+                var builder = maxSucsMap[h];
                 if (!builder) {
-                    builder = prcsSucsMap[prcsSucsHash] = new Haeckel.TaxonBuilder();
+                    builder = maxSucsMap[h] = new Haeckel.TaxonBuilder();
                 }
                 builder.add(prc);
             });
-            for (prcsSucsHash in prcsSucsMap) {
-                var taxon = prcsSucsMap[prcsSucsHash].build();
+            for (h in maxSucsMap) {
+                var taxon = maxSucsMap[h].build();
                 Haeckel.ext.each(taxon.units, function (unit) {
                     return unitMap[unit.hash] = taxon;
                 });
@@ -2526,7 +2523,14 @@ var Haeckel;
                 Haeckel.ext.each(expanded.units, function (unit) {
                     var existing = unitMap[unit.hash];
                     if (existing) {
-                        unitMap[unit.hash] = Haeckel.tax.union([existing, taxon]);
+                        var union = Haeckel.tax.union([existing, taxon]);
+                        if (!Haeckel.equal(existing, union)) {
+                            for (h in unitMap) {
+                                if (Haeckel.equal(unitMap[h], existing)) {
+                                    unitMap[h] = union;
+                                }
+                            }
+                        }
                     } else {
                         unitMap[unit.hash] = taxon;
                     }

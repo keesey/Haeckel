@@ -85,30 +85,27 @@ module Haeckel
 			// Set up a unit-to-coarser taxon map.
 			var unitMap: { [unitHash: string]: Taxic; } = {};
 
-			// Lump all nodes with the same predecessors and (nonempty) successors.
-			var prcsSucsMap: { [hash: string]: TaxonBuilder; } = {};
+			// Lump all nodes with the same maximal successors.
+			var maxSucsMap: { [hash: string]: TaxonBuilder; } = {};
 			var prcs = ext.setDiff(solver.dagSolver.vertices, solver.dagSolver.sinks);
-			var prcsSucsHash: string;
+			var h: string;
 			ext.each(prcs, (prc: Taxic) =>
 			{
-				prcsSucsHash = hash([
-					tax.union(ext.list(solver.dagSolver.imPrcs(prc))),
-					tax.union(ext.list(solver.dagSolver.imSucs(prc)))
-				]);
-				var builder = prcsSucsMap[prcsSucsHash];
+				h = hash(solver.max(solver.sucUnion(prc)));
+				var builder = maxSucsMap[h];
 				if (!builder)
 				{
-					builder = prcsSucsMap[prcsSucsHash] = new TaxonBuilder();
+					builder = maxSucsMap[h] = new TaxonBuilder();
 				}
 				builder.add(prc);
 			});
-			for (prcsSucsHash in prcsSucsMap)
+			for (h in maxSucsMap)
 			{
-				var taxon = prcsSucsMap[prcsSucsHash].build();
+				var taxon = maxSucsMap[h].build();
 				ext.each(taxon.units, (unit: Taxic) => unitMap[unit.hash] = taxon);
 			}
 
-			// Populate map with specified taxa.
+			// Populate map with specified taxa (merging with any existing lumps).
 			ext.each(taxa, (taxon: Taxic) =>
 			{
 				var expanded = expandedMap[taxon.hash];
@@ -117,7 +114,17 @@ module Haeckel
 					var existing = unitMap[unit.hash];
 					if (existing)
 					{
-						unitMap[unit.hash] = tax.union([ existing, taxon ]);
+						var union = tax.union([ existing, taxon ]);
+						if (!equal(existing, union))
+						{
+							for (h in unitMap)
+							{
+								if (equal(unitMap[h], existing))
+								{
+									unitMap[h] = union;
+								}
+							}
+						}
 					}
 					else
 					{
