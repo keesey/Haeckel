@@ -1,11 +1,14 @@
 /// <reference path="DAGBuilder.ts"/>
+/// <reference path="TaxonBuilder.ts"/>
 /// <reference path="../constants/EMPTY_SET.ts"/>
 /// <reference path="../functions/equal.ts"/>
 /// <reference path="../functions/hash.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
+/// <reference path="../functions/ext/list.ts"/>
 /// <reference path="../functions/ext/setDiff.ts"/>
 /// <reference path="../functions/tax/includes.ts"/>
 /// <reference path="../functions/tax/setDiff.ts"/>
+/// <reference path="../functions/tax/union.ts"/>
 /// <reference path="../interfaces/Builder.ts"/>
 /// <reference path="../interfaces/Digraph.ts"/>
 /// <reference path="../interfaces/ExtSet.ts"/>
@@ -60,9 +63,11 @@ module Haeckel
 				return unitMap[unit.hash] || unit;
 			}
 			
+			// Set up solver for refined netowrk.
 			var solver = new PhyloSolver(this.dagBuilder);
-			var expandedMap: { [taxonHash: string]: Taxic; } = {};
 			
+			// Lump multi-node taxa with their cladogen and all intervening nodes.
+			var expandedMap: { [taxonHash: string]: Taxic; } = {};
 			ext.each(taxa, (taxon: Taxic) =>
 			{
 				var cladogen = solver.cladogen(taxon);
@@ -77,16 +82,51 @@ module Haeckel
 				}
 			});
 
+			// Set up a unit-to-coarser taxon map.
 			var unitMap: { [unitHash: string]: Taxic; } = {};
 
+			// Lump all nodes with the same predecessors and (nonempty) successors.
+			var prcsSucsMap: { [hash: string]: TaxonBuilder; } = {};
+			var prcs = ext.setDiff(solver.dagSolver.vertices, solver.dagSolver.sinks);
+			var prcsSucsHash: string;
+			ext.each(prcs, (prc: Taxic) =>
+			{
+				prcsSucsHash = hash([
+					tax.union(ext.list(solver.dagSolver.imPrcs(prc))),
+					tax.union(ext.list(solver.dagSolver.imSucs(prc)))
+				]);
+				var builder = prcsSucsMap[prcsSucsHash];
+				if (!builder)
+				{
+					builder = prcsSucsMap[prcsSucsHash] = new TaxonBuilder();
+				}
+				builder.add(prc);
+			});
+			for (prcsSucsHash in prcsSucsMap)
+			{
+				var taxon = prcsSucsMap[prcsSucsHash].build();
+				ext.each(taxon.units, (unit: Taxic) => unitMap[unit.hash] = taxon);
+			}
+
+			// Populate map with specified taxa.
 			ext.each(taxa, (taxon: Taxic) =>
 			{
 				var expanded = expandedMap[taxon.hash];
 				ext.each(expanded.units, (unit: Taxic) =>
 				{
-					unitMap[unit.hash] = taxon;
+					var existing = unitMap[unit.hash];
+					if (existing)
+					{
+						unitMap[unit.hash] = tax.union([ existing, taxon ]);
+					}
+					else
+					{
+						unitMap[unit.hash] = taxon;
+					}
 				});
 			});
+
+			// Build coarsened network.
 			var builder = new DAGBuilder<Taxic>();
 			ext.each(this.dagBuilder.buildArcs(), (arc: Taxic[]) =>
 			{
@@ -98,40 +138,6 @@ module Haeckel
 				}
 			});
 			return builder.buildReduction();
-		}
-
-		mergePredecessors(exclude?: Taxic)
-		{
-			exclude = exclude || EMPTY_SET;
-			var prcsSucsMap: { [hash: string]: Taxic; } = {};
-			var solver = new DAGSolver(this.dagBuilder.build());
-			var prcs = ext.setDiff(solver.vertices, solver.sinks);
-			ext.each(prcs, (prc: Taxic) =>
-			{
-				var prcsSucsHash = hash([ solver.imPrcs(prc), solver.imSucs(prc) ]);
-				var replacement = prcsSucsMap[prcsSucsHash];
-				if (replacement)
-				{
-					var excluded = tax.includes(exclude, prc);
-					if (excluded)
-					{
-						if (!tax.includes(exclude, replacement))
-						{
-							this.dagBuilder.replaceVertex(replacement, prc);
-							prcsSucsMap[prcsSucsHash] = prc;
-						}
-					}
-					else
-					{
-						this.dagBuilder.replaceVertex(prc, replacement);
-					}
-				}
-				else
-				{
-					prcsSucsMap[prcsSucsHash] = prc;
-				}
-			}, this);
-			return this;
 		}
 
 		removePhylogeny(g: Digraph<Taxic>)

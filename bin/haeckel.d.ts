@@ -496,10 +496,58 @@ declare module Haeckel {
     }
 }
 declare module Haeckel.ext {
+    function singleMember<T>(set: Haeckel.ExtSet<T>): T;
+}
+declare module Haeckel {
+    class TaxonBuilder implements Haeckel.Builder<Haeckel.Taxic> {
+        private _entitiesBuilder;
+        private _unitsBuilder;
+        public add(taxon: Haeckel.Taxic): TaxonBuilder;
+        public addSet(taxa: Haeckel.ExtSet<Haeckel.Taxic>): TaxonBuilder;
+        public build(): Haeckel.Taxic;
+        public remove(taxon: Haeckel.Taxic): TaxonBuilder;
+        public removeSet(taxa: Haeckel.ExtSet<Haeckel.Taxic>): TaxonBuilder;
+        public reset(): TaxonBuilder;
+    }
+}
+declare module Haeckel.ext {
     function includes<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): boolean;
 }
 declare module Haeckel.tax {
     function includes(a: Haeckel.Taxic, b: Haeckel.Taxic): boolean;
+}
+declare module Haeckel.tax {
+    function intersect(a: Haeckel.Taxic, b: Haeckel.Taxic): Haeckel.Taxic;
+}
+declare module Haeckel {
+    class PhyloSolver {
+        private _cache;
+        private _dagSolver;
+        private _graph;
+        private _taxonBuilder;
+        public dagSolver : Haeckel.DAGSolver<Haeckel.Taxic>;
+        public graph : Haeckel.Digraph<Haeckel.Taxic>;
+        public universal : Haeckel.Taxic;
+        constructor(graph: Haeckel.Digraph<Haeckel.Taxic>);
+        constructor(builder: Haeckel.DAGBuilder<Haeckel.Taxic>);
+        constructor(solver: Haeckel.DAGSolver<Haeckel.Taxic>);
+        public branch(internal: Haeckel.Taxic, external: Haeckel.Taxic): Haeckel.Taxic;
+        public clade(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public cladogen(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public crown(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
+        public distance(x: Haeckel.Taxic, y: Haeckel.Taxic): number;
+        public isCladogen(taxon: Haeckel.Taxic): boolean;
+        public max(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public min(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public prcIntersect(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public prcUnion(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public subgraph(taxon: Haeckel.Taxic): Haeckel.Digraph<Haeckel.Taxic>;
+        public subgraphSolver(taxon: Haeckel.Taxic): PhyloSolver;
+        public sucIntersect(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public sucUnion(taxon: Haeckel.Taxic): Haeckel.Taxic;
+        public synPrc(apomorphic: Haeckel.Taxic, representative: Haeckel.Taxic): Haeckel.Taxic;
+        public total(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
+    }
 }
 declare module Haeckel {
     class PhyloBuilder implements Haeckel.Builder<Haeckel.Digraph<Haeckel.Taxic>> {
@@ -509,7 +557,6 @@ declare module Haeckel {
         public addTaxon(taxon: Haeckel.Taxic): PhyloBuilder;
         public build(): Haeckel.Digraph<Haeckel.Taxic>;
         public buildCoarser(taxa: Haeckel.ExtSet<Haeckel.Taxic>): Haeckel.Digraph<Haeckel.Taxic>;
-        public mergePredecessors(exclude?: Haeckel.Taxic): PhyloBuilder;
         public removePhylogeny(g: Haeckel.Digraph<Haeckel.Taxic>): PhyloBuilder;
         public removePrecedence(prc: Haeckel.Taxic, suc: Haeckel.Taxic): PhyloBuilder;
         public removeTaxon(taxon: Haeckel.Taxic): PhyloBuilder;
@@ -535,21 +582,6 @@ declare module Haeckel.tax {
 declare module Haeckel {
     class TaxicDistanceMatrixBuilder extends Haeckel.DistanceMatrixBuilder<Haeckel.Taxic> {
         public addRange(a: Haeckel.Taxic, b: Haeckel.Taxic, range: Haeckel.Range): TaxicDistanceMatrixBuilder;
-    }
-}
-declare module Haeckel.ext {
-    function singleMember<T>(set: Haeckel.ExtSet<T>): T;
-}
-declare module Haeckel {
-    class TaxonBuilder implements Haeckel.Builder<Haeckel.Taxic> {
-        private _entitiesBuilder;
-        private _unitsBuilder;
-        public add(taxon: Haeckel.Taxic): TaxonBuilder;
-        public addSet(taxa: Haeckel.ExtSet<Haeckel.Taxic>): TaxonBuilder;
-        public build(): Haeckel.Taxic;
-        public remove(taxon: Haeckel.Taxic): TaxonBuilder;
-        public removeSet(taxa: Haeckel.ExtSet<Haeckel.Taxic>): TaxonBuilder;
-        public reset(): TaxonBuilder;
     }
 }
 declare module Haeckel.rec {
@@ -841,39 +873,6 @@ declare module Haeckel {
         private drawRect(builder, plots, area, unit);
         private getIndividualPoint(plots, area);
         public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
-    }
-}
-declare module Haeckel.tax {
-    function intersect(a: Haeckel.Taxic, b: Haeckel.Taxic): Haeckel.Taxic;
-}
-declare module Haeckel {
-    class PhyloSolver {
-        private _cache;
-        private _dagSolver;
-        private _graph;
-        private _taxonBuilder;
-        public dagSolver : Haeckel.DAGSolver<Haeckel.Taxic>;
-        public graph : Haeckel.Digraph<Haeckel.Taxic>;
-        public universal : Haeckel.Taxic;
-        constructor(graph: Haeckel.Digraph<Haeckel.Taxic>);
-        constructor(builder: Haeckel.DAGBuilder<Haeckel.Taxic>);
-        constructor(solver: Haeckel.DAGSolver<Haeckel.Taxic>);
-        public branch(internal: Haeckel.Taxic, external: Haeckel.Taxic): Haeckel.Taxic;
-        public clade(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public cladogen(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public crown(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
-        public distance(x: Haeckel.Taxic, y: Haeckel.Taxic): number;
-        public isCladogen(taxon: Haeckel.Taxic): boolean;
-        public max(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public min(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public prcIntersect(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public prcUnion(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public subgraph(taxon: Haeckel.Taxic): Haeckel.Digraph<Haeckel.Taxic>;
-        public subgraphSolver(taxon: Haeckel.Taxic): PhyloSolver;
-        public sucIntersect(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public sucUnion(taxon: Haeckel.Taxic): Haeckel.Taxic;
-        public synPrc(apomorphic: Haeckel.Taxic, representative: Haeckel.Taxic): Haeckel.Taxic;
-        public total(specifiers: Haeckel.Taxic, extant: Haeckel.Taxic): Haeckel.Taxic;
     }
 }
 declare module Haeckel {

@@ -1990,6 +1990,90 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (ext) {
+        function singleMember(set) {
+            if (set.size !== 1) {
+                throw new Error("Not a singleton: {" + Haeckel.ext.list(set).join(", ") + "}");
+            }
+            for (var h in set.hashMap) {
+                return set.hashMap[h];
+            }
+            return null;
+        }
+        ext.singleMember = singleMember;
+    })(Haeckel.ext || (Haeckel.ext = {}));
+    var ext = Haeckel.ext;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    var TaxonBuilder = (function () {
+        function TaxonBuilder() {
+            this._entitiesBuilder = new Haeckel.ExtSetBuilder();
+            this._unitsBuilder = new Haeckel.ExtSetBuilder();
+        }
+        TaxonBuilder.prototype.add = function (taxon) {
+            this._entitiesBuilder.addSet(taxon.entities);
+            this._unitsBuilder.addSet(taxon.units);
+            return this;
+        };
+
+        TaxonBuilder.prototype.addSet = function (taxa) {
+            var _this = this;
+            Haeckel.ext.each(taxa, function (taxon) {
+                _this._entitiesBuilder.addSet(taxon.entities);
+                _this._unitsBuilder.addSet(taxon.units);
+            }, this);
+            return this;
+        };
+
+        TaxonBuilder.prototype.build = function () {
+            var units = this._unitsBuilder.build();
+            if (units.empty) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (units.size === 1) {
+                return Haeckel.ext.singleMember(units);
+            }
+            var entities = this._entitiesBuilder.build(), n = entities.size, uids = new Array(n), i = 0;
+            Haeckel.ext.each(entities, function (entity) {
+                uids[i++] = entity.uid;
+            });
+            uids = uids.sort();
+            return Object.freeze({
+                empty: false,
+                entities: entities,
+                hash: '(' + uids.join('|') + ')',
+                isUnit: false,
+                units: units
+            });
+        };
+
+        TaxonBuilder.prototype.remove = function (taxon) {
+            this._entitiesBuilder.removeSet(taxon.entities);
+            this._unitsBuilder.removeSet(taxon.units);
+            return this;
+        };
+
+        TaxonBuilder.prototype.removeSet = function (taxa) {
+            var _this = this;
+            Haeckel.ext.each(taxa, function (taxon) {
+                _this._entitiesBuilder.removeSet(taxon.entities);
+                _this._unitsBuilder.removeSet(taxon.units);
+            }, this);
+            return this;
+        };
+
+        TaxonBuilder.prototype.reset = function () {
+            this._entitiesBuilder.reset();
+            this._unitsBuilder.reset();
+            return this;
+        };
+        return TaxonBuilder;
+    })();
+    Haeckel.TaxonBuilder = TaxonBuilder;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (ext) {
         function includes(a, b) {
             if (a.hash === b.hash) {
                 return true;
@@ -2020,6 +2104,345 @@ var Haeckel;
         tax.includes = includes;
     })(Haeckel.tax || (Haeckel.tax = {}));
     var tax = Haeckel.tax;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (tax) {
+        function intersect(a, b) {
+            return Haeckel.tax.create(Haeckel.ext.intersect(a.entities, b.entities));
+        }
+        tax.intersect = intersect;
+    })(Haeckel.tax || (Haeckel.tax = {}));
+    var tax = Haeckel.tax;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    var PhyloSolver = (function () {
+        function PhyloSolver(x) {
+            this._cache = new Haeckel.SolverCache();
+            this._taxonBuilder = new Haeckel.TaxonBuilder();
+            function toUnitGraph(graph) {
+                var builder = new Haeckel.DAGBuilder();
+                Haeckel.ext.each(graph.vertices, function (taxon) {
+                    builder.addVertices(taxon.units);
+                });
+                Haeckel.ext.each(graph.arcs, function (arc) {
+                    Haeckel.ext.each(arc[0].units, function (head) {
+                        Haeckel.ext.each(arc[1].units, function (tail) {
+                            builder.addArc(head, tail);
+                        });
+                    });
+                });
+                return builder.build();
+            }
+
+            var dagSolver, graph;
+            if (x instanceof Haeckel.DAGSolver) {
+                dagSolver = x;
+                graph = dagSolver.graph;
+            } else if (x instanceof Haeckel.DAGBuilder) {
+                graph = x.build();
+            } else if (Haeckel.isDigraph(x)) {
+                graph = x;
+            } else {
+            }
+            var finalGraph = toUnitGraph(graph);
+            if (dagSolver && Haeckel.equal(graph, finalGraph)) {
+                this._dagSolver = dagSolver;
+                this._graph = graph;
+            } else {
+                this._graph = finalGraph;
+                this._dagSolver = new Haeckel.DAGSolver(finalGraph);
+            }
+        }
+        Object.defineProperty(PhyloSolver.prototype, "dagSolver", {
+            get: function () {
+                return this._dagSolver;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        Object.defineProperty(PhyloSolver.prototype, "graph", {
+            get: function () {
+                return this._graph;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        Object.defineProperty(PhyloSolver.prototype, "universal", {
+            get: function () {
+                var key = "universal";
+                var result = this._cache.get(key);
+                if (result !== undefined) {
+                    return result;
+                }
+
+                result = this._taxonBuilder.addSet(this._graph.vertices).build();
+                this._taxonBuilder.reset();
+                return this._cache.set(key, result);
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        PhyloSolver.prototype.branch = function (internal, external) {
+            var key = Haeckel.SolverCache.getKey("branch", [internal, external]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            return this._cache.set(key, Haeckel.tax.setDiff(this.prcIntersect(internal), this.prcUnion(external)));
+        };
+
+        PhyloSolver.prototype.clade = function (taxon) {
+            if (taxon.empty) {
+                return Haeckel.EMPTY_SET;
+            }
+
+            var key = Haeckel.SolverCache.getKey("clade", [taxon]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            if (taxon.isUnit || this.min(taxon).isUnit || this.isCladogen(this.min(taxon))) {
+                result = this.sucUnion(taxon);
+            } else {
+                result = this.sucUnion(this.max(this.prcIntersect(taxon)));
+            }
+
+            return this._cache.set(key, result);
+        };
+
+        PhyloSolver.prototype.cladogen = function (taxon) {
+            if (taxon.empty) {
+                return Haeckel.EMPTY_SET;
+            }
+
+            var key = Haeckel.SolverCache.getKey("cladogen", [taxon]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            if (this.isCladogen(this.min(taxon))) {
+                result = taxon;
+            } else {
+                result = this.max(this.prcIntersect(taxon));
+            }
+
+            return this._cache.set(key, result);
+        };
+
+        PhyloSolver.prototype.crown = function (specifiers, extant) {
+            var key = Haeckel.SolverCache.getKey("crown", [specifiers, extant]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            return this._cache.set(key, this.clade(Haeckel.tax.intersect(this.clade(specifiers), extant)));
+        };
+
+        PhyloSolver.prototype.distance = function (x, y) {
+            if (x.empty || y.empty) {
+                return Infinity;
+            }
+            if (x === y) {
+                return 0;
+            }
+            var xHash = x.hash;
+            var yHash = y.hash;
+            if (xHash === yHash) {
+                return 0;
+            }
+
+            var key = Haeckel.SolverCache.getKey("distance", (xHash < yHash) ? [x, y] : [y, x]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            result = Infinity;
+            Haeckel.ext.each(x.units, function (xUnit) {
+                Haeckel.ext.each(y.units, function (yUnit) {
+                    var dxy = this._dagSolver.distance(xUnit, yUnit);
+                    if (!isFinite(result) || result > dxy) {
+                        if ((result = dxy) === 0) {
+                            return false;
+                        }
+                    }
+                }, this);
+                if (result === 0) {
+                    return false;
+                }
+            }, this);
+
+            return this._cache.set(key, result);
+        };
+
+        PhyloSolver.prototype.isCladogen = function (taxon) {
+            if (taxon.empty) {
+                return false;
+            }
+            if (taxon.isUnit) {
+                return true;
+            }
+            return !this.sucIntersect(this.min(taxon)).empty;
+        };
+
+        PhyloSolver.prototype.max = function (taxon) {
+            var key = Haeckel.SolverCache.getKey("max", [taxon]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            this._taxonBuilder.addSet(this.subgraphSolver(taxon).dagSolver.sinks);
+
+            result = this._taxonBuilder.build();
+            this._taxonBuilder.reset();
+            return this._cache.set(key, result);
+        };
+
+        PhyloSolver.prototype.min = function (taxon) {
+            var key = Haeckel.SolverCache.getKey("min", [taxon]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            this._taxonBuilder.addSet(this.subgraphSolver(taxon).dagSolver.sources);
+
+            result = this._taxonBuilder.build();
+            this._taxonBuilder.reset();
+            return this._cache.set(key, result);
+        };
+
+        PhyloSolver.prototype.prcIntersect = function (taxon) {
+            var key = Haeckel.SolverCache.getKey("prcIntersect", [taxon]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            Haeckel.ext.each(taxon.units, function (unit) {
+                if (result === undefined) {
+                    result = this.prcUnion(unit);
+                } else {
+                    result = Haeckel.tax.intersect(result, this.prcUnion(unit));
+                }
+                if (result.empty) {
+                    return false;
+                }
+            }, this);
+
+            return this._cache.set(key, result);
+        };
+
+        PhyloSolver.prototype.prcUnion = function (taxon) {
+            var key = Haeckel.SolverCache.getKey("prcUnion", [taxon]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            Haeckel.ext.each(taxon.units, function (unit) {
+                this._taxonBuilder.addSet(this._dagSolver.prcs(unit));
+            }, this);
+
+            result = this._taxonBuilder.build();
+            this._taxonBuilder.reset();
+            return this._cache.set(key, result);
+        };
+
+        PhyloSolver.prototype.subgraph = function (taxon) {
+            return this._dagSolver.subgraph(taxon.units);
+        };
+
+        PhyloSolver.prototype.subgraphSolver = function (taxon) {
+            if (taxon.hash === this.universal.hash) {
+                return this;
+            }
+
+            var key = Haeckel.SolverCache.getKey("subgraphSolver", [taxon]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            return this._cache.set(key, new PhyloSolver(this.subgraph(taxon)));
+        };
+
+        PhyloSolver.prototype.sucIntersect = function (taxon) {
+            var key = Haeckel.SolverCache.getKey("sucIntersect", [taxon]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            Haeckel.ext.each(taxon.units, function (unit) {
+                if (result === undefined) {
+                    result = this.sucUnion(unit);
+                } else {
+                    result = Haeckel.tax.intersect(result, this.sucUnion(unit));
+                }
+                if (result.empty) {
+                    return false;
+                }
+            }, this);
+
+            return this._cache.set(key, result);
+        };
+
+        PhyloSolver.prototype.sucUnion = function (taxon) {
+            var key = Haeckel.SolverCache.getKey("sucUnion", [taxon]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            Haeckel.ext.each(taxon.units, function (unit) {
+                this._taxonBuilder.addSet(this._dagSolver.sucs(unit));
+            }, this);
+
+            result = this._taxonBuilder.build();
+            this._taxonBuilder.reset();
+            return this._cache.set(key, result);
+        };
+
+        PhyloSolver.prototype.synPrc = function (apomorphic, representative) {
+            var key = Haeckel.SolverCache.getKey("synPrc", [apomorphic, representative]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            if (Haeckel.tax.includes(apomorphic, representative)) {
+                result = this.subgraphSolver(apomorphic).prcIntersect(representative);
+            } else {
+                result = Haeckel.EMPTY_SET;
+            }
+
+            return this._cache.set(key, result);
+        };
+
+        PhyloSolver.prototype.total = function (specifiers, extant) {
+            var key = Haeckel.SolverCache.getKey("total", [specifiers, extant]);
+            var result = this._cache.get(key);
+            if (result !== undefined) {
+                return result;
+            }
+
+            var crown = this.crown(specifiers, extant);
+            return this._cache.set(key, this.clade(this.branch(crown, Haeckel.tax.setDiff(extant, crown))));
+        };
+        return PhyloSolver;
+    })();
+    Haeckel.PhyloSolver = PhyloSolver;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -2058,48 +2481,67 @@ var Haeckel;
         };
 
         PhyloBuilder.prototype.buildCoarser = function (taxa) {
-            var unitMap = {};
-
             function coarsen(unit) {
                 return unitMap[unit.hash] || unit;
             }
 
+            var solver = new Haeckel.PhyloSolver(this.dagBuilder);
+
+            var expandedMap = {};
             Haeckel.ext.each(taxa, function (taxon) {
+                var cladogen = solver.cladogen(taxon);
+                if (Haeckel.equal(cladogen, taxon)) {
+                    expandedMap[taxon.hash] = taxon;
+                } else {
+                    var properPrcs = Haeckel.tax.setDiff(solver.prcIntersect(cladogen), cladogen);
+                    expandedMap[taxon.hash] = Haeckel.tax.setDiff(solver.prcUnion(taxon), properPrcs);
+                }
+            });
+
+            var unitMap = {};
+
+            var prcsSucsMap = {};
+            var prcs = Haeckel.ext.setDiff(solver.dagSolver.vertices, solver.dagSolver.sinks);
+            var prcsSucsHash;
+            Haeckel.ext.each(prcs, function (prc) {
+                prcsSucsHash = Haeckel.hash([
+                    Haeckel.tax.union(Haeckel.ext.list(solver.dagSolver.imPrcs(prc))),
+                    Haeckel.tax.union(Haeckel.ext.list(solver.dagSolver.imSucs(prc)))
+                ]);
+                var builder = prcsSucsMap[prcsSucsHash];
+                if (!builder) {
+                    builder = prcsSucsMap[prcsSucsHash] = new Haeckel.TaxonBuilder();
+                }
+                builder.add(prc);
+            });
+            for (prcsSucsHash in prcsSucsMap) {
+                var taxon = prcsSucsMap[prcsSucsHash].build();
                 Haeckel.ext.each(taxon.units, function (unit) {
-                    unitMap[unit.hash] = taxon;
+                    return unitMap[unit.hash] = taxon;
+                });
+            }
+
+            Haeckel.ext.each(taxa, function (taxon) {
+                var expanded = expandedMap[taxon.hash];
+                Haeckel.ext.each(expanded.units, function (unit) {
+                    var existing = unitMap[unit.hash];
+                    if (existing) {
+                        unitMap[unit.hash] = Haeckel.tax.union([existing, taxon]);
+                    } else {
+                        unitMap[unit.hash] = taxon;
+                    }
                 });
             });
+
             var builder = new Haeckel.DAGBuilder();
             Haeckel.ext.each(this.dagBuilder.buildArcs(), function (arc) {
-                builder.addArc(coarsen(arc[0]), coarsen(arc[1]));
+                var prc = coarsen(arc[0]);
+                var suc = coarsen(arc[1]);
+                if (!Haeckel.equal(prc, suc)) {
+                    builder.addArc(prc, suc);
+                }
             });
             return builder.buildReduction();
-        };
-
-        PhyloBuilder.prototype.mergePredecessors = function (exclude) {
-            var _this = this;
-            exclude = exclude || Haeckel.EMPTY_SET;
-            var prcsSucsMap = {};
-            var solver = new Haeckel.DAGSolver(this.dagBuilder.build());
-            var prcs = Haeckel.ext.setDiff(solver.vertices, solver.sinks);
-            Haeckel.ext.each(prcs, function (prc) {
-                var prcsSucsHash = Haeckel.hash([solver.imPrcs(prc), solver.imSucs(prc)]);
-                var replacement = prcsSucsMap[prcsSucsHash];
-                if (replacement) {
-                    var excluded = Haeckel.tax.includes(exclude, prc);
-                    if (excluded) {
-                        if (!Haeckel.tax.includes(exclude, replacement)) {
-                            _this.dagBuilder.replaceVertex(replacement, prc);
-                            prcsSucsMap[prcsSucsHash] = prc;
-                        }
-                    } else {
-                        _this.dagBuilder.replaceVertex(prc, replacement);
-                    }
-                } else {
-                    prcsSucsMap[prcsSucsHash] = prc;
-                }
-            }, this);
-            return this;
         };
 
         PhyloBuilder.prototype.removePhylogeny = function (g) {
@@ -2255,90 +2697,6 @@ var Haeckel;
         return TaxicDistanceMatrixBuilder;
     })(Haeckel.DistanceMatrixBuilder);
     Haeckel.TaxicDistanceMatrixBuilder = TaxicDistanceMatrixBuilder;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (ext) {
-        function singleMember(set) {
-            if (set.size !== 1) {
-                throw new Error("Not a singleton: {" + Haeckel.ext.list(set).join(", ") + "}");
-            }
-            for (var h in set.hashMap) {
-                return set.hashMap[h];
-            }
-            return null;
-        }
-        ext.singleMember = singleMember;
-    })(Haeckel.ext || (Haeckel.ext = {}));
-    var ext = Haeckel.ext;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    var TaxonBuilder = (function () {
-        function TaxonBuilder() {
-            this._entitiesBuilder = new Haeckel.ExtSetBuilder();
-            this._unitsBuilder = new Haeckel.ExtSetBuilder();
-        }
-        TaxonBuilder.prototype.add = function (taxon) {
-            this._entitiesBuilder.addSet(taxon.entities);
-            this._unitsBuilder.addSet(taxon.units);
-            return this;
-        };
-
-        TaxonBuilder.prototype.addSet = function (taxa) {
-            var _this = this;
-            Haeckel.ext.each(taxa, function (taxon) {
-                _this._entitiesBuilder.addSet(taxon.entities);
-                _this._unitsBuilder.addSet(taxon.units);
-            }, this);
-            return this;
-        };
-
-        TaxonBuilder.prototype.build = function () {
-            var units = this._unitsBuilder.build();
-            if (units.empty) {
-                return Haeckel.EMPTY_SET;
-            }
-            if (units.size === 1) {
-                return Haeckel.ext.singleMember(units);
-            }
-            var entities = this._entitiesBuilder.build(), n = entities.size, uids = new Array(n), i = 0;
-            Haeckel.ext.each(entities, function (entity) {
-                uids[i++] = entity.uid;
-            });
-            uids = uids.sort();
-            return Object.freeze({
-                empty: false,
-                entities: entities,
-                hash: '(' + uids.join('|') + ')',
-                isUnit: false,
-                units: units
-            });
-        };
-
-        TaxonBuilder.prototype.remove = function (taxon) {
-            this._entitiesBuilder.removeSet(taxon.entities);
-            this._unitsBuilder.removeSet(taxon.units);
-            return this;
-        };
-
-        TaxonBuilder.prototype.removeSet = function (taxa) {
-            var _this = this;
-            Haeckel.ext.each(taxa, function (taxon) {
-                _this._entitiesBuilder.removeSet(taxon.entities);
-                _this._unitsBuilder.removeSet(taxon.units);
-            }, this);
-            return this;
-        };
-
-        TaxonBuilder.prototype.reset = function () {
-            this._entitiesBuilder.reset();
-            this._unitsBuilder.reset();
-            return this;
-        };
-        return TaxonBuilder;
-    })();
-    Haeckel.TaxonBuilder = TaxonBuilder;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -3934,345 +4292,6 @@ var Haeckel;
         return OccurrencePlotChart;
     })(Haeckel.ChronoCharChart);
     Haeckel.OccurrencePlotChart = OccurrencePlotChart;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (tax) {
-        function intersect(a, b) {
-            return Haeckel.tax.create(Haeckel.ext.intersect(a.entities, b.entities));
-        }
-        tax.intersect = intersect;
-    })(Haeckel.tax || (Haeckel.tax = {}));
-    var tax = Haeckel.tax;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    var PhyloSolver = (function () {
-        function PhyloSolver(x) {
-            this._cache = new Haeckel.SolverCache();
-            this._taxonBuilder = new Haeckel.TaxonBuilder();
-            function toUnitGraph(graph) {
-                var builder = new Haeckel.DAGBuilder();
-                Haeckel.ext.each(graph.vertices, function (taxon) {
-                    builder.addVertices(taxon.units);
-                });
-                Haeckel.ext.each(graph.arcs, function (arc) {
-                    Haeckel.ext.each(arc[0].units, function (head) {
-                        Haeckel.ext.each(arc[1].units, function (tail) {
-                            builder.addArc(head, tail);
-                        });
-                    });
-                });
-                return builder.build();
-            }
-
-            var dagSolver, graph;
-            if (x instanceof Haeckel.DAGSolver) {
-                dagSolver = x;
-                graph = dagSolver.graph;
-            } else if (x instanceof Haeckel.DAGBuilder) {
-                graph = x.build();
-            } else if (Haeckel.isDigraph(x)) {
-                graph = x;
-            } else {
-            }
-            var finalGraph = toUnitGraph(graph);
-            if (dagSolver && Haeckel.equal(graph, finalGraph)) {
-                this._dagSolver = dagSolver;
-                this._graph = graph;
-            } else {
-                this._graph = finalGraph;
-                this._dagSolver = new Haeckel.DAGSolver(finalGraph);
-            }
-        }
-        Object.defineProperty(PhyloSolver.prototype, "dagSolver", {
-            get: function () {
-                return this._dagSolver;
-            },
-            enumerable: true,
-            configurable: true
-        });
-
-        Object.defineProperty(PhyloSolver.prototype, "graph", {
-            get: function () {
-                return this._graph;
-            },
-            enumerable: true,
-            configurable: true
-        });
-
-        Object.defineProperty(PhyloSolver.prototype, "universal", {
-            get: function () {
-                var key = "universal";
-                var result = this._cache.get(key);
-                if (result !== undefined) {
-                    return result;
-                }
-
-                result = this._taxonBuilder.addSet(this._graph.vertices).build();
-                this._taxonBuilder.reset();
-                return this._cache.set(key, result);
-            },
-            enumerable: true,
-            configurable: true
-        });
-
-        PhyloSolver.prototype.branch = function (internal, external) {
-            var key = Haeckel.SolverCache.getKey("branch", [internal, external]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            return this._cache.set(key, Haeckel.tax.setDiff(this.prcIntersect(internal), this.prcUnion(external)));
-        };
-
-        PhyloSolver.prototype.clade = function (taxon) {
-            if (taxon.empty) {
-                return Haeckel.EMPTY_SET;
-            }
-
-            var key = Haeckel.SolverCache.getKey("clade", [taxon]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            if (taxon.isUnit || this.min(taxon).isUnit || this.isCladogen(this.min(taxon))) {
-                result = this.sucUnion(taxon);
-            } else {
-                result = this.sucUnion(this.max(this.prcIntersect(taxon)));
-            }
-
-            return this._cache.set(key, result);
-        };
-
-        PhyloSolver.prototype.cladogen = function (taxon) {
-            if (taxon.empty) {
-                return Haeckel.EMPTY_SET;
-            }
-
-            var key = Haeckel.SolverCache.getKey("cladogen", [taxon]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            if (this.isCladogen(this.min(taxon))) {
-                result = taxon;
-            } else {
-                result = this.max(this.prcIntersect(taxon));
-            }
-
-            return this._cache.set(key, result);
-        };
-
-        PhyloSolver.prototype.crown = function (specifiers, extant) {
-            var key = Haeckel.SolverCache.getKey("crown", [specifiers, extant]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            return this._cache.set(key, this.clade(Haeckel.tax.intersect(this.clade(specifiers), extant)));
-        };
-
-        PhyloSolver.prototype.distance = function (x, y) {
-            if (x.empty || y.empty) {
-                return Infinity;
-            }
-            if (x === y) {
-                return 0;
-            }
-            var xHash = x.hash;
-            var yHash = y.hash;
-            if (xHash === yHash) {
-                return 0;
-            }
-
-            var key = Haeckel.SolverCache.getKey("distance", (xHash < yHash) ? [x, y] : [y, x]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            result = Infinity;
-            Haeckel.ext.each(x.units, function (xUnit) {
-                Haeckel.ext.each(y.units, function (yUnit) {
-                    var dxy = this._dagSolver.distance(xUnit, yUnit);
-                    if (!isFinite(result) || result > dxy) {
-                        if ((result = dxy) === 0) {
-                            return false;
-                        }
-                    }
-                }, this);
-                if (result === 0) {
-                    return false;
-                }
-            }, this);
-
-            return this._cache.set(key, result);
-        };
-
-        PhyloSolver.prototype.isCladogen = function (taxon) {
-            if (taxon.empty) {
-                return false;
-            }
-            if (taxon.isUnit) {
-                return true;
-            }
-            return !this.sucIntersect(this.min(taxon)).empty;
-        };
-
-        PhyloSolver.prototype.max = function (taxon) {
-            var key = Haeckel.SolverCache.getKey("max", [taxon]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            this._taxonBuilder.addSet(this.subgraphSolver(taxon).dagSolver.sinks);
-
-            result = this._taxonBuilder.build();
-            this._taxonBuilder.reset();
-            return this._cache.set(key, result);
-        };
-
-        PhyloSolver.prototype.min = function (taxon) {
-            var key = Haeckel.SolverCache.getKey("min", [taxon]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            this._taxonBuilder.addSet(this.subgraphSolver(taxon).dagSolver.sources);
-
-            result = this._taxonBuilder.build();
-            this._taxonBuilder.reset();
-            return this._cache.set(key, result);
-        };
-
-        PhyloSolver.prototype.prcIntersect = function (taxon) {
-            var key = Haeckel.SolverCache.getKey("prcIntersect", [taxon]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            Haeckel.ext.each(taxon.units, function (unit) {
-                if (result === undefined) {
-                    result = this.prcUnion(unit);
-                } else {
-                    result = Haeckel.tax.intersect(result, this.prcUnion(unit));
-                }
-                if (result.empty) {
-                    return false;
-                }
-            }, this);
-
-            return this._cache.set(key, result);
-        };
-
-        PhyloSolver.prototype.prcUnion = function (taxon) {
-            var key = Haeckel.SolverCache.getKey("prcUnion", [taxon]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            Haeckel.ext.each(taxon.units, function (unit) {
-                this._taxonBuilder.addSet(this._dagSolver.prcs(unit));
-            }, this);
-
-            result = this._taxonBuilder.build();
-            this._taxonBuilder.reset();
-            return this._cache.set(key, result);
-        };
-
-        PhyloSolver.prototype.subgraph = function (taxon) {
-            return this._dagSolver.subgraph(taxon.units);
-        };
-
-        PhyloSolver.prototype.subgraphSolver = function (taxon) {
-            if (taxon.hash === this.universal.hash) {
-                return this;
-            }
-
-            var key = Haeckel.SolverCache.getKey("subgraphSolver", [taxon]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            return this._cache.set(key, new PhyloSolver(this.subgraph(taxon)));
-        };
-
-        PhyloSolver.prototype.sucIntersect = function (taxon) {
-            var key = Haeckel.SolverCache.getKey("sucIntersect", [taxon]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            Haeckel.ext.each(taxon.units, function (unit) {
-                if (result === undefined) {
-                    result = this.sucUnion(unit);
-                } else {
-                    result = Haeckel.tax.intersect(result, this.sucUnion(unit));
-                }
-                if (result.empty) {
-                    return false;
-                }
-            }, this);
-
-            return this._cache.set(key, result);
-        };
-
-        PhyloSolver.prototype.sucUnion = function (taxon) {
-            var key = Haeckel.SolverCache.getKey("sucUnion", [taxon]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            Haeckel.ext.each(taxon.units, function (unit) {
-                this._taxonBuilder.addSet(this._dagSolver.sucs(unit));
-            }, this);
-
-            result = this._taxonBuilder.build();
-            this._taxonBuilder.reset();
-            return this._cache.set(key, result);
-        };
-
-        PhyloSolver.prototype.synPrc = function (apomorphic, representative) {
-            var key = Haeckel.SolverCache.getKey("synPrc", [apomorphic, representative]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            if (Haeckel.tax.includes(apomorphic, representative)) {
-                result = this.subgraphSolver(apomorphic).prcIntersect(representative);
-            } else {
-                result = Haeckel.EMPTY_SET;
-            }
-
-            return this._cache.set(key, result);
-        };
-
-        PhyloSolver.prototype.total = function (specifiers, extant) {
-            var key = Haeckel.SolverCache.getKey("total", [specifiers, extant]);
-            var result = this._cache.get(key);
-            if (result !== undefined) {
-                return result;
-            }
-
-            var crown = this.crown(specifiers, extant);
-            return this._cache.set(key, this.clade(this.branch(crown, Haeckel.tax.setDiff(extant, crown))));
-        };
-        return PhyloSolver;
-    })();
-    Haeckel.PhyloSolver = PhyloSolver;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
