@@ -295,7 +295,7 @@ module Haeckel
 				}
 			}, this);
 
-			return this._cache.set(key, result);
+			return this._cache.set(key, result || EMPTY_SET);
 		}
 
 		prcUnion(taxon: Taxic): Taxic
@@ -364,7 +364,7 @@ module Haeckel
 				}
 			}, this);
 
-			return this._cache.set(key, result);
+			return this._cache.set(key, result || EMPTY_SET);
 		}
 
 		sucUnion(taxon: Taxic): Taxic

@@ -2340,7 +2340,7 @@ var Haeckel;
                 }
             }, this);
 
-            return this._cache.set(key, result);
+            return this._cache.set(key, result || Haeckel.EMPTY_SET);
         };
 
         PhyloSolver.prototype.prcUnion = function (taxon) {
@@ -2395,7 +2395,7 @@ var Haeckel;
                 }
             }, this);
 
-            return this._cache.set(key, result);
+            return this._cache.set(key, result || Haeckel.EMPTY_SET);
         };
 
         PhyloSolver.prototype.sucUnion = function (taxon) {
