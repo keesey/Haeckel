@@ -694,7 +694,7 @@ declare module Haeckel {
         public characterMatrix: Haeckel.CharacterMatrix<Haeckel.Set>;
         public horizontalRatioMap: (taxon: Haeckel.Taxic) => Haeckel.Range;
         public copyFrom(chart: Haeckel.ChronoChart): ChronoCharChart;
-        public getTaxonRect(taxon: Haeckel.Taxic): Haeckel.Rectangle;
+        public getTaxonRect(taxon: Haeckel.Taxic, characterMatrix?: Haeckel.CharacterMatrix<Haeckel.Set>): Haeckel.Rectangle;
         public getTaxonX(taxon: Haeckel.Taxic): Haeckel.Range;
         public useCharacterMatrixForHorizontal(leftTaxon: Haeckel.Taxic, rightTaxon: Haeckel.Taxic): ChronoCharChart;
     }
@@ -877,6 +877,10 @@ declare module Haeckel {
 }
 declare module Haeckel {
     class PhyloChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
+        public minPrcTime: Haeckel.Range;
+        public pathStyle: {
+            [name: string]: string;
+        };
         public phyloSolver: Haeckel.PhyloSolver;
         public vertexRenderer: (builder: Haeckel.ElementBuilder, taxon: Haeckel.Taxic, rectangle: Haeckel.Rectangle) => void;
         public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;

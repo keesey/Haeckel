@@ -1,6 +1,7 @@
 /// <reference path="ChronoCharChart.ts"/>
 /// <reference path="../builders/CharacterMatrixBuilder.ts"/>
 /// <reference path="../constants/BLACK.ts"/>
+/// <reference path="../constants/RANGE_0.ts"/>
 /// <reference path="../constants/SVG_NS.ts"/>
 /// <reference path="../constants/TIME_CHARACTER.ts"/>
 /// <reference path="../functions/chr/states.ts"/>
@@ -13,6 +14,8 @@
 /// <reference path="../solvers/PhyloSolver.ts"/>
 module Haeckel
 {
+	var DEFAULT_MIN_PRC_TIME = Haeckel.rng.create(-100000, 0);
+
 	var PATH_STYLE: { [name: string]: string; } = {
 		"fill": BLACK.hex,
 		"fill-opacity": "1",
@@ -34,31 +37,54 @@ module Haeckel
 
 	export class PhyloChart extends ChronoCharChart implements Renderer
 	{
+		minPrcTime = DEFAULT_MIN_PRC_TIME;
+
+		pathStyle: { [name: string]: string; } = PATH_STYLE;
+
 		phyloSolver: PhyloSolver;
 
 		vertexRenderer: (builder: ElementBuilder, taxon: Taxic, rectangle: Rectangle) => void = DEFAULT_VERTEX_RENDERER;
 
 		render(parent: ElementBuilder): ElementBuilder
 		{
-			var solver = this.phyloSolver,
-				graph = solver.graph,
-				timeMatrixBuilder = new CharacterMatrixBuilder<Range>(),
-				characterMatrix = this.characterMatrix;
-			ext.each(graph.vertices, (taxon: Taxic) => timeMatrixBuilder.states(taxon, TIME_CHARACTER, <Range> chr.states(characterMatrix, taxon, TIME_CHARACTER)));
-			timeMatrixBuilder.inferStates(solver.dagSolver);
-			var positions: { [hash: string]: Rectangle; } = {},
-				area = this.area;
-			var arcsGroup = parent.child(SVG_NS, 'g'),
-				verticesGroup = parent.child(SVG_NS, 'g');
+			var solver = this.phyloSolver;
+			var graph = solver.graph;
+			var timeMatrixBuilder = new CharacterMatrixBuilder<Range>();
+			ext.each(graph.vertices, (taxon: Taxic) => 
+			{
+				timeMatrixBuilder.states(taxon, TIME_CHARACTER, <Range> chr.states(this.characterMatrix, taxon, TIME_CHARACTER))
+			});
+			ext.each(graph.vertices, (taxon: Taxic) => 
+			{
+				var states = <Range> chr.states(this.characterMatrix, taxon, TIME_CHARACTER);
+				if (!states || states.empty)
+				{
+					states = <Range> chr.states(this.characterMatrix, solver.clade(taxon), TIME_CHARACTER);
+					if (!states || states.empty)
+					{
+						timeMatrixBuilder.states(taxon, TIME_CHARACTER, RANGE_0);
+					}
+					else
+					{
+						var maxSucTime = states.min;
+						timeMatrixBuilder.states(taxon, TIME_CHARACTER, Haeckel.rng.create(maxSucTime + this.minPrcTime.min, maxSucTime + this.minPrcTime.max));
+					}
+				}
+			}, this);
+			var timeMatrix = timeMatrixBuilder.build();
+			var positions: { [taxonHash: string]: Rectangle; } = {};
+			var area = this.area;
+			var arcsGroup = parent.child(SVG_NS, 'g');
+			var verticesGroup = parent.child(SVG_NS, 'g');
 			ext.each(graph.vertices, (taxon: Taxic) =>
 			{
-				var rect = positions[taxon.hash] = this.getTaxonRect(taxon);
+				var rect = positions[taxon.hash] = this.getTaxonRect(taxon, timeMatrix);
 				this.vertexRenderer(verticesGroup, taxon, rect);
 			});
 			ext.each(graph.arcs, (arc: Arc<Taxic>) =>
 			{
-				var source: Rectangle = positions[arc[0].hash],
-					target: Rectangle = positions[arc[1].hash];
+				var source: Rectangle = positions[arc[0].hash];
+				var target: Rectangle = positions[arc[1].hash];
 				if (!source || !target || source.empty || target.empty)
 				{
 					return;
@@ -71,8 +97,8 @@ module Haeckel
 						+ "Z";
 				arcsGroup.child(SVG_NS, 'path')
 					.attr(SVG_NS, 'd', data)
-					.attrs(SVG_NS, PATH_STYLE);
-			});
+					.attrs(SVG_NS, this.pathStyle);
+			}, this);
 			return parent;
 		}		
 	}

@@ -3269,8 +3269,8 @@ var Haeckel;
             return this;
         };
 
-        ChronoCharChart.prototype.getTaxonRect = function (taxon) {
-            var time = Haeckel.chr.states(this.characterMatrix, taxon, Haeckel.TIME_CHARACTER), y = this.getTimeY(time);
+        ChronoCharChart.prototype.getTaxonRect = function (taxon, characterMatrix) {
+            var time = Haeckel.chr.states(characterMatrix || this.characterMatrix, taxon, Haeckel.TIME_CHARACTER), y = this.getTimeY(time);
             if (y.empty) {
                 return Haeckel.EMPTY_SET;
             }
@@ -4299,6 +4299,8 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    var DEFAULT_MIN_PRC_TIME = Haeckel.rng.create(-100000, 0);
+
     var PATH_STYLE = {
         "fill": Haeckel.BLACK.hex,
         "fill-opacity": "1",
@@ -4319,29 +4321,48 @@ var Haeckel;
         __extends(PhyloChart, _super);
         function PhyloChart() {
             _super.apply(this, arguments);
+            this.minPrcTime = DEFAULT_MIN_PRC_TIME;
+            this.pathStyle = PATH_STYLE;
             this.vertexRenderer = DEFAULT_VERTEX_RENDERER;
         }
         PhyloChart.prototype.render = function (parent) {
             var _this = this;
-            var solver = this.phyloSolver, graph = solver.graph, timeMatrixBuilder = new Haeckel.CharacterMatrixBuilder(), characterMatrix = this.characterMatrix;
+            var solver = this.phyloSolver;
+            var graph = solver.graph;
+            var timeMatrixBuilder = new Haeckel.CharacterMatrixBuilder();
             Haeckel.ext.each(graph.vertices, function (taxon) {
-                return timeMatrixBuilder.states(taxon, Haeckel.TIME_CHARACTER, Haeckel.chr.states(characterMatrix, taxon, Haeckel.TIME_CHARACTER));
+                timeMatrixBuilder.states(taxon, Haeckel.TIME_CHARACTER, Haeckel.chr.states(_this.characterMatrix, taxon, Haeckel.TIME_CHARACTER));
             });
-            timeMatrixBuilder.inferStates(solver.dagSolver);
-            var positions = {}, area = this.area;
-            var arcsGroup = parent.child(Haeckel.SVG_NS, 'g'), verticesGroup = parent.child(Haeckel.SVG_NS, 'g');
             Haeckel.ext.each(graph.vertices, function (taxon) {
-                var rect = positions[taxon.hash] = _this.getTaxonRect(taxon);
+                var states = Haeckel.chr.states(_this.characterMatrix, taxon, Haeckel.TIME_CHARACTER);
+                if (!states || states.empty) {
+                    states = Haeckel.chr.states(_this.characterMatrix, solver.clade(taxon), Haeckel.TIME_CHARACTER);
+                    if (!states || states.empty) {
+                        timeMatrixBuilder.states(taxon, Haeckel.TIME_CHARACTER, Haeckel.RANGE_0);
+                    } else {
+                        var maxSucTime = states.min;
+                        timeMatrixBuilder.states(taxon, Haeckel.TIME_CHARACTER, Haeckel.rng.create(maxSucTime + _this.minPrcTime.min, maxSucTime + _this.minPrcTime.max));
+                    }
+                }
+            }, this);
+            var timeMatrix = timeMatrixBuilder.build();
+            var positions = {};
+            var area = this.area;
+            var arcsGroup = parent.child(Haeckel.SVG_NS, 'g');
+            var verticesGroup = parent.child(Haeckel.SVG_NS, 'g');
+            Haeckel.ext.each(graph.vertices, function (taxon) {
+                var rect = positions[taxon.hash] = _this.getTaxonRect(taxon, timeMatrix);
                 _this.vertexRenderer(verticesGroup, taxon, rect);
             });
             Haeckel.ext.each(graph.arcs, function (arc) {
-                var source = positions[arc[0].hash], target = positions[arc[1].hash];
+                var source = positions[arc[0].hash];
+                var target = positions[arc[1].hash];
                 if (!source || !target || source.empty || target.empty) {
                     return;
                 }
                 var data = "M" + source.centerX + " " + source.bottom + "L" + target.centerX + " " + target.bottom + "V" + target.top + "L" + source.centerX + " " + source.top + "V" + source.bottom + "Z";
-                arcsGroup.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', data).attrs(Haeckel.SVG_NS, PATH_STYLE);
-            });
+                arcsGroup.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', data).attrs(Haeckel.SVG_NS, _this.pathStyle);
+            }, this);
             return parent;
         };
         return PhyloChart;

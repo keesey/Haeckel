@@ -13,6 +13,7 @@
 /// <reference path="../functions/rng/create.ts"/>
 /// <reference path="../functions/rng/multiply.ts"/>
 /// <reference path="../functions/rng/sum.ts"/>
+/// <reference path="../interfaces/CharacterMatrix.ts"/>
 /// <reference path="../interfaces/Range.ts"/>
 /// <reference path="../interfaces/Rectangle.ts"/>
 /// <reference path="../interfaces/Taxic.ts"/>
@@ -35,9 +36,9 @@ module Haeckel
 			return this;
 		}
 
-		getTaxonRect(taxon: Taxic): Rectangle
+		getTaxonRect(taxon: Taxic, characterMatrix?: CharacterMatrix<Set>): Rectangle
 		{
-			var time = <Range> chr.states(this.characterMatrix, taxon, TIME_CHARACTER),
+			var time = <Range> chr.states(characterMatrix || this.characterMatrix, taxon, TIME_CHARACTER),
 				y = this.getTimeY(time);
 			if (y.empty)
 			{
