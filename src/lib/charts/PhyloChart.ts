@@ -5,6 +5,7 @@
 /// <reference path="../constants/RANGE_0.ts"/>
 /// <reference path="../constants/SVG_NS.ts"/>
 /// <reference path="../constants/TIME_CHARACTER.ts"/>
+/// <reference path="../functions/precisionEqual.ts"/>
 /// <reference path="../functions/chr/states.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
 /// <reference path="../functions/rng/create.ts"/>
@@ -94,9 +95,17 @@ module Haeckel
 				{
 					return;
 				}
-				var sourceY = Math.max(source.top, (target.bottom + source.bottom) / 2)
-				var data = "M" + [source.centerX, sourceY].join(' ')
+				var data: string = "M" + [source.centerX, source.bottom].join(' ');
+				if (precisionEqual(source.centerX, target.centerX))
+				{
+					data += "V" + target.top;
+				}
+				else
+				{
+					var sourceY = Math.max(source.top, (target.bottom + source.bottom) / 2);
+					data += "V" + sourceY
 						+ "Q" + [target.centerX, sourceY, target.centerX, target.bottom].join(' ');
+				}
 				arcsGroup.child(SVG_NS, 'path')
 					.attr(SVG_NS, 'd', data)
 					.attrs(SVG_NS, this.pathStyle);
