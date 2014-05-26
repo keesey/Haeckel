@@ -86,9 +86,6 @@ module Haeckel
 			{
 				graph = <Digraph<Taxic>> x;
 			}
-			else
-			{
-			}
 			var finalGraph = toUnitGraph(graph);
 			if (dagSolver && equal(graph, finalGraph))
 			{

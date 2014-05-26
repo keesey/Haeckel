@@ -2144,7 +2144,6 @@ var Haeckel;
                 graph = x.build();
             } else if (Haeckel.isDigraph(x)) {
                 graph = x;
-            } else {
             }
             var finalGraph = toUnitGraph(graph);
             if (dagSolver && Haeckel.equal(graph, finalGraph)) {
@@ -4323,19 +4322,22 @@ var Haeckel;
             _super.apply(this, arguments);
             this.minPrcTime = DEFAULT_MIN_PRC_TIME;
             this.pathStyle = PATH_STYLE;
+            this.phylogeny = Haeckel.EMPTY_DIGRAPH;
             this.vertexRenderer = DEFAULT_VERTEX_RENDERER;
         }
         PhyloChart.prototype.render = function (parent) {
             var _this = this;
-            var solver = this.phyloSolver;
-            var graph = solver.graph;
+            var solver;
             var timeMatrixBuilder = new Haeckel.CharacterMatrixBuilder();
-            Haeckel.ext.each(graph.vertices, function (taxon) {
+            Haeckel.ext.each(this.phylogeny.vertices, function (taxon) {
                 timeMatrixBuilder.states(taxon, Haeckel.TIME_CHARACTER, Haeckel.chr.states(_this.characterMatrix, taxon, Haeckel.TIME_CHARACTER));
             });
-            Haeckel.ext.each(graph.vertices, function (taxon) {
+            Haeckel.ext.each(this.phylogeny.vertices, function (taxon) {
                 var states = Haeckel.chr.states(_this.characterMatrix, taxon, Haeckel.TIME_CHARACTER);
                 if (!states || states.empty) {
+                    if (!solver) {
+                        solver = new Haeckel.PhyloSolver(_this.phylogeny);
+                    }
                     states = Haeckel.chr.states(_this.characterMatrix, solver.clade(taxon), Haeckel.TIME_CHARACTER);
                     if (!states || states.empty) {
                         timeMatrixBuilder.states(taxon, Haeckel.TIME_CHARACTER, Haeckel.RANGE_0);
@@ -4350,11 +4352,11 @@ var Haeckel;
             var area = this.area;
             var arcsGroup = parent.child(Haeckel.SVG_NS, 'g');
             var verticesGroup = parent.child(Haeckel.SVG_NS, 'g');
-            Haeckel.ext.each(graph.vertices, function (taxon) {
+            Haeckel.ext.each(this.phylogeny.vertices, function (taxon) {
                 var rect = positions[taxon.hash] = _this.getTaxonRect(taxon, timeMatrix);
                 _this.vertexRenderer(verticesGroup, taxon, rect);
             });
-            Haeckel.ext.each(graph.arcs, function (arc) {
+            Haeckel.ext.each(this.phylogeny.arcs, function (arc) {
                 var source = positions[arc[0].hash];
                 var target = positions[arc[1].hash];
                 if (!source || !target || source.empty || target.empty) {

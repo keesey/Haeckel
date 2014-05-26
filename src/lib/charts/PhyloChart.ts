@@ -1,12 +1,14 @@
 /// <reference path="ChronoCharChart.ts"/>
 /// <reference path="../builders/CharacterMatrixBuilder.ts"/>
 /// <reference path="../constants/BLACK.ts"/>
+/// <reference path="../constants/EMPTY_DIGRAPH.ts"/>
 /// <reference path="../constants/RANGE_0.ts"/>
 /// <reference path="../constants/SVG_NS.ts"/>
 /// <reference path="../constants/TIME_CHARACTER.ts"/>
 /// <reference path="../functions/chr/states.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
 /// <reference path="../interfaces/Arc.ts"/>
+/// <reference path="../interfaces/Digraph.ts"/>
 /// <reference path="../interfaces/Range.ts"/>
 /// <reference path="../interfaces/Rectangle.ts"/>
 /// <reference path="../interfaces/Renderer.ts"/>
@@ -41,24 +43,27 @@ module Haeckel
 
 		pathStyle: { [name: string]: string; } = PATH_STYLE;
 
-		phyloSolver: PhyloSolver;
+		phylogeny: Digraph<Taxic> = EMPTY_DIGRAPH;
 
 		vertexRenderer: (builder: ElementBuilder, taxon: Taxic, rectangle: Rectangle) => void = DEFAULT_VERTEX_RENDERER;
 
 		render(parent: ElementBuilder): ElementBuilder
 		{
-			var solver = this.phyloSolver;
-			var graph = solver.graph;
+			var solver: PhyloSolver;
 			var timeMatrixBuilder = new CharacterMatrixBuilder<Range>();
-			ext.each(graph.vertices, (taxon: Taxic) => 
+			ext.each(this.phylogeny.vertices, (taxon: Taxic) => 
 			{
 				timeMatrixBuilder.states(taxon, TIME_CHARACTER, <Range> chr.states(this.characterMatrix, taxon, TIME_CHARACTER))
 			});
-			ext.each(graph.vertices, (taxon: Taxic) => 
+			ext.each(this.phylogeny.vertices, (taxon: Taxic) => 
 			{
 				var states = <Range> chr.states(this.characterMatrix, taxon, TIME_CHARACTER);
 				if (!states || states.empty)
 				{
+					if (!solver)
+					{
+						solver = new PhyloSolver(this.phylogeny);
+					}
 					states = <Range> chr.states(this.characterMatrix, solver.clade(taxon), TIME_CHARACTER);
 					if (!states || states.empty)
 					{
@@ -76,12 +81,12 @@ module Haeckel
 			var area = this.area;
 			var arcsGroup = parent.child(SVG_NS, 'g');
 			var verticesGroup = parent.child(SVG_NS, 'g');
-			ext.each(graph.vertices, (taxon: Taxic) =>
+			ext.each(this.phylogeny.vertices, (taxon: Taxic) =>
 			{
 				var rect = positions[taxon.hash] = this.getTaxonRect(taxon, timeMatrix);
 				this.vertexRenderer(verticesGroup, taxon, rect);
 			});
-			ext.each(graph.arcs, (arc: Arc<Taxic>) =>
+			ext.each(this.phylogeny.arcs, (arc: Arc<Taxic>) =>
 			{
 				var source: Rectangle = positions[arc[0].hash];
 				var target: Rectangle = positions[arc[1].hash];

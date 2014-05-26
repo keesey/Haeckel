@@ -881,7 +881,7 @@ declare module Haeckel {
         public pathStyle: {
             [name: string]: string;
         };
-        public phyloSolver: Haeckel.PhyloSolver;
+        public phylogeny: Haeckel.Digraph<Haeckel.Taxic>;
         public vertexRenderer: (builder: Haeckel.ElementBuilder, taxon: Haeckel.Taxic, rectangle: Haeckel.Rectangle) => void;
         public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
