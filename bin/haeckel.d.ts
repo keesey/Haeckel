@@ -876,6 +876,9 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    function precisionEqual(a: number, b: number): boolean;
+}
+declare module Haeckel {
     class PhyloChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
         public minPrcTime: Haeckel.Range;
         public pathStyle: {
@@ -891,9 +894,6 @@ declare module Haeckel {
 }
 declare module Haeckel {
     var WHITE: Color;
-}
-declare module Haeckel {
-    function precisionEqual(a: number, b: number): boolean;
 }
 declare module Haeckel.dst {
     function max<T>(matrix: Haeckel.DistanceMatrix<T>): number;

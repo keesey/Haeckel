@@ -4298,6 +4298,13 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    function precisionEqual(a, b) {
+        return Math.round(a * Haeckel.PRECISION) / Haeckel.PRECISION === Math.round(b * Haeckel.PRECISION) / Haeckel.PRECISION;
+    }
+    Haeckel.precisionEqual = precisionEqual;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
     var DEFAULT_MIN_PRC_TIME = Haeckel.rng.create(-100000, 0);
 
     var PATH_STYLE = {
@@ -4361,8 +4368,13 @@ var Haeckel;
                 if (!source || !target || source.empty || target.empty) {
                     return;
                 }
-                var sourceY = Math.max(source.top, (target.bottom + source.bottom) / 2);
-                var data = "M" + [source.centerX, sourceY].join(' ') + "Q" + [target.centerX, sourceY, target.centerX, target.bottom].join(' ');
+                var data = "M" + [source.centerX, source.bottom].join(' ');
+                if (Haeckel.precisionEqual(source.centerX, target.centerX)) {
+                    data += "V" + target.top;
+                } else {
+                    var sourceY = Math.max(source.top, (target.bottom + source.bottom) / 2);
+                    data += "V" + sourceY + "Q" + [target.centerX, sourceY, target.centerX, target.bottom].join(' ');
+                }
                 arcsGroup.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', data).attrs(Haeckel.SVG_NS, _this.pathStyle);
             }, this);
             return parent;
@@ -4384,13 +4396,6 @@ var Haeckel;
         hex: '#FFFFFF',
         r: 0xFF
     });
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    function precisionEqual(a, b) {
-        return Math.round(a * Haeckel.PRECISION) / Haeckel.PRECISION === Math.round(b * Haeckel.PRECISION) / Haeckel.PRECISION;
-    }
-    Haeckel.precisionEqual = precisionEqual;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
