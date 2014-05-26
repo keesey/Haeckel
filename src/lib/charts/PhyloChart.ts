@@ -19,8 +19,7 @@ module Haeckel
 	var DEFAULT_MIN_PRC_TIME = Haeckel.rng.create(-100000, 0);
 
 	var PATH_STYLE: { [name: string]: string; } = {
-		"fill": BLACK.hex,
-		"fill-opacity": "1",
+		"fill": "none",
 		"stroke": BLACK.hex,
 		"stroke-opacity": "1"
 	};
@@ -94,12 +93,9 @@ module Haeckel
 				{
 					return;
 				}
-				var data = "M" + source.centerX + " " + source.bottom
-						+ "L" + target.centerX + " " + target.bottom
-						+ "V" + target.top
-						+ "L" + source.centerX + " " + source.top
-						+ "V" + source.bottom
-						+ "Z";
+				var sourceY = Math.max(source.top, (target.bottom + source.bottom) / 2)
+				var data = "M" + [source.centerX, sourceY].join(' ')
+						+ "Q" + [target.centerX, sourceY, target.centerX, target.bottom].join(' ');
 				arcsGroup.child(SVG_NS, 'path')
 					.attr(SVG_NS, 'd', data)
 					.attrs(SVG_NS, this.pathStyle);

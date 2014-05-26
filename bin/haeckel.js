@@ -4301,8 +4301,7 @@ var Haeckel;
     var DEFAULT_MIN_PRC_TIME = Haeckel.rng.create(-100000, 0);
 
     var PATH_STYLE = {
-        "fill": Haeckel.BLACK.hex,
-        "fill-opacity": "1",
+        "fill": "none",
         "stroke": Haeckel.BLACK.hex,
         "stroke-opacity": "1"
     };
@@ -4362,7 +4361,8 @@ var Haeckel;
                 if (!source || !target || source.empty || target.empty) {
                     return;
                 }
-                var data = "M" + source.centerX + " " + source.bottom + "L" + target.centerX + " " + target.bottom + "V" + target.top + "L" + source.centerX + " " + source.top + "V" + source.bottom + "Z";
+                var sourceY = Math.max(source.top, (target.bottom + source.bottom) / 2);
+                var data = "M" + [source.centerX, sourceY].join(' ') + "Q" + [target.centerX, sourceY, target.centerX, target.bottom].join(' ');
                 arcsGroup.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', data).attrs(Haeckel.SVG_NS, _this.pathStyle);
             }, this);
             return parent;
