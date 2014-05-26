@@ -7,6 +7,7 @@
 /// <reference path="../constants/TIME_CHARACTER.ts"/>
 /// <reference path="../functions/chr/states.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
+/// <reference path="../functions/rng/create.ts"/>
 /// <reference path="../interfaces/Arc.ts"/>
 /// <reference path="../interfaces/Digraph.ts"/>
 /// <reference path="../interfaces/Range.ts"/>
@@ -16,7 +17,7 @@
 /// <reference path="../solvers/PhyloSolver.ts"/>
 module Haeckel
 {
-	var DEFAULT_MIN_PRC_TIME = Haeckel.rng.create(-100000, 0);
+	var DEFAULT_MIN_PRC_TIME = rng.create(-100000, 0);
 
 	var PATH_STYLE: { [name: string]: string; } = {
 		"fill": "none",

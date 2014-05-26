@@ -121,7 +121,7 @@ module Haeckel
 			}
 			if (d.datings !== undefined)
 			{
-				for (key in d.distances)
+				for (key in d.datings)
 				{
 					result.datings[key] = this.datingReader
 						.readDatings(d.datings[key])
