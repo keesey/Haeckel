@@ -4307,11 +4307,20 @@ var Haeckel;
 (function (Haeckel) {
     var DEFAULT_MIN_PRC_TIME = Haeckel.rng.create(-100000, 0);
 
-    var PATH_STYLE = {
-        "fill": "none",
-        "stroke": Haeckel.BLACK.hex,
-        "stroke-opacity": "1"
-    };
+    function DEFAULT_ARC_RENDERER(builder, arc, sourceRect, targetRect) {
+        var data = "M" + [sourceRect.centerX, sourceRect.bottom].join(' ');
+        if (Haeckel.precisionEqual(sourceRect.centerX, targetRect.centerX)) {
+            data += "V" + targetRect.top;
+        } else {
+            var sourceY = Math.max(sourceRect.centerY, (targetRect.bottom + sourceRect.bottom) / 2);
+            data += "V" + sourceY + "Q" + [targetRect.centerX, sourceY, targetRect.centerX, targetRect.bottom].join(' ');
+        }
+        builder.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', data).attrs(Haeckel.SVG_NS, {
+            "fill": "none",
+            "stroke": Haeckel.BLACK.hex,
+            "stroke-opacity": "1"
+        });
+    }
 
     function DEFAULT_VERTEX_RENDERER(builder, taxon, rectangle) {
         builder.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
@@ -4326,8 +4335,8 @@ var Haeckel;
         __extends(PhyloChart, _super);
         function PhyloChart() {
             _super.apply(this, arguments);
+            this.arcRenderer = DEFAULT_ARC_RENDERER;
             this.minPrcTime = DEFAULT_MIN_PRC_TIME;
-            this.pathStyle = PATH_STYLE;
             this.phylogeny = Haeckel.EMPTY_DIGRAPH;
             this.vertexRenderer = DEFAULT_VERTEX_RENDERER;
         }
@@ -4368,14 +4377,7 @@ var Haeckel;
                 if (!source || !target || source.empty || target.empty) {
                     return;
                 }
-                var data = "M" + [source.centerX, source.bottom].join(' ');
-                if (Haeckel.precisionEqual(source.centerX, target.centerX)) {
-                    data += "V" + target.top;
-                } else {
-                    var sourceY = Math.max(source.top, (target.bottom + source.bottom) / 2);
-                    data += "V" + sourceY + "Q" + [target.centerX, sourceY, target.centerX, target.bottom].join(' ');
-                }
-                arcsGroup.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', data).attrs(Haeckel.SVG_NS, _this.pathStyle);
+                _this.arcRenderer(arcsGroup, arc, source, target);
             }, this);
             return parent;
         };

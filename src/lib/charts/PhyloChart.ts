@@ -20,11 +20,27 @@ module Haeckel
 {
 	var DEFAULT_MIN_PRC_TIME = rng.create(-100000, 0);
 
-	var PATH_STYLE: { [name: string]: string; } = {
-		"fill": "none",
-		"stroke": BLACK.hex,
-		"stroke-opacity": "1"
-	};
+	function DEFAULT_ARC_RENDERER(builder: ElementBuilder, arc: Arc<Taxic>, sourceRect: Rectangle, targetRect: Rectangle): void
+	{
+		var data: string = "M" + [sourceRect.centerX, sourceRect.bottom].join(' ');
+		if (precisionEqual(sourceRect.centerX, targetRect.centerX))
+		{
+			data += "V" + targetRect.top;
+		}
+		else
+		{
+			var sourceY = Math.max(sourceRect.centerY, (targetRect.bottom + sourceRect.bottom) / 2);
+			data += "V" + sourceY
+				+ "Q" + [targetRect.centerX, sourceY, targetRect.centerX, targetRect.bottom].join(' ');
+		}
+		builder.child(SVG_NS, 'path')
+			.attr(SVG_NS, 'd', data)
+			.attrs(SVG_NS, {
+				"fill": "none",
+				"stroke": BLACK.hex,
+				"stroke-opacity": "1"
+			});
+	}
 
 	function DEFAULT_VERTEX_RENDERER(builder: ElementBuilder, taxon: Taxic, rectangle: Rectangle): void
 	{
@@ -40,9 +56,9 @@ module Haeckel
 
 	export class PhyloChart extends ChronoCharChart implements Renderer
 	{
-		minPrcTime = DEFAULT_MIN_PRC_TIME;
+		arcRenderer: (builder: ElementBuilder, arc: Arc<Taxic>, sourceRect: Rectangle, targetRect: Rectangle) => void = DEFAULT_ARC_RENDERER;
 
-		pathStyle: { [name: string]: string; } = PATH_STYLE;
+		minPrcTime = DEFAULT_MIN_PRC_TIME;
 
 		phylogeny: Digraph<Taxic> = EMPTY_DIGRAPH;
 
@@ -95,20 +111,7 @@ module Haeckel
 				{
 					return;
 				}
-				var data: string = "M" + [source.centerX, source.bottom].join(' ');
-				if (precisionEqual(source.centerX, target.centerX))
-				{
-					data += "V" + target.top;
-				}
-				else
-				{
-					var sourceY = Math.max(source.top, (target.bottom + source.bottom) / 2);
-					data += "V" + sourceY
-						+ "Q" + [target.centerX, sourceY, target.centerX, target.bottom].join(' ');
-				}
-				arcsGroup.child(SVG_NS, 'path')
-					.attr(SVG_NS, 'd', data)
-					.attrs(SVG_NS, this.pathStyle);
+				this.arcRenderer(arcsGroup, arc, source, target);
 			}, this);
 			return parent;
 		}		

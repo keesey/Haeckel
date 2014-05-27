@@ -880,10 +880,8 @@ declare module Haeckel {
 }
 declare module Haeckel {
     class PhyloChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
+        public arcRenderer: (builder: Haeckel.ElementBuilder, arc: Haeckel.Arc<Haeckel.Taxic>, sourceRect: Haeckel.Rectangle, targetRect: Haeckel.Rectangle) => void;
         public minPrcTime: Haeckel.Range;
-        public pathStyle: {
-            [name: string]: string;
-        };
         public phylogeny: Haeckel.Digraph<Haeckel.Taxic>;
         public vertexRenderer: (builder: Haeckel.ElementBuilder, taxon: Haeckel.Taxic, rectangle: Haeckel.Rectangle) => void;
         public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
