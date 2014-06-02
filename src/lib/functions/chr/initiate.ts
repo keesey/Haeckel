@@ -19,6 +19,7 @@ module Haeckel.chr
 			combine: null,
 			domain: domain,
 			hash: uid,
+			intersect: null,
 			label: label,
 			labelStates: labelStates,
 			overlap: null,

@@ -1,8 +1,10 @@
 ///<reference path="initiate.ts" />
+///<reference path="intersector.ts" />
 ///<reference path="overlapper.ts" />
 ///<reference path="../ext/domain.ts" />
 ///<reference path="../ext/intersect.ts" />
 ///<reference path="../ext/union.ts" />
+///<reference path="../../constants/EMPTY_SET.ts" />
 ///<reference path="../../interfaces/Character.ts" />
 ///<reference path="../../interfaces/ExtSet.ts" />
 module Haeckel.chr
@@ -17,6 +19,7 @@ module Haeckel.chr
 	{
 		var c = initiate(ext.domain<T>(hash), label, labelStates, stateLabels);
 		c.combine = ext.union;
+		c.intersect = intersector<ExtSet<T>>(ext.intersect, EMPTY_SET);
 		c.overlap = overlapper<ExtSet<T>>(ext.intersect);
 		c.readStates = readStates;
 		c.writeStates = writeStates;

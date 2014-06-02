@@ -1,6 +1,8 @@
 ///<reference path="initiate.ts" />
+///<reference path="intersector.ts" />
 ///<reference path="../ist/create.ts" />
 ///<reference path="../ist/intersect.ts" />
+///<reference path="../../constants/EMPTY_SET.ts" />
 ///<reference path="../../interfaces/Character.ts" />
 ///<reference path="../../interfaces/IntSet.ts" />
 module Haeckel.chr
@@ -16,6 +18,7 @@ module Haeckel.chr
 		var domain = ist.create(criterion),
 			c = initiate(domain, label, labelStates, stateLabels);
 		c.combine = combine ? combine : combiner<IntSet<T>>((sets: IntSet<T>[]) => ist.union<T>(sets));
+		c.intersect = intersector<IntSet<T>>(ist.intersect, EMPTY_SET);
 		c.overlap = overlapper<IntSet<T>>(ist.intersect);
 		c.readStates = readStates;
 		c.writeStates = writeStates;

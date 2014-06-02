@@ -588,6 +588,29 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (ext) {
+        function list(set) {
+            if (set.size === Infinity) {
+                throw new Error('Cannot traverse domain sets.');
+            }
+            if (set === null || set == undefined) {
+                return undefined;
+            }
+            if (set.empty) {
+                return [];
+            }
+            var l = new Array(set.size), i = 0, h;
+            for (h in set.hashMap) {
+                l[i++] = set.hashMap[h];
+            }
+            return l;
+        }
+        ext.list = list;
+    })(Haeckel.ext || (Haeckel.ext = {}));
+    var ext = Haeckel.ext;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (ext) {
         function setDiff(minuend, subtrahend) {
             if (minuend.empty || subtrahend.size === Infinity) {
                 return Haeckel.EMPTY_SET;
@@ -844,29 +867,6 @@ var Haeckel;
     }
 
     Haeckel.EMPTY_DIGRAPH = create();
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (ext) {
-        function list(set) {
-            if (set.size === Infinity) {
-                throw new Error('Cannot traverse domain sets.');
-            }
-            if (set === null || set == undefined) {
-                return undefined;
-            }
-            if (set.empty) {
-                return [];
-            }
-            var l = new Array(set.size), i = 0, h;
-            for (h in set.hashMap) {
-                l[i++] = set.hashMap[h];
-            }
-            return l;
-        }
-        ext.list = list;
-    })(Haeckel.ext || (Haeckel.ext = {}));
-    var ext = Haeckel.ext;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -1497,57 +1497,6 @@ var Haeckel;
             this._hashMap = {};
             this._taxon = Haeckel.EMPTY_SET;
         }
-        CharacterMatrixBuilder.prototype._infer = function (timesRun) {
-            var _this = this;
-            if (timesRun >= 2) {
-                return;
-            }
-            this._characterMatrix = this.build();
-            var changes = 0;
-            Haeckel.ext.each(this._characterMatrix.characters, function (character) {
-                changes += _this._inferCharacter(character);
-            }, this);
-            if (changes > 0) {
-                this._infer(timesRun + 1);
-            }
-        };
-
-        CharacterMatrixBuilder.prototype._inferCharacter = function (character) {
-            var _this = this;
-            if (!character.inferrer) {
-                return 0;
-            }
-            var defUnits = Haeckel.chr.definedUnits(this._characterMatrix, character), changes = 0;
-            Haeckel.ext.each(Haeckel.ext.setDiff(this._solver.vertices, defUnits), function (unit) {
-                changes += _this._inferUnit(character, defUnits, unit);
-            }, this);
-            return changes;
-        };
-
-        CharacterMatrixBuilder.prototype._inferUnit = function (character, definedUnits, unit) {
-            var allStates = [], defprcs = Haeckel.ext.intersect(this._solver.prcs(unit), definedUnits), weightedStates = this._weightedStates(character, defprcs, unit);
-            allStates.push({ states: character.inferrer.average(weightedStates), weight: 1 });
-            var defsucs = Haeckel.ext.intersect(this._solver.sucs(unit), definedUnits);
-            weightedStates = this._weightedStates(character, defsucs, unit);
-            allStates.push({ states: character.inferrer.average(weightedStates), weight: 1 });
-            var states = character.inferrer.average(allStates);
-            if (states !== null && !Haeckel.equal(states, this.states(unit, character))) {
-                this.states(unit, character, states);
-                return 1;
-            }
-            return 0;
-        };
-
-        CharacterMatrixBuilder.prototype._runInference = function () {
-            if (this._solver === null) {
-                return;
-            }
-            if (this._distanceMatrix === null) {
-                this._distanceMatrix = this._solver.toDistanceMatrix();
-            }
-            this._infer(0);
-        };
-
         CharacterMatrixBuilder.prototype._weightedStates = function (character, units, focus) {
             var result = [];
             Haeckel.ext.each(units, function (unit) {
@@ -1614,16 +1563,107 @@ var Haeckel;
             });
         };
 
-        CharacterMatrixBuilder.prototype.inferStates = function (solver, distanceMatrix) {
-            if (typeof distanceMatrix === "undefined") { distanceMatrix = null; }
+        CharacterMatrixBuilder.prototype.inferStates = function (solver, outgroup) {
+            var builder = this;
+            var sourceward;
+            var sinkward;
+            var sources = solver.sources;
+
+            function inferCharacter(character) {
+                var states = {};
+                var outgroupStates = builder.states(outgroup, character);
+
+                function forwardPass() {
+                    function process(node) {
+                        var hash = node.hash;
+                        if (states[hash] === undefined) {
+                            var scoredStates = builder.states(node, character);
+                            if (scoredStates) {
+                                states[hash] = scoredStates;
+                            } else {
+                                var children = solver.imSucs(node);
+                                if (!children.empty) {
+                                    var imSucStates = [];
+                                    Haeckel.ext.each(solver.imSucs(node), function (imSuc) {
+                                        imSucStates.push(states[imSuc.hash]);
+                                    });
+                                    var nodeStates = character.intersect(imSucStates);
+                                    if (nodeStates.empty) {
+                                        nodeStates = character.combine(imSucStates);
+                                    }
+                                    states[hash] = nodeStates;
+                                }
+                            }
+                        }
+                    }
+
+                    Haeckel.arr.each(sourceward, process);
+                }
+
+                function backwardPass() {
+                    function process(node) {
+                        if (builder.states(node, character)) {
+                            return;
+                        }
+                        var nodeStates = states[node.hash];
+                        var parentIntersect;
+                        if (nodeStates && nodeStates.empty) {
+                            builder.states(node, character, nodeStates);
+                        } else {
+                            var stateList = [nodeStates];
+                            if (nodeStates && Haeckel.ext.contains(sources, node)) {
+                                stateList.push(outgroupStates);
+                            } else {
+                                Haeckel.ext.each(solver.imPrcs(node), function (parent) {
+                                    return stateList.push(builder.states(parent, character));
+                                });
+                            }
+                            var nodeStates = character.intersect(stateList);
+                            if (nodeStates.empty) {
+                                nodeStates = character.combine(stateList);
+                            }
+                            builder.states(node, character, nodeStates);
+                        }
+                    }
+
+                    Haeckel.arr.each(sinkward, process);
+                }
+
+                forwardPass();
+                backwardPass();
+            }
+
+            function initLevels() {
+                function process(taxon, level) {
+                    var hash = taxon.hash;
+                    var existing = levels[hash];
+                    if (isNaN(existing)) {
+                        levels[hash] = level;
+                    } else {
+                        level = levels[hash] = Math.max(level, existing);
+                    }
+                    Haeckel.ext.each(solver.imSucs(taxon), function (child) {
+                        return process(child, level + 1);
+                    });
+                }
+
+                var levels = {};
+                Haeckel.ext.each(solver.sources, function (source) {
+                    return process(source, 0);
+                });
+                sourceward = Haeckel.ext.list(solver.vertices);
+                sourceward.sort(function (a, b) {
+                    return levels[a.hash] - levels[b.hash];
+                });
+                sinkward = sourceward.concat();
+                sinkward.reverse();
+            }
+
             try  {
-                this._distanceMatrix = (distanceMatrix === null) ? solver.toDistanceMatrix() : distanceMatrix;
-                this._solver = solver;
-                this._runInference();
+                initLevels();
+                Haeckel.arr.each(this._characterList, inferCharacter);
             } finally {
                 this._characterMatrix = null;
-                this._distanceMatrix = null;
-                this._solver = null;
             }
             return this;
         };
@@ -2125,6 +2165,7 @@ var Haeckel;
                 combine: null,
                 domain: domain,
                 hash: uid,
+                intersect: null,
                 label: label,
                 labelStates: labelStates,
                 overlap: null,
@@ -2138,6 +2179,28 @@ var Haeckel;
         chr.initiate = initiate;
     })(Haeckel.chr || (Haeckel.chr = {}));
     var chr = Haeckel.chr;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    function intersector(intersect, emptySet) {
+        return function (sets) {
+            var result = undefined;
+            Haeckel.arr.each(sets, function (s) {
+                if (s) {
+                    if (result === undefined) {
+                        result = s;
+                    } else {
+                        result = intersect(result, s);
+                    }
+                    if (result.empty) {
+                        return false;
+                    }
+                }
+            });
+            return result || emptySet;
+        };
+    }
+    Haeckel.intersector = intersector;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -2293,6 +2356,7 @@ var Haeckel;
         function createBit(domain, inferrable, distance, label, labelStates, stateLabels) {
             var c = Haeckel.chr.initiate(domain, label, labelStates, stateLabels, 'discrete');
             c.combine = Haeckel.combiner(Haeckel.bit.union);
+            c.intersect = Haeckel.intersector(Haeckel.bit.intersect, Haeckel.EMPTY_SET);
             c.overlap = Haeckel.overlapper(Haeckel.bit.intersect);
             c.readStates = Haeckel.bit.read;
             c.writeStates = Haeckel.bit.write;
@@ -2822,6 +2886,7 @@ var Haeckel;
         function createRange(domain, inferrable, distance, label, labelStates, stateLabels) {
             var c = Haeckel.chr.initiate(domain, label, labelStates, stateLabels, 'range');
             c.combine = Haeckel.rng.combine;
+            c.intersect = Haeckel.intersector(Haeckel.rng.intersect, Haeckel.EMPTY_SET);
             c.overlap = Haeckel.overlapper(Haeckel.rng.intersect);
             c.readStates = Haeckel.rng.read;
             c.writeStates = Haeckel.rng.write;
@@ -2868,6 +2933,7 @@ var Haeckel;
         function createDomain(hash, readStates, writeStates, label, labelStates, stateLabels) {
             var c = Haeckel.chr.initiate(Haeckel.ext.domain(hash), label, labelStates, stateLabels);
             c.combine = Haeckel.ext.union;
+            c.intersect = Haeckel.intersector(Haeckel.ext.intersect, Haeckel.EMPTY_SET);
             c.overlap = Haeckel.overlapper(Haeckel.ext.intersect);
             c.readStates = readStates;
             c.writeStates = writeStates;

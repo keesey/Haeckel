@@ -11,6 +11,7 @@ module Haeckel
 		domain: S;
 		distance?: (statesA: S, statesB: S) => Range;
 		inferrer?: Inferrer<S>;
+		intersect: (statesList: S[]) => S;
 		label?: string;
 		labelStates?: (states: S) => string;
 		overlap: (statesA: S, statesB: S) => boolean;

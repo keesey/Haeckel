@@ -5,6 +5,7 @@
 /// <reference path="../functions/dst/get.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
 /// <reference path="../functions/ext/intersect.ts"/>
+/// <reference path="../functions/ext/list.ts"/>
 /// <reference path="../functions/ext/setDiff.ts"/>
 /// <reference path="../functions/tax/setDiff.ts"/>
 /// <reference path="../functions/tax/union.ts"/>
@@ -26,77 +27,9 @@ module Haeckel
 
 		private _characters = new ExtSetBuilder<Character<S>>();
 
-		private _distanceMatrix: DistanceMatrix<Taxic>;
-
 		private _hashMap: { [hash: string]: S; } = {};
 
-		private _solver: DAGSolver<Taxic>;
-
 		private _taxon: Taxic = EMPTY_SET;
-
-		private _infer(timesRun: number)
-		{
-			if (timesRun >= 2)
-			{
-				return;
-			}
-			this._characterMatrix = this.build();
-			var changes = 0;
-			ext.each(this._characterMatrix.characters, (character: Character<S>) =>
-			{
-				changes += this._inferCharacter(character);
-			}, this);
-			if (changes > 0)
-			{
-				this._infer(timesRun + 1);
-			}
-		}
-
-		private _inferCharacter(character: Character<S>)
-		{
-			if (!character.inferrer)
-			{
-				return 0;
-			}
-			var defUnits = chr.definedUnits(this._characterMatrix, character),
-				changes = 0;
-			ext.each(ext.setDiff(this._solver.vertices, defUnits), (unit: Taxic) =>
-			{
-				changes += this._inferUnit(character, defUnits, unit);
-			}, this);
-			return changes;
-		}
-
-		private _inferUnit(character: Character<S>, definedUnits: ExtSet<Taxic>, unit: Taxic)
-		{
-			var allStates: WeightedStates<S>[] = [],
-				defprcs = ext.intersect(this._solver.prcs(unit), definedUnits),
-				weightedStates = this._weightedStates(character, defprcs, unit);
-			allStates.push({states: character.inferrer.average(weightedStates), weight: 1});
-			var defsucs = ext.intersect(this._solver.sucs(unit), definedUnits);
-			weightedStates = this._weightedStates(character, defsucs, unit);
-			allStates.push({states: character.inferrer.average(weightedStates), weight: 1});
-			var states: S = character.inferrer.average(allStates);
-			if (states !== null && !equal(states, this.states(unit, character)))
-			{
-				this.states(unit, character, states);
-				return 1;
-			}
-			return 0;
-		}
-
-		private _runInference()
-		{
-			if (this._solver === null)
-			{
-				return;
-			}
-            if (this._distanceMatrix === null)
-            {
-				this._distanceMatrix = this._solver.toDistanceMatrix();
-			}
-			this._infer(0);
-		}
 
 		private _weightedStates(character: Character<S>, units: ExtSet<Taxic>, focus: Taxic): WeightedStates<S>[]
 		{
@@ -167,19 +100,131 @@ module Haeckel
 			});
 		}
 
-		inferStates(solver: DAGSolver<Taxic>, distanceMatrix: DistanceMatrix<Taxic> = null)
+		inferStates(solver: DAGSolver<Taxic>, outgroup: Taxic)
 		{
+			var builder = this;
+			var sourceward: Taxic[];
+			var sinkward: Taxic[];
+			var sources = solver.sources;
+
+			function inferCharacter(character: Character<S>)
+			{
+				var states: { [taxonHash: string]: S; } = {};
+				var outgroupStates = builder.states(outgroup, character);
+
+				function forwardPass()
+				{
+					function process(node: Taxic)
+					{
+						var hash = node.hash;
+						if (states[hash] === undefined)
+						{
+							var scoredStates = builder.states(node, character);
+							if (scoredStates)
+							{
+								states[hash] = scoredStates;
+							}
+							else
+							{
+								var children = solver.imSucs(node);
+								if (!children.empty)
+								{
+									var imSucStates: S[] = [];
+									ext.each(solver.imSucs(node), (imSuc: Taxic) =>
+									{
+										imSucStates.push(states[imSuc.hash]);
+									});
+									var nodeStates = character.intersect(imSucStates);
+									if (nodeStates.empty)
+									{
+										nodeStates = character.combine(imSucStates);
+									}
+									states[hash] = nodeStates;
+								}
+							}
+						}
+					}
+
+					arr.each(sourceward, process);
+				}
+
+				function backwardPass()
+				{
+					function process(node: Taxic)
+					{
+						if (builder.states(node, character))
+						{
+							return;
+						}
+						var nodeStates = states[node.hash];
+						var parentIntersect: S;
+						if (nodeStates && nodeStates.empty)
+						{
+							builder.states(node, character, nodeStates);
+						}
+						else 
+						{
+							var stateList: S[] = [ nodeStates ];
+							if (nodeStates && ext.contains(sources, node))
+							{
+								stateList.push(outgroupStates);
+							}
+							else
+							{
+								ext.each(solver.imPrcs(node), (parent: Taxic) => stateList.push(builder.states(parent, character)));
+							}
+							var nodeStates = character.intersect(stateList);
+							if (nodeStates.empty)
+							{
+								nodeStates = character.combine(stateList);
+							}
+							builder.states(node, character, nodeStates);
+						}
+					}
+
+					arr.each(sinkward, process);
+				}
+
+				forwardPass();
+				backwardPass();
+			}
+
+			function initLevels()
+			{
+				function process(taxon: Taxic, level: number)
+				{
+					var hash = taxon.hash;
+					var existing = levels[hash];
+					if (isNaN(existing))
+					{
+						levels[hash] = level;
+					}
+					else
+					{
+						level = levels[hash] = Math.max(level, existing);
+					}
+					ext.each(solver.imSucs(taxon), (child: Taxic) => process(child, level + 1));
+				}
+
+				var levels: { [taxonHash: string]: number; } = {};
+				ext.each(solver.sources, (source: Taxic) => process(source, 0));
+				sourceward = ext.list(solver.vertices);
+				sourceward.sort((a: Taxic, b: Taxic) =>
+				{
+					return levels[a.hash] - levels[b.hash];
+				});
+				sinkward = sourceward.concat();
+				sinkward.reverse();
+			}
+
 			try
 			{
-				this._distanceMatrix = (distanceMatrix === null) ? solver.toDistanceMatrix() : distanceMatrix;
-				this._solver = solver;
-				this._runInference();
+				initLevels();
+				arr.each(this._characterList, inferCharacter);
 			}
 			finally
 			{
 				this._characterMatrix = null;
-				this._distanceMatrix = null;
-				this._solver = null;
 			}
 	        return this;
 		}

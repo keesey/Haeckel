@@ -142,6 +142,7 @@ declare module Haeckel {
         domain: S;
         distance?: (statesA: S, statesB: S) => Haeckel.Range;
         inferrer?: Haeckel.Inferrer<S>;
+        intersect: (statesList: S[]) => S;
         label?: string;
         labelStates?: (states: S) => string;
         overlap: (statesA: S, statesB: S) => boolean;
@@ -211,6 +212,9 @@ declare module Haeckel.ext {
     function intersect<T>(a: Haeckel.ExtSet<T>, b: Haeckel.ExtSet<T>): Haeckel.ExtSet<T>;
 }
 declare module Haeckel.ext {
+    function list<T>(set: Haeckel.ExtSet<T>): T[];
+}
+declare module Haeckel.ext {
     function setDiff<T>(minuend: Haeckel.ExtSet<T>, subtrahend: Haeckel.ExtSet<T>): Haeckel.ExtSet<T>;
 }
 declare module Haeckel.ext {
@@ -271,9 +275,6 @@ declare module Haeckel {
 }
 declare module Haeckel {
     var EMPTY_DIGRAPH: Digraph<any>;
-}
-declare module Haeckel.ext {
-    function list<T>(set: Haeckel.ExtSet<T>): T[];
 }
 declare module Haeckel {
     class DAGBuilder<T> implements Haeckel.Builder<Haeckel.Digraph<T>> {
@@ -361,14 +362,8 @@ declare module Haeckel {
         private _characterList;
         private _characterMatrix;
         private _characters;
-        private _distanceMatrix;
         private _hashMap;
-        private _solver;
         private _taxon;
-        private _infer(timesRun);
-        private _inferCharacter(character);
-        private _inferUnit(character, definedUnits, unit);
-        private _runInference();
         private _weightedStates(character, units, focus);
         public characterList : Haeckel.Character<S>[];
         public taxon : Haeckel.Taxic;
@@ -376,7 +371,7 @@ declare module Haeckel {
         public addListed(character: Haeckel.Character<S>): CharacterMatrixBuilder<S>;
         public addMatrix(matrix: Haeckel.CharacterMatrix<S>): CharacterMatrixBuilder<S>;
         public build(): Haeckel.CharacterMatrix<S>;
-        public inferStates(solver: Haeckel.DAGSolver<Haeckel.Taxic>, distanceMatrix?: Haeckel.DistanceMatrix<Haeckel.Taxic>): CharacterMatrixBuilder<S>;
+        public inferStates(solver: Haeckel.DAGSolver<Haeckel.Taxic>, outgroup: Haeckel.Taxic): CharacterMatrixBuilder<S>;
         public removeCharacter(character: Haeckel.Character<S>): CharacterMatrixBuilder<S>;
         public removeStates(taxon: Haeckel.Taxic, character: Haeckel.Character<S>): CharacterMatrixBuilder<S>;
         public removeTaxon(taxon: Haeckel.Taxic): CharacterMatrixBuilder<S>;
@@ -639,6 +634,9 @@ declare module Haeckel {
 }
 declare module Haeckel.chr {
     function initiate<S extends Haeckel.Set>(domain: S, label: string, labelStates: (s: S) => string, stateLabels: string[], type?: string): Haeckel.Character<S>;
+}
+declare module Haeckel {
+    function intersector<S extends Set>(intersect: (a: S, b: S) => S, emptySet: S): (sets: S[]) => S;
 }
 declare module Haeckel.chr {
     function normalizeWeights<S extends Haeckel.Set>(statesList: Haeckel.WeightedStates<S>[]): Haeckel.WeightedStates<S>[];
