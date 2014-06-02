@@ -127,10 +127,14 @@ module Haeckel
 							else
 							{
 								var children = solver.imSucs(node);
-								if (!children.empty)
+								if (children.empty)
+								{
+									states[hash] = null;
+								}
+								else
 								{
 									var imSucStates: S[] = [];
-									ext.each(solver.imSucs(node), (imSuc: Taxic) =>
+									ext.each(children, (imSuc: Taxic) =>
 									{
 										imSucStates.push(states[imSuc.hash]);
 									});

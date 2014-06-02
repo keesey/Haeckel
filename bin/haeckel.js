@@ -1480,9 +1480,11 @@ var Haeckel;
                                 states[hash] = scoredStates;
                             } else {
                                 var children = solver.imSucs(node);
-                                if (!children.empty) {
+                                if (children.empty) {
+                                    states[hash] = null;
+                                } else {
                                     var imSucStates = [];
-                                    Haeckel.ext.each(solver.imSucs(node), function (imSuc) {
+                                    Haeckel.ext.each(children, function (imSuc) {
                                         imSucStates.push(states[imSuc.hash]);
                                     });
                                     var nodeStates = character.intersect(imSucStates);
