@@ -25,54 +25,64 @@ module Haeckel
 {
 	var MAX_RANDOM_ATTEMPTS = 32;
 
-	var OUTSIDE_MINIMUM_STYLE: { [name: string]: string; } = {
-		'fill-opacity': '0.5'
-	};
-
 	var POINT_STYLE: { [name: string]: string; } = {
 		'fill': BLACK.hex,
 		'fill-opacity': '1',
-		'stroke-opacity': '0'
+		'stroke': 'none'
 	};
 
-	var RECT_STYLE: { [name: string]: string; } = {
-		'fill': BLACK.hex,
-		'fill-opacity': '1',
-		'stroke-opacity': '0'
-	};
+	var RECT_STYLE: { [name: string]: string; } = POINT_STYLE;
+
+	export enum OccurrenceCountStrategy
+	{
+		MIN,
+		MEAN,
+		MAX
+	}
+
+	function getCount(count: Range, strategy: OccurrenceCountStrategy): number
+	{
+		switch (strategy)
+		{
+			case OccurrenceCountStrategy.MIN:
+				return count.min;
+			case OccurrenceCountStrategy.MEAN:
+				return count.mean;
+			case OccurrenceCountStrategy.MAX:
+				return count.max;
+			default:
+				return undefined;
+		}
+	}
 
 	export class OccurrencePlotChart extends ChronoCharChart implements Renderer
 	{
+		countStrategy: OccurrenceCountStrategy = OccurrenceCountStrategy.MIN;
+
 		radius = 1;
 
 		random: () => number = Math.random;
 
-		private createPoint(builder: ElementBuilder, p: Point, unit: Taxic, withinMinimum: boolean)
+		private createPoint(builder: ElementBuilder, p: Point, unit: Taxic)
 		{
-			var point: ElementBuilder = builder.child(SVG_NS, 'circle')
+			builder.child(SVG_NS, 'circle')
 				.attrs(SVG_NS, {
 						'cx': p.x + 'px',
 						'cy': p.y + 'px',
-						'r': (withinMinimum ? this.radius : (this.radius / 2)) + 'px'
+						'r': this.radius + 'px'
 					})
 				.attrs(SVG_NS, POINT_STYLE);
-			if (!withinMinimum)
-			{
-				point.attrs(SVG_NS, OUTSIDE_MINIMUM_STYLE);
-			}
 		}
 
-		private drawPoints(builder: ElementBuilder, plots: { [key: string]: boolean; }, area: Rectangle, unit: Taxic, count: Range)
+		private drawPoints(builder: ElementBuilder, plots: { [key: string]: boolean; }, area: Rectangle, unit: Taxic, count: number)
 		{
-			var min = count.min,
-				max = count.max,
-				point: Point;
-			for (var i = 0; i < max; ++i)
+			var point: Point;
+			for (var i = 0; i < count; ++i)
 			{
 				point = this.getIndividualPoint(plots, area);
 				if (rec.contains(this.area, point))
 				{
-					this.createPoint(builder, point, unit, i < min);
+					this.createPoint(builder, point, unit);
 				}
 			}
 		}
@@ -179,13 +189,14 @@ module Haeckel
 								if (!y.empty)
 								{
 									var rect = rec.createFromCoords(x.min, y.min, x.max, y.max);
-									if (rect.area <= count.min)
+									var countNum = getCount(count, this.countStrategy);
+									if (rect.area <= countNum)
 									{
 										this.drawRect(g, plots, rect, unit);
 									}
 									else
 									{
-										this.drawPoints(g, plots, rect, unit, count);
+										this.drawPoints(g, plots, rect, unit, countNum);
 									}
 								}
 							}

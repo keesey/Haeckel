@@ -4222,46 +4222,56 @@ var Haeckel;
 (function (Haeckel) {
     var MAX_RANDOM_ATTEMPTS = 32;
 
-    var OUTSIDE_MINIMUM_STYLE = {
-        'fill-opacity': '0.5'
-    };
-
     var POINT_STYLE = {
         'fill': Haeckel.BLACK.hex,
         'fill-opacity': '1',
-        'stroke-opacity': '0'
+        'stroke': 'none'
     };
 
-    var RECT_STYLE = {
-        'fill': Haeckel.BLACK.hex,
-        'fill-opacity': '1',
-        'stroke-opacity': '0'
-    };
+    var RECT_STYLE = POINT_STYLE;
+
+    (function (OccurrenceCountStrategy) {
+        OccurrenceCountStrategy[OccurrenceCountStrategy["MIN"] = 0] = "MIN";
+        OccurrenceCountStrategy[OccurrenceCountStrategy["MEAN"] = 1] = "MEAN";
+        OccurrenceCountStrategy[OccurrenceCountStrategy["MAX"] = 2] = "MAX";
+    })(Haeckel.OccurrenceCountStrategy || (Haeckel.OccurrenceCountStrategy = {}));
+    var OccurrenceCountStrategy = Haeckel.OccurrenceCountStrategy;
+
+    function getCount(count, strategy) {
+        switch (strategy) {
+            case 0 /* MIN */:
+                return count.min;
+            case 1 /* MEAN */:
+                return count.mean;
+            case 2 /* MAX */:
+                return count.max;
+            default:
+                return undefined;
+        }
+    }
 
     var OccurrencePlotChart = (function (_super) {
         __extends(OccurrencePlotChart, _super);
         function OccurrencePlotChart() {
             _super.apply(this, arguments);
+            this.countStrategy = 0 /* MIN */;
             this.radius = 1;
             this.random = Math.random;
         }
-        OccurrencePlotChart.prototype.createPoint = function (builder, p, unit, withinMinimum) {
-            var point = builder.child(Haeckel.SVG_NS, 'circle').attrs(Haeckel.SVG_NS, {
+        OccurrencePlotChart.prototype.createPoint = function (builder, p, unit) {
+            builder.child(Haeckel.SVG_NS, 'circle').attrs(Haeckel.SVG_NS, {
                 'cx': p.x + 'px',
                 'cy': p.y + 'px',
-                'r': (withinMinimum ? this.radius : (this.radius / 2)) + 'px'
+                'r': this.radius + 'px'
             }).attrs(Haeckel.SVG_NS, POINT_STYLE);
-            if (!withinMinimum) {
-                point.attrs(Haeckel.SVG_NS, OUTSIDE_MINIMUM_STYLE);
-            }
         };
 
         OccurrencePlotChart.prototype.drawPoints = function (builder, plots, area, unit, count) {
-            var min = count.min, max = count.max, point;
-            for (var i = 0; i < max; ++i) {
+            var point;
+            for (var i = 0; i < count; ++i) {
                 point = this.getIndividualPoint(plots, area);
                 if (Haeckel.rec.contains(this.area, point)) {
-                    this.createPoint(builder, point, unit, i < min);
+                    this.createPoint(builder, point, unit);
                 }
             }
         };
@@ -4334,10 +4344,11 @@ var Haeckel;
                                 var y = _this.getTimeY(occurrence.time);
                                 if (!y.empty) {
                                     var rect = Haeckel.rec.createFromCoords(x.min, y.min, x.max, y.max);
-                                    if (rect.area <= count.min) {
+                                    var countNum = getCount(count, _this.countStrategy);
+                                    if (rect.area <= countNum) {
                                         _this.drawRect(g, plots, rect, unit);
                                     } else {
-                                        _this.drawPoints(g, plots, rect, unit, count);
+                                        _this.drawPoints(g, plots, rect, unit, countNum);
                                     }
                                 }
                             }

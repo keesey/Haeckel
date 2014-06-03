@@ -863,10 +863,16 @@ declare module Haeckel.rec {
     function intersect(a: Haeckel.Rectangle, b: Haeckel.Rectangle): Haeckel.Rectangle;
 }
 declare module Haeckel {
+    enum OccurrenceCountStrategy {
+        MIN = 0,
+        MEAN = 1,
+        MAX = 2,
+    }
     class OccurrencePlotChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
+        public countStrategy: OccurrenceCountStrategy;
         public radius: number;
         public random: () => number;
-        private createPoint(builder, p, unit, withinMinimum);
+        private createPoint(builder, p, unit);
         private drawPoints(builder, plots, area, unit, count);
         private drawRect(builder, plots, area, unit);
         private getIndividualPoint(plots, area);
