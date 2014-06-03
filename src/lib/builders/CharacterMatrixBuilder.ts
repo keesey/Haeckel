@@ -110,43 +110,30 @@ module Haeckel
 			function inferCharacter(character: Character<S>)
 			{
 				var states: { [taxonHash: string]: S; } = {};
+				var scored: { [taxonHash: string]: boolean; } = {};
 				var outgroupStates = builder.states(outgroup, character);
 
 				function forwardPass()
 				{
 					function process(node: Taxic)
 					{
-						var hash = node.hash;
-						if (states[hash] === undefined)
+						var nodeHash = node.hash;
+						var nodeStates = builder.states(node, character);
+						var nodeScored = scored[nodeHash] = !!nodeStates;
+						if (!nodeScored)
 						{
-							var scoredStates = builder.states(node, character);
-							if (scoredStates)
+							var childStates: S[] = [];
+							ext.each(solver.imSucs(node), (child: Taxic) =>
 							{
-								states[hash] = scoredStates;
-							}
-							else
+								childStates.push(states[child.hash]);
+							});
+							nodeStates = character.intersect(childStates);
+							if (nodeStates.empty)
 							{
-								var children = solver.imSucs(node);
-								if (children.empty)
-								{
-									states[hash] = null;
-								}
-								else
-								{
-									var imSucStates: S[] = [];
-									ext.each(children, (imSuc: Taxic) =>
-									{
-										imSucStates.push(states[imSuc.hash]);
-									});
-									var nodeStates = character.intersect(imSucStates);
-									if (nodeStates.empty)
-									{
-										nodeStates = character.combine(imSucStates);
-									}
-									states[hash] = nodeStates;
-								}
+								nodeStates = character.combine(childStates);
 							}
 						}
+						states[nodeHash] = nodeStates;
 					}
 
 					arr.each(sourceward, process);
@@ -156,34 +143,30 @@ module Haeckel
 				{
 					function process(node: Taxic)
 					{
-						if (builder.states(node, character))
+						var nodeHash = node.hash;
+						if (scored[nodeHash])
 						{
 							return;
 						}
-						var nodeStates = states[node.hash];
-						var parentIntersect: S;
-						if (nodeStates && nodeStates.empty)
-						{
-							builder.states(node, character, nodeStates);
-						}
-						else 
-						{
-							var stateList: S[] = [ nodeStates ];
-							if (nodeStates && ext.contains(sources, node))
-							{
-								stateList.push(outgroupStates);
-							}
-							else
-							{
-								ext.each(solver.imPrcs(node), (parent: Taxic) => stateList.push(builder.states(parent, character)));
-							}
-							var nodeStates = character.intersect(stateList);
-							if (nodeStates.empty)
-							{
-								nodeStates = character.combine(stateList);
-							}
-							builder.states(node, character, nodeStates);
-						}
+                        var nodeStates = states[nodeHash];
+                        var stateList: S[] = [ nodeStates ];
+                        if (ext.contains(sources, node))
+                        {
+                            stateList.push(outgroupStates);
+                        }
+                        else
+                        {
+                            Haeckel.ext.each(solver.imPrcs(node), (parent: Taxic) =>
+                            {
+                                stateList.push(builder.states(parent, character));
+                            });
+                        }
+                        nodeStates = character.intersect(stateList);
+                        if (nodeStates.empty)
+                        {
+                            nodeStates = character.combine(stateList);
+                        }
+                        builder.states(node, character, nodeStates);
 					}
 
 					arr.each(sinkward, process);
@@ -215,7 +198,7 @@ module Haeckel
 				sourceward = ext.list(solver.vertices);
 				sourceward.sort((a: Taxic, b: Taxic) =>
 				{
-					return levels[a.hash] - levels[b.hash];
+					return levels[b.hash] - levels[a.hash];
 				});
 				sinkward = sourceward.concat();
 				sinkward.reverse();
