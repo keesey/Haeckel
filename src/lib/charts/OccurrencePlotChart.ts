@@ -38,8 +38,8 @@ module Haeckel
 		builder.child(SVG_NS, 'rect')
 			.attrs(SVG_NS,
 				{
-					'height': Math.max(area.height, this.radius * 2) + 'px',
-					'width': Math.max(area.width, this.radius * 2) + 'px',
+					'height': area.height + 'px',
+					'width': area.width + 'px',
 					'x': area.left + 'px',
 					'y': area.top + 'px'
 				})
@@ -52,7 +52,7 @@ module Haeckel
 			.attrs(SVG_NS, {
 					'cx': p.x + 'px',
 					'cy': p.y + 'px',
-					'r': this.radius + 'px'
+					'r': '1px'
 				})
 			.attrs(SVG_NS, POINT_STYLE);
 	}
@@ -82,8 +82,6 @@ module Haeckel
 	export class OccurrencePlotChart extends ChronoCharChart implements Renderer
 	{
 		countStrategy: OccurrenceCountStrategy = OccurrenceCountStrategy.MIN;
-
-		radius = 1;
 
 		random: () => number = Math.random;
 
@@ -141,8 +139,7 @@ module Haeckel
 			}
 
 			var plots: { [key: string]: boolean; } = {},
-				matrix = this.characterMatrix,
-				area = this.area;
+				matrix = this.characterMatrix;
 
 			ext.each(matrix.taxon.units, (unit: Taxic) =>
 			{
@@ -177,22 +174,21 @@ module Haeckel
 									var countNum = getCount(count, this.countStrategy);
 									if (rect.area <= countNum)
 									{
-										var rect = rec.intersect(this.area, area);
-										if (!rect.empty)
+										var area = rec.intersect(this.area, rect);
+										if (!area.empty)
 										{
-											var right = Math.floor(rect.right),
-												bottom = Math.floor(rect.bottom),
-												top = Math.floor(rect.top),
-												left = Math.floor(rect.left);
-											for (var x = left; x <= right; ++x)
+											var right = Math.floor(area.right),
+												bottom = Math.floor(area.bottom),
+												top = Math.floor(area.top),
+												left = Math.floor(area.left);
+											for (var xi = left; xi <= right; ++xi)
 											{
-												for (var y = top; y <= bottom; ++y)
+												for (var yi = top; yi <= bottom; ++yi)
 												{
-													var key = String(x) + "," + String(y);
-													plots[key] = true;
+													plots[xi + "," + yi] = true;
 												}
 											}
-											this.drawArea(g, rect, unit);
+											this.drawArea(g, area, unit);
 										}
 									}
 									else

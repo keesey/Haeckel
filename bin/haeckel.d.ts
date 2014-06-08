@@ -870,11 +870,10 @@ declare module Haeckel {
     }
     class OccurrencePlotChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
         public countStrategy: OccurrenceCountStrategy;
-        public radius: number;
         public random: () => number;
-        private createPoint(builder, p, unit);
+        public drawArea: (builder: Haeckel.ElementBuilder, area: Haeckel.Rectangle, unit: Haeckel.Taxic) => any;
+        public drawPoint: (builder: Haeckel.ElementBuilder, p: Haeckel.Point, unit: Haeckel.Taxic) => any;
         private drawPoints(builder, plots, area, unit, count);
-        private drawRect(builder, plots, area, unit);
         private getIndividualPoint(plots, area);
         public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }

@@ -4232,8 +4232,8 @@ var Haeckel;
 
     function DEFAULT_DRAW_AREA(builder, area, unit) {
         builder.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
-            'height': Math.max(area.height, this.radius * 2) + 'px',
-            'width': Math.max(area.width, this.radius * 2) + 'px',
+            'height': area.height + 'px',
+            'width': area.width + 'px',
             'x': area.left + 'px',
             'y': area.top + 'px'
         }).attrs(Haeckel.SVG_NS, RECT_STYLE);
@@ -4243,7 +4243,7 @@ var Haeckel;
         builder.child(Haeckel.SVG_NS, 'circle').attrs(Haeckel.SVG_NS, {
             'cx': p.x + 'px',
             'cy': p.y + 'px',
-            'r': this.radius + 'px'
+            'r': '1px'
         }).attrs(Haeckel.SVG_NS, POINT_STYLE);
     }
 
@@ -4272,7 +4272,6 @@ var Haeckel;
         function OccurrencePlotChart() {
             _super.apply(this, arguments);
             this.countStrategy = 0 /* MIN */;
-            this.radius = 1;
             this.random = Math.random;
             this.drawArea = DEFAULT_DRAW_AREA;
             this.drawPoint = DEFAULT_DRAW_POINT;
@@ -4311,7 +4310,7 @@ var Haeckel;
                 return g;
             }
 
-            var plots = {}, matrix = this.characterMatrix, area = this.area;
+            var plots = {}, matrix = this.characterMatrix;
 
             Haeckel.ext.each(matrix.taxon.units, function (unit) {
                 var occurrences = Haeckel.chr.states(matrix, unit, Haeckel.OCCURRENCE_CHARACTER);
@@ -4335,16 +4334,15 @@ var Haeckel;
                                     var rect = Haeckel.rec.createFromCoords(x.min, y.min, x.max, y.max);
                                     var countNum = getCount(count, _this.countStrategy);
                                     if (rect.area <= countNum) {
-                                        var rect = Haeckel.rec.intersect(_this.area, area);
-                                        if (!rect.empty) {
-                                            var right = Math.floor(rect.right), bottom = Math.floor(rect.bottom), top = Math.floor(rect.top), left = Math.floor(rect.left);
-                                            for (var x = left; x <= right; ++x) {
-                                                for (var y = top; y <= bottom; ++y) {
-                                                    var key = String(x) + "," + String(y);
-                                                    plots[key] = true;
+                                        var area = Haeckel.rec.intersect(_this.area, rect);
+                                        if (!area.empty) {
+                                            var right = Math.floor(area.right), bottom = Math.floor(area.bottom), top = Math.floor(area.top), left = Math.floor(area.left);
+                                            for (var xi = left; xi <= right; ++xi) {
+                                                for (var yi = top; yi <= bottom; ++yi) {
+                                                    plots[xi + "," + yi] = true;
                                                 }
                                             }
-                                            _this.drawArea(g, rect, unit);
+                                            _this.drawArea(g, area, unit);
                                         }
                                     } else {
                                         _this.drawPoints(g, plots, rect, unit, countNum);
