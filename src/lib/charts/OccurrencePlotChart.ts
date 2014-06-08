@@ -33,6 +33,30 @@ module Haeckel
 
 	var RECT_STYLE: { [name: string]: string; } = POINT_STYLE;
 
+	function DEFAULT_DRAW_AREA(builder: ElementBuilder, area: Rectangle, unit: Taxic)
+	{
+		builder.child(SVG_NS, 'rect')
+			.attrs(SVG_NS,
+				{
+					'height': Math.max(area.height, this.radius * 2) + 'px',
+					'width': Math.max(area.width, this.radius * 2) + 'px',
+					'x': area.left + 'px',
+					'y': area.top + 'px'
+				})
+			.attrs(SVG_NS, RECT_STYLE);
+	}
+
+	function DEFAULT_DRAW_POINT(builder: ElementBuilder, p: Point, unit: Taxic)
+	{
+		builder.child(SVG_NS, 'circle')
+			.attrs(SVG_NS, {
+					'cx': p.x + 'px',
+					'cy': p.y + 'px',
+					'r': this.radius + 'px'
+				})
+			.attrs(SVG_NS, POINT_STYLE);
+	}
+
 	export enum OccurrenceCountStrategy
 	{
 		MIN,
@@ -63,16 +87,9 @@ module Haeckel
 
 		random: () => number = Math.random;
 
-		private createPoint(builder: ElementBuilder, p: Point, unit: Taxic)
-		{
-			builder.child(SVG_NS, 'circle')
-				.attrs(SVG_NS, {
-						'cx': p.x + 'px',
-						'cy': p.y + 'px',
-						'r': this.radius + 'px'
-					})
-				.attrs(SVG_NS, POINT_STYLE);
-		}
+		drawArea: (builder: ElementBuilder, area: Rectangle, unit: Taxic) => any = DEFAULT_DRAW_AREA;
+
+		drawPoint: (builder: ElementBuilder, p: Point, unit: Taxic) => any = DEFAULT_DRAW_POINT;
 
 		private drawPoints(builder: ElementBuilder, plots: { [key: string]: boolean; }, area: Rectangle, unit: Taxic, count: number)
 		{
@@ -82,41 +99,9 @@ module Haeckel
 				point = this.getIndividualPoint(plots, area);
 				if (rec.contains(this.area, point))
 				{
-					this.createPoint(builder, point, unit);
+					this.drawPoint(builder, point, unit);
 				}
 			}
-		}
-
-		private drawRect(builder: ElementBuilder, plots: { [key: string]: boolean; }, area: Rectangle, unit: Taxic)
-		{
-			area = rec.intersect(this.area, area);
-			if (area.empty)
-			{
-				return;
-			}
-			var right = area.right,
-				bottom = area.bottom,
-				top = Math.floor(area.top),
-				left = Math.floor(area.left);
-			for (var x = left; x <= right; ++x)
-			{
-				for (var y = top; y <= bottom; ++y)
-				{
-					var key = String(x) + "," + String(y);
-					plots[key] = true;
-				}
-			}
-			builder.child(SVG_NS, 'rect')
-				.attrs(SVG_NS,
-					{
-						'height': Math.max(area.height, this.radius * 2) + 'px',
-						'width': Math.max(area.width, this.radius * 2) + 'px',
-						'x': area.left + 'px',
-						'y': area.top + 'px',
-						'rx': (area.width / 2) + 'px',
-						'ry': (area.height / 2) + 'px'
-					})
-				.attrs(SVG_NS, RECT_STYLE);
 		}
 
 		private getIndividualPoint(plots: { [key: string]: boolean; }, area: Rectangle): Point
@@ -192,7 +177,23 @@ module Haeckel
 									var countNum = getCount(count, this.countStrategy);
 									if (rect.area <= countNum)
 									{
-										this.drawRect(g, plots, rect, unit);
+										var rect = rec.intersect(this.area, area);
+										if (!rect.empty)
+										{
+											var right = Math.floor(rect.right),
+												bottom = Math.floor(rect.bottom),
+												top = Math.floor(rect.top),
+												left = Math.floor(rect.left);
+											for (var x = left; x <= right; ++x)
+											{
+												for (var y = top; y <= bottom; ++y)
+												{
+													var key = String(x) + "," + String(y);
+													plots[key] = true;
+												}
+											}
+											this.drawArea(g, rect, unit);
+										}
 									}
 									else
 									{

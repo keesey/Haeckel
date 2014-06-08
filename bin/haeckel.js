@@ -4230,6 +4230,23 @@ var Haeckel;
 
     var RECT_STYLE = POINT_STYLE;
 
+    function DEFAULT_DRAW_AREA(builder, area, unit) {
+        builder.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
+            'height': Math.max(area.height, this.radius * 2) + 'px',
+            'width': Math.max(area.width, this.radius * 2) + 'px',
+            'x': area.left + 'px',
+            'y': area.top + 'px'
+        }).attrs(Haeckel.SVG_NS, RECT_STYLE);
+    }
+
+    function DEFAULT_DRAW_POINT(builder, p, unit) {
+        builder.child(Haeckel.SVG_NS, 'circle').attrs(Haeckel.SVG_NS, {
+            'cx': p.x + 'px',
+            'cy': p.y + 'px',
+            'r': this.radius + 'px'
+        }).attrs(Haeckel.SVG_NS, POINT_STYLE);
+    }
+
     (function (OccurrenceCountStrategy) {
         OccurrenceCountStrategy[OccurrenceCountStrategy["MIN"] = 0] = "MIN";
         OccurrenceCountStrategy[OccurrenceCountStrategy["MEAN"] = 1] = "MEAN";
@@ -4257,45 +4274,17 @@ var Haeckel;
             this.countStrategy = 0 /* MIN */;
             this.radius = 1;
             this.random = Math.random;
+            this.drawArea = DEFAULT_DRAW_AREA;
+            this.drawPoint = DEFAULT_DRAW_POINT;
         }
-        OccurrencePlotChart.prototype.createPoint = function (builder, p, unit) {
-            builder.child(Haeckel.SVG_NS, 'circle').attrs(Haeckel.SVG_NS, {
-                'cx': p.x + 'px',
-                'cy': p.y + 'px',
-                'r': this.radius + 'px'
-            }).attrs(Haeckel.SVG_NS, POINT_STYLE);
-        };
-
         OccurrencePlotChart.prototype.drawPoints = function (builder, plots, area, unit, count) {
             var point;
             for (var i = 0; i < count; ++i) {
                 point = this.getIndividualPoint(plots, area);
                 if (Haeckel.rec.contains(this.area, point)) {
-                    this.createPoint(builder, point, unit);
+                    this.drawPoint(builder, point, unit);
                 }
             }
-        };
-
-        OccurrencePlotChart.prototype.drawRect = function (builder, plots, area, unit) {
-            area = Haeckel.rec.intersect(this.area, area);
-            if (area.empty) {
-                return;
-            }
-            var right = area.right, bottom = area.bottom, top = Math.floor(area.top), left = Math.floor(area.left);
-            for (var x = left; x <= right; ++x) {
-                for (var y = top; y <= bottom; ++y) {
-                    var key = String(x) + "," + String(y);
-                    plots[key] = true;
-                }
-            }
-            builder.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
-                'height': Math.max(area.height, this.radius * 2) + 'px',
-                'width': Math.max(area.width, this.radius * 2) + 'px',
-                'x': area.left + 'px',
-                'y': area.top + 'px',
-                'rx': (area.width / 2) + 'px',
-                'ry': (area.height / 2) + 'px'
-            }).attrs(Haeckel.SVG_NS, RECT_STYLE);
         };
 
         OccurrencePlotChart.prototype.getIndividualPoint = function (plots, area) {
@@ -4346,7 +4335,17 @@ var Haeckel;
                                     var rect = Haeckel.rec.createFromCoords(x.min, y.min, x.max, y.max);
                                     var countNum = getCount(count, _this.countStrategy);
                                     if (rect.area <= countNum) {
-                                        _this.drawRect(g, plots, rect, unit);
+                                        var rect = Haeckel.rec.intersect(_this.area, area);
+                                        if (!rect.empty) {
+                                            var right = Math.floor(rect.right), bottom = Math.floor(rect.bottom), top = Math.floor(rect.top), left = Math.floor(rect.left);
+                                            for (var x = left; x <= right; ++x) {
+                                                for (var y = top; y <= bottom; ++y) {
+                                                    var key = String(x) + "," + String(y);
+                                                    plots[key] = true;
+                                                }
+                                            }
+                                            _this.drawArea(g, rect, unit);
+                                        }
                                     } else {
                                         _this.drawPoints(g, plots, rect, unit, countNum);
                                     }
