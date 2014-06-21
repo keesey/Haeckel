@@ -97,12 +97,7 @@ module Haeckel.fig
 		    defs.build().appendChild(svg);
 		}
 
-		var dataSourcesReader = new DataSourcesReader(),
-			dataSources = dataSourcesReader.read(files, figure.sources),
-			i: number,
-			n: number,
-			filename: string,
-			elementBuilder = new ElementBuilder(document, SVG_NS, 'svg')
+		var elementBuilder = new ElementBuilder(document, SVG_NS, 'svg')
 				.attrs({
 						xmlns: SVG_NS,
 						"xmlns:xlink": XLINK_NS,
@@ -112,31 +107,54 @@ module Haeckel.fig
 						height: figure.height + 'px',
 						version: '1.2',
 						viewBox: '0 0 ' + figure.width + ' ' + figure.height
-					}),
-			defs: ElementBuilder,
-			parser: DOMParser,
-			pngAssets = new PNGAssetsImpl;
-		document.body.appendChild(elementBuilder.build());
-		if (figure.assets)
+					});
+		try
 		{
-			if (figure.assets.png)
+			var dataSourcesReader = new DataSourcesReader(),
+				dataSources = dataSourcesReader.read(files, figure.sources),
+				i: number,
+				n: number,
+				filename: string,
+				defs: ElementBuilder,
+				parser: DOMParser,
+				pngAssets = new PNGAssetsImpl;
+			document.body.appendChild(elementBuilder.build());
+			if (figure.assets)
 			{
-				for (i = 0, n = figure.assets.png.length; i < n; ++i)
+				if (figure.assets.png)
 				{
-					filename = figure.assets.png[i];
-					pngAssets.base64Dict[filename] = files.base64[filename];
+					for (i = 0, n = figure.assets.png.length; i < n; ++i)
+					{
+						filename = figure.assets.png[i];
+						pngAssets.base64Dict[filename] = files.base64[filename];
+					}
+				}
+				if (figure.assets.svg)
+				{
+					for (i = 0, n = figure.assets.svg.length; i < n; ++i)
+					{
+						filename = figure.assets.svg[i];
+						addSVGDef(filename, files.text[filename]);
+					}
 				}
 			}
-			if (figure.assets.svg)
-			{
-				for (i = 0, n = figure.assets.svg.length; i < n; ++i)
-				{
-					filename = figure.assets.svg[i];
-					addSVGDef(filename, files.text[filename]);
-				}
-			}
+			figure.render(elementBuilder, dataSources, initDefs, pngAssets);
 		}
-		figure.render(elementBuilder, dataSources, initDefs, pngAssets);
+		catch (e)
+		{
+			elementBuilder.child(SVG_NS, 'textArea')
+				.attrs(SVG_NS, 
+				{
+					editable: 'simple',
+					focusable: 'true',
+					fill: 'red',
+					x: '10px',
+					y: '10px',
+					width: (figure.width - 20) + 'px',
+					height: (figure.height - 20) + 'px',
+				})
+				.text(String(e.stack));
+		}
 		var svg = <SVGSVGElement> elementBuilder.build();
 		document.body.appendChild(svg);
 		return '<?xml version="1.0" encoding="UTF-8"?>'

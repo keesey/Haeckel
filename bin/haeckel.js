@@ -6893,7 +6893,7 @@ var Haeckel;
                 defs.build().appendChild(svg);
             }
 
-            var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, filename, elementBuilder = new Haeckel.ElementBuilder(document, Haeckel.SVG_NS, 'svg').attrs({
+            var elementBuilder = new Haeckel.ElementBuilder(document, Haeckel.SVG_NS, 'svg').attrs({
                 xmlns: Haeckel.SVG_NS,
                 "xmlns:xlink": Haeckel.XLINK_NS
             }).attrs(Haeckel.SVG_NS, {
@@ -6901,23 +6901,36 @@ var Haeckel;
                 height: figure.height + 'px',
                 version: '1.2',
                 viewBox: '0 0 ' + figure.width + ' ' + figure.height
-            }), defs, parser, pngAssets = new PNGAssetsImpl;
-            document.body.appendChild(elementBuilder.build());
-            if (figure.assets) {
-                if (figure.assets.png) {
-                    for (i = 0, n = figure.assets.png.length; i < n; ++i) {
-                        filename = figure.assets.png[i];
-                        pngAssets.base64Dict[filename] = files.base64[filename];
+            });
+            try  {
+                var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, filename, defs, parser, pngAssets = new PNGAssetsImpl;
+                document.body.appendChild(elementBuilder.build());
+                if (figure.assets) {
+                    if (figure.assets.png) {
+                        for (i = 0, n = figure.assets.png.length; i < n; ++i) {
+                            filename = figure.assets.png[i];
+                            pngAssets.base64Dict[filename] = files.base64[filename];
+                        }
+                    }
+                    if (figure.assets.svg) {
+                        for (i = 0, n = figure.assets.svg.length; i < n; ++i) {
+                            filename = figure.assets.svg[i];
+                            addSVGDef(filename, files.text[filename]);
+                        }
                     }
                 }
-                if (figure.assets.svg) {
-                    for (i = 0, n = figure.assets.svg.length; i < n; ++i) {
-                        filename = figure.assets.svg[i];
-                        addSVGDef(filename, files.text[filename]);
-                    }
-                }
+                figure.render(elementBuilder, dataSources, initDefs, pngAssets);
+            } catch (e) {
+                elementBuilder.child(Haeckel.SVG_NS, 'textArea').attrs(Haeckel.SVG_NS, {
+                    editable: 'simple',
+                    focusable: 'true',
+                    fill: 'red',
+                    x: '10px',
+                    y: '10px',
+                    width: (figure.width - 20) + 'px',
+                    height: (figure.height - 20) + 'px'
+                }).text(String(e.stack));
             }
-            figure.render(elementBuilder, dataSources, initDefs, pngAssets);
             var svg = elementBuilder.build();
             document.body.appendChild(svg);
             return '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(svg);
