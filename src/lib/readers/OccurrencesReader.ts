@@ -21,15 +21,46 @@ module Haeckel
 
 	export class OccurrencesReader
 	{
+		private defaultUnitNames: { [taxonHash: string]: string; } = {};
+
 		nomenclature: Nomenclature = EMPTY_NOMENCLATURE;
 
-		readCharacterMatrix(data: OccurrencesData, builder: CharacterMatrixBuilder<Set> = null): CharacterMatrixBuilder<Set>
+		addDefaultUnits(data: OccurrencesData, nomenclatureBuilder: NomenclatureBuilder): OccurrencesReader
+		{
+			var nomenclature = nomenclatureBuilder.build();
+
+			function createDefaultUnitName(hyperonym: string): string
+			{
+				var base: string = hyperonym + ' indet.';
+				var result = base;
+				var index = 0;
+				while (nomenclature.nameMap[result])
+				{
+					result = base + ' ' + (++index);
+				}
+				return result;
+			}
+
+			var name: string;
+	        for (name in data)
+	        {
+				var taxon = tax.byName(nomenclature, name);
+				if (!taxon.empty && !taxon.isUnit)
+				{
+					var unitName = createDefaultUnitName(name);
+					this.defaultUnitNames[taxon.hash] = unitName;
+					nomenclatureBuilder.hyponymize(name, unitName);
+				}
+	        }
+	        return this;
+		}
+
+		readCharacterMatrix(data: OccurrencesData, builder: CharacterMatrixBuilder<Set> = null, nomenclature: Nomenclature = null): CharacterMatrixBuilder<Set>
 		{
 			if (builder === null)
 			{
 				builder = new CharacterMatrixBuilder<Set>();
 			}
-			var nonUnitNames: string[] = [];
 	        for (var name in data)
 	        {
 				var taxon = tax.byName(this.nomenclature, name);
@@ -37,37 +68,24 @@ module Haeckel
 				{
 					if (!taxon.isUnit)
 					{
-						nonUnitNames.push(name);
-					}
-					else
-					{
-						var states = OCCURRENCE_CHARACTER.readStates(data[name]);
-						if (states !== null)
+						taxon = tax.byName(this.nomenclature, this.defaultUnitNames[taxon.hash]);
+						if (!taxon)
 						{
-							ext.each(states, (occurrence: Occurrence) =>
-							{
-								builder.states(taxon, COUNT_CHARACTER, occurrence.count);
-								builder.states(taxon, GEO_CHARACTER, occurrence.geo);
-								builder.states(taxon, TIME_CHARACTER, occurrence.time);
-							});
-							builder.states(taxon, OCCURRENCE_CHARACTER, states);
+							throw new Error("Cannot find default unit for \"" + name + "\". Did you call OccurrencesReader.addDefaultUnits()?");
 						}
 					}
+					var states = OCCURRENCE_CHARACTER.readStates(data[name]);
+					if (states !== null)
+					{
+						ext.each(states, (occurrence: Occurrence) =>
+						{
+							builder.states(taxon, COUNT_CHARACTER, occurrence.count);
+							builder.states(taxon, GEO_CHARACTER, occurrence.geo);
+							builder.states(taxon, TIME_CHARACTER, occurrence.time);
+						});
+						builder.states(taxon, OCCURRENCE_CHARACTER, states);
+					}
 				}
-	        }
-	        var n = nonUnitNames.length;
-	        if (n > 0)
-	        {
-	        	var message = "Occurrence data can only be scored for taxonomic units. The ";
-	        	if (n === 1)
-	        	{
-	        		message += 'taxon named "' + nonUnitNames[0] + '" is not a unit.';
-	        	}
-	        	else
-	        	{
-	        		message += 'taxa named "' + nonUnitNames.slice(0, n - 1).join('", "') + '" and "' + nonUnitNames[n - 1] + '" are not units.';
-	        	}
-	        	throw new Error(message);
 	        }
 	        return builder;
 		}

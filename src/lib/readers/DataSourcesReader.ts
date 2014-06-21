@@ -30,6 +30,10 @@ module Haeckel
 			{
 				reader.readNomenclature(data[filename], nomenclatureBuilder);
 			}
+			for (filename in data)
+			{
+				reader.prepareNomenclature(data[filename], nomenclatureBuilder);
+			}
 			var sources: DataSources = {
 				nomenclature: reader.nomenclature = nomenclatureBuilder.build(),
 				sources: {}

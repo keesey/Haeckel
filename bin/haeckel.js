@@ -6438,41 +6438,59 @@ var Haeckel;
 
     var OccurrencesReader = (function () {
         function OccurrencesReader() {
+            this.defaultUnitNames = {};
             this.nomenclature = Haeckel.EMPTY_NOMENCLATURE;
         }
-        OccurrencesReader.prototype.readCharacterMatrix = function (data, builder) {
+        OccurrencesReader.prototype.addDefaultUnits = function (data, nomenclatureBuilder) {
+            var nomenclature = nomenclatureBuilder.build();
+
+            function createDefaultUnitName(hyperonym) {
+                var base = hyperonym + ' indet.';
+                var result = base;
+                var index = 0;
+                while (nomenclature.nameMap[result]) {
+                    result = base + ' ' + (++index);
+                }
+                return result;
+            }
+
+            var name;
+            for (name in data) {
+                var taxon = Haeckel.tax.byName(nomenclature, name);
+                if (!taxon.empty && !taxon.isUnit) {
+                    var unitName = createDefaultUnitName(name);
+                    this.defaultUnitNames[taxon.hash] = unitName;
+                    nomenclatureBuilder.hyponymize(name, unitName);
+                }
+            }
+            return this;
+        };
+
+        OccurrencesReader.prototype.readCharacterMatrix = function (data, builder, nomenclature) {
             if (typeof builder === "undefined") { builder = null; }
+            if (typeof nomenclature === "undefined") { nomenclature = null; }
             if (builder === null) {
                 builder = new Haeckel.CharacterMatrixBuilder();
             }
-            var nonUnitNames = [];
             for (var name in data) {
                 var taxon = Haeckel.tax.byName(this.nomenclature, name);
                 if (taxon !== null && !taxon.empty) {
                     if (!taxon.isUnit) {
-                        nonUnitNames.push(name);
-                    } else {
-                        var states = Haeckel.OCCURRENCE_CHARACTER.readStates(data[name]);
-                        if (states !== null) {
-                            Haeckel.ext.each(states, function (occurrence) {
-                                builder.states(taxon, Haeckel.COUNT_CHARACTER, occurrence.count);
-                                builder.states(taxon, Haeckel.GEO_CHARACTER, occurrence.geo);
-                                builder.states(taxon, Haeckel.TIME_CHARACTER, occurrence.time);
-                            });
-                            builder.states(taxon, Haeckel.OCCURRENCE_CHARACTER, states);
+                        taxon = Haeckel.tax.byName(this.nomenclature, this.defaultUnitNames[taxon.hash]);
+                        if (!taxon) {
+                            throw new Error("Cannot find default unit for \"" + name + "\". Did you call OccurrencesReader.addDefaultUnits()?");
                         }
                     }
+                    var states = Haeckel.OCCURRENCE_CHARACTER.readStates(data[name]);
+                    if (states !== null) {
+                        Haeckel.ext.each(states, function (occurrence) {
+                            builder.states(taxon, Haeckel.COUNT_CHARACTER, occurrence.count);
+                            builder.states(taxon, Haeckel.GEO_CHARACTER, occurrence.geo);
+                            builder.states(taxon, Haeckel.TIME_CHARACTER, occurrence.time);
+                        });
+                        builder.states(taxon, Haeckel.OCCURRENCE_CHARACTER, states);
+                    }
                 }
-            }
-            var n = nonUnitNames.length;
-            if (n > 0) {
-                var message = "Occurrence data can only be scored for taxonomic units. The ";
-                if (n === 1) {
-                    message += 'taxon named "' + nonUnitNames[0] + '" is not a unit.';
-                } else {
-                    message += 'taxa named "' + nonUnitNames.slice(0, n - 1).join('", "') + '" and "' + nonUnitNames[n - 1] + '" are not units.';
-                }
-                throw new Error(message);
             }
             return builder;
         };
@@ -6658,6 +6676,14 @@ var Haeckel;
             configurable: true
         });
 
+        DataSourceReader.prototype.prepareNomenclature = function (data, builder) {
+            var d = data.data;
+            if (d.occurrences !== undefined) {
+                this.occurrencesReader.addDefaultUnits(d.occurrences, builder);
+            }
+            return this;
+        };
+
         DataSourceReader.prototype.readDataSource = function (data) {
             var result = {
                 characterMatrices: {},
@@ -6778,6 +6804,9 @@ var Haeckel;
             var reader = new Haeckel.DataSourceReader, nomenclatureBuilder = new Haeckel.NomenclatureBuilder;
             for (filename in data) {
                 reader.readNomenclature(data[filename], nomenclatureBuilder);
+            }
+            for (filename in data) {
+                reader.prepareNomenclature(data[filename], nomenclatureBuilder);
             }
             var sources = {
                 nomenclature: reader.nomenclature = nomenclatureBuilder.build(),

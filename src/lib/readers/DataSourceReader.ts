@@ -87,6 +87,16 @@ module Haeckel
 			}
 		}
 
+		prepareNomenclature(data: DataSourceData, builder: NomenclatureBuilder): DataSourceReader
+		{
+			var d: SourceData = data.data;
+			if (d.occurrences !== undefined)
+			{
+				this.occurrencesReader.addDefaultUnits(d.occurrences, builder);
+			}
+			return this;
+		}
+
 		readDataSource(data: DataSourceData): DataSource
 		{
 			var result: DataSource = {
