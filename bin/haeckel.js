@@ -2158,11 +2158,19 @@ var Haeckel;
                     builder.addVertices(taxon.units);
                 });
                 Haeckel.ext.each(graph.arcs, function (arc) {
+                    var tailIsUnit = arc[1].isUnit;
+                    var tailNode = tailIsUnit ? arc[1] : Haeckel.tax.createUnit();
+                    if (!tailIsUnit) {
+                        builder.addVertex(tailNode);
+                    }
                     Haeckel.ext.each(arc[0].units, function (head) {
-                        Haeckel.ext.each(arc[1].units, function (tail) {
-                            builder.addArc(head, tail);
-                        });
+                        builder.addArc(head, tailNode);
                     });
+                    if (!tailIsUnit) {
+                        Haeckel.ext.each(arc[1].units, function (tail) {
+                            builder.addArc(tailNode, tail);
+                        });
+                    }
                 });
                 return builder.build();
             }
@@ -6162,7 +6170,11 @@ var Haeckel;
             this.domainBuilder = new Haeckel.RangeBuilder();
         }
         RangeCharacterBuilder.prototype.build = function () {
-            return Haeckel.chr.createRange(this.domainBuilder.build(), true, true, this.label, this.labelStates, this.stateLabels);
+            var domain = this.domainBuilder.build();
+            if (domain.empty) {
+                domain = Haeckel.RANGE_0;
+            }
+            return Haeckel.chr.createRange(domain, true, true, this.label, this.labelStates, this.stateLabels);
         };
         RangeCharacterBuilder.prototype.readScore = function (data) {
             var range = Haeckel.rng.read(data);

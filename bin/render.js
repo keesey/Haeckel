@@ -2467,7 +2467,11 @@ var Haeckel;
             this.domainBuilder = new Haeckel.RangeBuilder();
         }
         RangeCharacterBuilder.prototype.build = function () {
-            return Haeckel.chr.createRange(this.domainBuilder.build(), true, true, this.label, this.labelStates, this.stateLabels);
+            var domain = this.domainBuilder.build();
+            if (domain.empty) {
+                domain = Haeckel.RANGE_0;
+            }
+            return Haeckel.chr.createRange(domain, true, true, this.label, this.labelStates, this.stateLabels);
         };
         RangeCharacterBuilder.prototype.readScore = function (data) {
             var range = Haeckel.rng.read(data);

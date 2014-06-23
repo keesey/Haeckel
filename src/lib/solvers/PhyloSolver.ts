@@ -60,13 +60,23 @@ module Haeckel
 				});
 				ext.each(graph.arcs, function(arc: Taxic[])
 				{
+					var tailIsUnit = arc[1].isUnit;
+					var tailNode = tailIsUnit ? arc[1] : Haeckel.tax.createUnit();
+					if (!tailIsUnit)
+					{
+						builder.addVertex(tailNode);
+					}
 					ext.each(arc[0].units, function(head: Taxic)
+					{
+						builder.addArc(head, tailNode);
+					});
+					if (!tailIsUnit)
 					{
 						ext.each(arc[1].units, function(tail: Taxic)
 						{
-							builder.addArc(head, tail);
+							builder.addArc(tailNode, tail);
 						});
-					});
+					}
 				});
 				return builder.build();
 			}

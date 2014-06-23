@@ -3,6 +3,7 @@
 /// <reference path="../builders/NomenclatureBuilder.ts"/>
 /// <reference path="../builders/RangeBuilder.ts"/>
 /// <reference path="../constants/EMPTY_NOMENCLATURE.ts"/>
+/// <reference path="../constants/RANGE_0.ts"/>
 /// <reference path="../functions/bit/contains.ts"/>
 /// <reference path="../functions/bit/createFromBits.ts"/>
 /// <reference path="../functions/bit/read.ts"/>
@@ -128,7 +129,12 @@ module Haeckel
 		}
 		build()
 		{
-			return chr.createRange(this.domainBuilder.build(), true, true, this.label, this.labelStates, this.stateLabels);
+			var domain = this.domainBuilder.build();
+			if (domain.empty)
+			{
+				domain = RANGE_0;
+			}
+			return chr.createRange(domain, true, true, this.label, this.labelStates, this.stateLabels);
 		}
 		readScore(data: any)
 		{
