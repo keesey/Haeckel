@@ -25,7 +25,7 @@ module Haeckel
 
 		nomenclature: Nomenclature = EMPTY_NOMENCLATURE;
 
-		addDefaultUnits(data: OccurrencesData, nomenclatureBuilder: NomenclatureBuilder): OccurrencesReader
+		addDefaultUnits(data: OccurrencesData, nomenclatureBuilder: NomenclatureBuilder): boolean
 		{
 			var nomenclature = nomenclatureBuilder.build();
 
@@ -42,6 +42,7 @@ module Haeckel
 			}
 
 			var name: string;
+			var added: boolean = false;
 	        for (name in data)
 	        {
 				var taxon = tax.byName(nomenclature, name);
@@ -50,9 +51,12 @@ module Haeckel
 					var unitName = createDefaultUnitName(name);
 					this.defaultUnitNames[taxon.hash] = unitName;
 					nomenclatureBuilder.hyponymize(name, unitName);
+					data[unitName] = data[name];
+					delete data[name];
+					added = true;
 				}
 	        }
-	        return this;
+	        return added;
 		}
 
 		readCharacterMatrix(data: OccurrencesData, builder: CharacterMatrixBuilder<Set> = null, nomenclature: Nomenclature = null): CharacterMatrixBuilder<Set>

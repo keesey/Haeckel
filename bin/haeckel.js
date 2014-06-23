@@ -6467,15 +6467,19 @@ var Haeckel;
             }
 
             var name;
+            var added = false;
             for (name in data) {
                 var taxon = Haeckel.tax.byName(nomenclature, name);
                 if (!taxon.empty && !taxon.isUnit) {
                     var unitName = createDefaultUnitName(name);
                     this.defaultUnitNames[taxon.hash] = unitName;
                     nomenclatureBuilder.hyponymize(name, unitName);
+                    data[unitName] = data[name];
+                    delete data[name];
+                    added = true;
                 }
             }
-            return this;
+            return added;
         };
 
         OccurrencesReader.prototype.readCharacterMatrix = function (data, builder, nomenclature) {
@@ -6690,10 +6694,11 @@ var Haeckel;
 
         DataSourceReader.prototype.prepareNomenclature = function (data, builder) {
             var d = data.data;
+            var added = false;
             if (d.occurrences !== undefined) {
-                this.occurrencesReader.addDefaultUnits(d.occurrences, builder);
+                added = this.occurrencesReader.addDefaultUnits(d.occurrences, builder);
             }
-            return this;
+            return added;
         };
 
         DataSourceReader.prototype.readDataSource = function (data) {
@@ -6803,6 +6808,16 @@ var Haeckel;
         function DataSourcesReader() {
         }
         DataSourcesReader.prototype.read = function (files, filenames) {
+            function prepareNomenclature() {
+                var changed = false;
+                for (filename in data) {
+                    changed = changed || reader.prepareNomenclature(data[filename], nomenclatureBuilder);
+                }
+                if (changed) {
+                    prepareNomenclature();
+                }
+            }
+
             var data = {}, filename;
             if (!filenames) {
                 filenames = [];
@@ -6817,9 +6832,7 @@ var Haeckel;
             for (filename in data) {
                 reader.readNomenclature(data[filename], nomenclatureBuilder);
             }
-            for (filename in data) {
-                reader.prepareNomenclature(data[filename], nomenclatureBuilder);
-            }
+            prepareNomenclature();
             var sources = {
                 nomenclature: reader.nomenclature = nomenclatureBuilder.build(),
                 sources: {}

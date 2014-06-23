@@ -1357,7 +1357,7 @@ declare module Haeckel {
     class OccurrencesReader {
         private defaultUnitNames;
         public nomenclature: Haeckel.Nomenclature;
-        public addDefaultUnits(data: OccurrencesData, nomenclatureBuilder: Haeckel.NomenclatureBuilder): OccurrencesReader;
+        public addDefaultUnits(data: OccurrencesData, nomenclatureBuilder: Haeckel.NomenclatureBuilder): boolean;
         public readCharacterMatrix(data: OccurrencesData, builder?: Haeckel.CharacterMatrixBuilder<Haeckel.Set>, nomenclature?: Haeckel.Nomenclature): Haeckel.CharacterMatrixBuilder<Haeckel.Set>;
         public readNomenclature(data: OccurrencesData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
     }
@@ -1436,7 +1436,7 @@ declare module Haeckel {
         private stratReader;
         private topologyReader;
         public nomenclature : Haeckel.Nomenclature;
-        public prepareNomenclature(data: DataSourceData, builder: Haeckel.NomenclatureBuilder): DataSourceReader;
+        public prepareNomenclature(data: DataSourceData, builder: Haeckel.NomenclatureBuilder): boolean;
         public readDataSource(data: DataSourceData): Haeckel.DataSource;
         public readNomenclature(data: DataSourceData, builder?: Haeckel.NomenclatureBuilder): Haeckel.NomenclatureBuilder;
     }

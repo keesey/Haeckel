@@ -1,6 +1,6 @@
 {
   "name": "Haeckel",
-  "version": "0.0.50",
+  "version": "0.0.52",
   "main": "lib/haeckel.js",
   "description": "Models data related to biological evolution and provides ways to chart it (SVG).",
   "homepage": "https://github.com/keesey/Haeckel",

@@ -10,6 +10,19 @@ module Haeckel
 	{
 		read(files: FileCache, filenames: string[]): DataSources
 		{
+			function prepareNomenclature()
+			{
+				var changed = false;
+				for (filename in data)
+				{
+					changed = changed || reader.prepareNomenclature(data[filename], nomenclatureBuilder);
+				}
+				if (changed)
+				{
+					prepareNomenclature();
+				}
+			}
+
 			var data: { [filename: string]: DataSourceData; } = {},
 				filename: string;
 			if (!filenames)
@@ -30,10 +43,7 @@ module Haeckel
 			{
 				reader.readNomenclature(data[filename], nomenclatureBuilder);
 			}
-			for (filename in data)
-			{
-				reader.prepareNomenclature(data[filename], nomenclatureBuilder);
-			}
+			prepareNomenclature();
 			var sources: DataSources = {
 				nomenclature: reader.nomenclature = nomenclatureBuilder.build(),
 				sources: {}
