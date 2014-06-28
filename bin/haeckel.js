@@ -4285,6 +4285,21 @@ var Haeckel;
             this.drawPoint = DEFAULT_DRAW_POINT;
         }
         OccurrencePlotChart.prototype.drawPoints = function (builder, plots, area, unit, count) {
+            if (!(count >= 1)) {
+                return;
+            }
+
+            if (count < 2) {
+                var x = area.centerX;
+                var y = area.centerY;
+                var key = String(x) + "," + String(y);
+                if (!plots[key]) {
+                    this.drawPoint(builder, Haeckel.pt.create(x, y), unit);
+                    plots[key] = true;
+                    return;
+                }
+            }
+
             var point;
             for (var i = 0; i < count; ++i) {
                 point = this.getIndividualPoint(plots, area);

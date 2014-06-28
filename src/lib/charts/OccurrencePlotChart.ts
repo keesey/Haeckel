@@ -91,6 +91,24 @@ module Haeckel
 
 		private drawPoints(builder: ElementBuilder, plots: { [key: string]: boolean; }, area: Rectangle, unit: Taxic, count: number)
 		{
+			if (!(count >= 1))
+			{
+				return;
+			}
+			
+			if (count < 2)
+			{
+				var x = area.centerX;
+				var y = area.centerY;
+				var key = String(x) + "," + String(y);
+				if (!plots[key])
+				{
+					this.drawPoint(builder, pt.create(x, y), unit);
+					plots[key] = true;
+					return;
+				}
+			}
+
 			var point: Point;
 			for (var i = 0; i < count; ++i)
 			{
