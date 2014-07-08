@@ -3599,9 +3599,15 @@ var Haeckel;
                 viewBox: '0 0 ' + figure.width + ' ' + figure.height
             });
             try  {
-                var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, filename, defs, parser, pngAssets = new PNGAssetsImpl;
+                var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, filename, defs, parser, pngAssets = new PNGAssetsImpl, jsonAssets = {};
                 document.body.appendChild(elementBuilder.build());
                 if (figure.assets) {
+                    if (figure.assets.json) {
+                        for (i = 0, n = figure.assets.json.length; i < n; ++i) {
+                            filename = figure.assets.json[i];
+                            jsonAssets[filename] = JSON.parse(files.text[filename]);
+                        }
+                    }
                     if (figure.assets.png) {
                         for (i = 0, n = figure.assets.png.length; i < n; ++i) {
                             filename = figure.assets.png[i];
@@ -3615,7 +3621,7 @@ var Haeckel;
                         }
                     }
                 }
-                figure.render(elementBuilder, dataSources, initDefs, pngAssets);
+                figure.render(elementBuilder, dataSources, initDefs, pngAssets, jsonAssets);
             } catch (e) {
                 elementBuilder.child(Haeckel.SVG_NS, 'textArea').attrs(Haeckel.SVG_NS, {
                     editable: 'simple',
@@ -3671,9 +3677,9 @@ try  {
     if ((FIGURE_TO_RENDER.sources && FIGURE_TO_RENDER.sources.length) || (FIGURE_TO_RENDER.assets && ((FIGURE_TO_RENDER.assets.png && FIGURE_TO_RENDER.assets.png.length) || (FIGURE_TO_RENDER.assets.svg && FIGURE_TO_RENDER.assets.svg.length)))) {
         var i, n, filename, fs = require('fs'), read = fs.read;
         if (FIGURE_TO_RENDER.assets) {
-            if (FIGURE_TO_RENDER.assets.svg) {
-                for (i = 0, n = FIGURE_TO_RENDER.assets.svg.length; i < n; ++i) {
-                    filename = FIGURE_TO_RENDER.assets.svg[i];
+            if (FIGURE_TO_RENDER.assets.json) {
+                for (i = 0, n = FIGURE_TO_RENDER.assets.json.length; i < n; ++i) {
+                    filename = FIGURE_TO_RENDER.assets.json[i];
                     files.text[filename] = read(baseFolder + filename, { charset: 'utf-8' });
                 }
             }
@@ -3681,6 +3687,12 @@ try  {
                 for (i = 0, n = FIGURE_TO_RENDER.assets.png.length; i < n; ++i) {
                     filename = FIGURE_TO_RENDER.assets.png[i];
                     files.base64[filename] = btoa(read(baseFolder + filename, { mode: 'rb' }));
+                }
+            }
+            if (FIGURE_TO_RENDER.assets.svg) {
+                for (i = 0, n = FIGURE_TO_RENDER.assets.svg.length; i < n; ++i) {
+                    filename = FIGURE_TO_RENDER.assets.svg[i];
+                    files.text[filename] = read(baseFolder + filename, { charset: 'utf-8' });
                 }
             }
         }

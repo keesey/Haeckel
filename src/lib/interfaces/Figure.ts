@@ -3,6 +3,11 @@
 
 module Haeckel
 {
+	export interface JSONAssets
+	{
+		[filename: string]: any;
+	}
+
 	export interface PNGAssets
 	{
 		image(builder: ElementBuilder, filename: string): ElementBuilder;
@@ -11,12 +16,14 @@ module Haeckel
 	export interface Figure
 	{
 		assets?: {
+			json?: string[];
 			png?: string[];
 			svg?: string[];
 		};
 		height: number;
 		sources?: string[];
 		width: number;
-		render(builder: ElementBuilder, sources: DataSources, defs: () => ElementBuilder, pngAssets: PNGAssets): void;
+		render(builder: ElementBuilder, sources: DataSources, defs: () => ElementBuilder,
+			pngAssets: PNGAssets, jsonAssets: JSONAssets): void;
 	}
 }

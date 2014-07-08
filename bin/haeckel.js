@@ -6943,9 +6943,15 @@ var Haeckel;
                 viewBox: '0 0 ' + figure.width + ' ' + figure.height
             });
             try  {
-                var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, filename, defs, parser, pngAssets = new PNGAssetsImpl;
+                var dataSourcesReader = new Haeckel.DataSourcesReader(), dataSources = dataSourcesReader.read(files, figure.sources), i, n, filename, defs, parser, pngAssets = new PNGAssetsImpl, jsonAssets = {};
                 document.body.appendChild(elementBuilder.build());
                 if (figure.assets) {
+                    if (figure.assets.json) {
+                        for (i = 0, n = figure.assets.json.length; i < n; ++i) {
+                            filename = figure.assets.json[i];
+                            jsonAssets[filename] = JSON.parse(files.text[filename]);
+                        }
+                    }
                     if (figure.assets.png) {
                         for (i = 0, n = figure.assets.png.length; i < n; ++i) {
                             filename = figure.assets.png[i];
@@ -6959,7 +6965,7 @@ var Haeckel;
                         }
                     }
                 }
-                figure.render(elementBuilder, dataSources, initDefs, pngAssets);
+                figure.render(elementBuilder, dataSources, initDefs, pngAssets, jsonAssets);
             } catch (e) {
                 elementBuilder.child(Haeckel.SVG_NS, 'textArea').attrs(Haeckel.SVG_NS, {
                     editable: 'simple',

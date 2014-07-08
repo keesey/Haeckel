@@ -1247,18 +1247,22 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    interface JSONAssets {
+        [filename: string]: any;
+    }
     interface PNGAssets {
         image(builder: Haeckel.ElementBuilder, filename: string): Haeckel.ElementBuilder;
     }
     interface Figure {
         assets?: {
+            json?: string[];
             png?: string[];
             svg?: string[];
         };
         height: number;
         sources?: string[];
         width: number;
-        render(builder: Haeckel.ElementBuilder, sources: Haeckel.DataSources, defs: () => Haeckel.ElementBuilder, pngAssets: PNGAssets): void;
+        render(builder: Haeckel.ElementBuilder, sources: Haeckel.DataSources, defs: () => Haeckel.ElementBuilder, pngAssets: PNGAssets, jsonAssets: JSONAssets): void;
     }
 }
 declare module Haeckel {

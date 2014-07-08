@@ -59,11 +59,11 @@ try
 			read = <any> fs.read; // :TODO: fix declaration
 		if (FIGURE_TO_RENDER.assets)
 		{
-			if (FIGURE_TO_RENDER.assets.svg)
+			if (FIGURE_TO_RENDER.assets.json)
 			{
-				for (i = 0, n = FIGURE_TO_RENDER.assets.svg.length; i < n; ++i)
+				for (i = 0, n = FIGURE_TO_RENDER.assets.json.length; i < n; ++i)
 				{
-					filename = FIGURE_TO_RENDER.assets.svg[i];
+					filename = FIGURE_TO_RENDER.assets.json[i];
 					files.text[filename] = read(baseFolder + filename, { charset: 'utf-8' });
 				}
 			}
@@ -73,6 +73,14 @@ try
 				{
 					filename = FIGURE_TO_RENDER.assets.png[i];
 					files.base64[filename] = btoa(read(baseFolder + filename, { mode: 'rb' }));
+				}
+			}
+			if (FIGURE_TO_RENDER.assets.svg)
+			{
+				for (i = 0, n = FIGURE_TO_RENDER.assets.svg.length; i < n; ++i)
+				{
+					filename = FIGURE_TO_RENDER.assets.svg[i];
+					files.text[filename] = read(baseFolder + filename, { charset: 'utf-8' });
 				}
 			}
 		}

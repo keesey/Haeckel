@@ -117,10 +117,19 @@ module Haeckel.fig
 				filename: string,
 				defs: ElementBuilder,
 				parser: DOMParser,
-				pngAssets = new PNGAssetsImpl;
+				pngAssets = new PNGAssetsImpl,
+				jsonAssets: Haeckel.JSONAssets = {};
 			document.body.appendChild(elementBuilder.build());
 			if (figure.assets)
 			{
+				if (figure.assets.json)
+				{
+					for (i = 0, n = figure.assets.json.length; i < n; ++i)
+					{
+						filename = figure.assets.json[i];
+						jsonAssets[filename] = JSON.parse(files.text[filename]);
+					}
+				}
 				if (figure.assets.png)
 				{
 					for (i = 0, n = figure.assets.png.length; i < n; ++i)
@@ -138,7 +147,7 @@ module Haeckel.fig
 					}
 				}
 			}
-			figure.render(elementBuilder, dataSources, initDefs, pngAssets);
+			figure.render(elementBuilder, dataSources, initDefs, pngAssets, jsonAssets);
 		}
 		catch (e)
 		{
