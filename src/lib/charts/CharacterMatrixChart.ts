@@ -81,7 +81,8 @@ module Haeckel
 		private rowHeight: number;
 		private rowTop: number;
 		constructor(private chart: CharacterMatrixChart, private row: number,
-			private state: number, private totalStates: number, private stateSpacing: number)
+			private state: number, private totalStates: number,
+			private stateSpacing: number, private cornerRadius: number)
 		{
 			var firstCell = chart.getArea(row, 0);
 			this.rowHeight = firstCell.height;
@@ -98,8 +99,8 @@ module Haeckel
 				this.minColumn = column;
 			}
 			this.columnY[String(column)] = {
-				top: this.rowTop + top * (this.rowHeight + this.stateSpacing),
-				bottom: this.rowTop - this.stateSpacing + bottom * (this.rowHeight + this.stateSpacing)
+				top: this.rowTop + (1 - bottom) * (this.rowHeight + this.stateSpacing),
+				bottom: this.rowTop - this.stateSpacing + (1 - top) * (this.rowHeight + this.stateSpacing)
 			};
 		}
 		render(element: ElementBuilder): ElementBuilder
@@ -117,70 +118,82 @@ module Haeckel
 			}
 			var columnY = this.columnY[String(this.minColumn)];
 			var d =
-				'M' + [area.left, (columnY.top + columnY.bottom) / 2].join(' ') +
-				'Q' + [area.left, columnY.top, area.centerX, columnY.top].join(' ');
+				'M' + [area.left, columnY.top + this.cornerRadius].join(' ') +
+				'Q' + [area.left, columnY.top, area.left + this.cornerRadius, columnY.top].join(' ') +
+				'H' + (area.right - this.cornerRadius);
 			if (this.minColumn !== this.maxColumn)
 			{
-				d += 'H' + area.right;
 				for (var column = this.minColumn + 1; column <= this.maxColumn; ++column)
 				{
 					var lastTop = columnY.top;
 					var lastArea = area;
 					columnY = this.columnY[String(column)];
 					area = this.chart.getArea(this.row, column);
-					if (area.empty)
-					{
-						throw new Error("No area for row " + this.row + ", column " + column + ".");
-					}
 					if (lastTop !== columnY.top)
 					{
-						var midX = (lastArea.right + area.left) / 2;
-						d +=
-							'Q' + [midX, lastTop, midX, (lastTop + columnY.top) / 2].join(' ') +
-							'Q' + [midX, columnY.top, area.left, columnY.top].join(' ');
+						if (Math.abs(lastTop - columnY.top) <= this.cornerRadius * 2)
+						{
+							d += 'Q' + [lastArea.right, lastTop, lastArea.right, (lastTop + columnY.top) / 2].join(' ');
+						}
+						else if (lastTop < columnY.top)
+						{
+							d +=
+								'Q' + [lastArea.right, lastTop, lastArea.right, lastTop + this.cornerRadius].join(' ') +
+								'V' + (columnY.top - this.cornerRadius);
+						}
+						else
+						{
+							d +=
+								'Q' + [lastArea.right, lastTop, lastArea.right, lastTop - this.cornerRadius].join(' ') +
+								'V' + (columnY.top + this.cornerRadius);
+						}
+						d += 'Q' + [lastArea.right, columnY.top, lastArea.right + this.cornerRadius, columnY.top].join(' ');
 					}
-					if (column === this.maxColumn)
-					{
-						d += 'H' + area.centerX;
-					}
-					else
-					{
-						d += 'H' + area.right;
-					}
+					d += 'H' + (area.right - this.cornerRadius);
 				}
 			}
-			d += 'Q' + [area.right, columnY.top, area.right, (columnY.top + columnY.bottom) / 2].join(' ');
+			d +=
+				'Q' + [area.right, columnY.top, area.right, columnY.top + this.cornerRadius].join(' ') +
+				'V' + (columnY.bottom - this.cornerRadius);
 			
 			// bottom edge
-			d += 'Q' + [area.right, columnY.bottom, area.centerX, columnY.bottom].join(' ');
+			d +=
+				'Q' + [area.right, columnY.bottom, area.right - this.cornerRadius, columnY.bottom].join(' ') +
+				'H' + (area.left + this.cornerRadius);
 			if (this.minColumn !== this.maxColumn)
 			{
-				d += 'H' + area.left;
 				for (column = this.maxColumn - 1; column >= this.minColumn; --column)
 				{
 					var lastBottom = columnY.bottom;
 					lastArea = area;
 					columnY = this.columnY[String(column)];
 					area = this.chart.getArea(this.row, column);
-					if (lastTop !== columnY.top)
+					if (lastBottom !== columnY.bottom)
 					{
-						midX = (lastArea.left + area.right) / 2;
-						d +=
-							'Q' + [midX, lastBottom, midX, (lastBottom + columnY.bottom) / 2].join(' ') +
-							'Q' + [midX, columnY.bottom, area.right, columnY.bottom].join(' ');
+						if (Math.abs(lastBottom - columnY.bottom) <= this.cornerRadius * 2)
+						{
+							d += 'Q' + [lastArea.left, lastBottom, lastArea.left, (lastBottom + columnY.bottom) / 2].join(' ');
+						}
+						else if (lastBottom < columnY.bottom)
+						{
+							d +=
+								'Q' + [lastArea.left, lastBottom, lastArea.left, lastBottom + this.cornerRadius].join(' ') +
+								'V' + (columnY.bottom - this.cornerRadius);
+						}
+						else
+						{
+							d +=
+								'Q' + [lastArea.left, lastBottom, lastArea.left, lastBottom - this.cornerRadius].join(' ') +
+								'V' + (columnY.bottom + this.cornerRadius);
+						}
+						d += 'Q' + [lastArea.left, columnY.bottom, lastArea.left - this.cornerRadius, columnY.bottom].join(' ');
 					}
-					if (column === this.minColumn)
-					{
-						d += 'H' + area.centerX;
-					}
-					else
-					{
-						d += 'H' + area.left;
-					}
+					d += 'H' + (area.left + this.cornerRadius);
 				}
 			}
 			d +=
-				'Q' + [area.left, columnY.bottom, area.left, (columnY.top + columnY.bottom) / 2].join(' ') +
+				'Q' + [area.left, columnY.bottom, area.left, columnY.bottom - this.cornerRadius].join(' ') +
+				'V' + (columnY.top + this.cornerRadius) +
 				'Z';
 			
 			return element
@@ -198,11 +211,11 @@ module Haeckel
 
 		matrix = <CharacterMatrix<BitSet>> EMPTY_CHARACTER_MATRIX;
 
-		spacingH = 10;
+		spacingH = 8;
 
-		spacingV = 10;
+		spacingV = 16;
 
-		stateSpacing = 2;
+		stateSpacing = 8;
 
 		stateStyler: (state: number, totalStates: number) => { [name: string]: string; } = DEFAULT_STATE_STYLER;
 
@@ -315,7 +328,8 @@ module Haeckel
 					var stateRenderer = stateRendererLookup[String(state)];
 					if (!stateRenderer)
 					{
-						stateRendererLookup[String(state)] = stateRenderer = new StateRenderer(this, row, state, numStates, this.stateSpacing);
+						stateRendererLookup[String(state)] = stateRenderer
+							= new StateRenderer(this, row, state, numStates, this.stateSpacing, this.spacingH);
 						stateRenderers.push(stateRenderer);
 					}
 					stateRenderer.setRatio(column, i / cell.length, (i + 1) / cell.length);

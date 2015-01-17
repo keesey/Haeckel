@@ -2875,6 +2875,362 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    Haeckel.BIT_MEMBER_MAX = 31;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    Haeckel.EMPTY_CHARACTER_MATRIX = Object.freeze({
+        characters: Haeckel.EMPTY_SET,
+        characterList: Object.freeze([]),
+        hashMap: Object.freeze({}),
+        taxon: Haeckel.EMPTY_SET
+    });
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    Haeckel.WHITE = Object.freeze({
+        b: 0xFF,
+        error: false,
+        g: 0xFF,
+        hex: '#FFFFFF',
+        r: 0xFF
+    });
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (bit) {
+        function contains(s, n) {
+            return (s.bits & (1 << n)) !== 0;
+        }
+        bit.contains = contains;
+    })(Haeckel.bit || (Haeckel.bit = {}));
+    var bit = Haeckel.bit;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (bit) {
+        function size(s) {
+            var size = 0;
+            for (var i = 0; i <= Haeckel.BIT_MEMBER_MAX; ++i) {
+                if (s.bits & (1 << i)) {
+                    size++;
+                }
+            }
+            return size;
+        }
+        bit.size = size;
+    })(Haeckel.bit || (Haeckel.bit = {}));
+    var bit = Haeckel.bit;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (clr) {
+        function constrain(c) {
+            c = Math.floor(c);
+            if (!isFinite(c) || c < 0 || c >= 0x100) {
+                return -1;
+            }
+            return c;
+        }
+
+        function toHex(n) {
+            var s = n.toString(16);
+            while (s.length < 2) {
+                s = '0' + s;
+            }
+            return s;
+        }
+
+        function create(r, g, b) {
+            r = constrain(r);
+            g = constrain(g);
+            b = constrain(b);
+            var error = r < 0 || g < 0 || b < 0, hex;
+            if (error) {
+                r = g = b = -1;
+                hex = 'none';
+            } else {
+                hex = '#' + toHex(r) + toHex(g) + toHex(b);
+            }
+            return Object.freeze({
+                r: r,
+                g: g,
+                b: b,
+                error: error,
+                hex: hex
+            });
+        }
+        clr.create = create;
+    })(Haeckel.clr || (Haeckel.clr = {}));
+    var clr = Haeckel.clr;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rec) {
+        function createFromCoords(x1, y1, x2, y2) {
+            return Haeckel.rec.create(x1, y1, x2 - x1, y2 - y1);
+        }
+        rec.createFromCoords = createFromCoords;
+    })(Haeckel.rec || (Haeckel.rec = {}));
+    var rec = Haeckel.rec;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    function DEFAULT_STATE_STYLER(state, totalStates) {
+        var color = Haeckel.BLACK;
+        if (state > 0 && totalStates > 0) {
+            totalStates = Math.max(state + 1, totalStates);
+            var value = 0xFF * state / (totalStates - 1);
+            color = Haeckel.clr.create(value, value, value);
+        }
+        return {
+            fill: color.hex,
+            stroke: Haeckel.BLACK.hex,
+            'stroke-opacity': '1',
+            'stroke-width': '1px',
+            'fill-opacity': '1'
+        };
+    }
+
+    function drawUnknown(element, area, spacing) {
+        element.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
+            'x': area.left + 'px',
+            'y': area.top + 'px',
+            'rx': (area.height / 4) + 'px',
+            'ry': (area.height / 4) + 'px',
+            'width': area.width + 'px',
+            'height': area.height + 'px',
+            'fill': Haeckel.WHITE.hex,
+            'stroke': Haeckel.BLACK.hex,
+            'stroke-dasharray': '1,3',
+            'stroke-width': '1px'
+        });
+        element.child(Haeckel.SVG_NS, 'text').attrs(Haeckel.SVG_NS, {
+            'x': area.centerX + 'px',
+            'y': (area.centerY + area.height / 8) + 'px',
+            'fill': Haeckel.BLACK.hex,
+            'font-size': (area.height / 4) + 'px',
+            'text-anchor': 'middle',
+            'font-family': "Myriad Pro"
+        }).text('?');
+    }
+
+    var StateRenderer = (function () {
+        function StateRenderer(chart, row, state, totalStates, stateSpacing, cornerRadius) {
+            this.chart = chart;
+            this.row = row;
+            this.state = state;
+            this.totalStates = totalStates;
+            this.stateSpacing = stateSpacing;
+            this.cornerRadius = cornerRadius;
+            this.columnY = {};
+            this.maxColumn = NaN;
+            this.minColumn = NaN;
+            var firstCell = chart.getArea(row, 0);
+            this.rowHeight = firstCell.height;
+            this.rowTop = firstCell.top;
+        }
+        StateRenderer.prototype.setRatio = function (column, top, bottom) {
+            if (isNaN(this.maxColumn) || column > this.maxColumn) {
+                this.maxColumn = column;
+            }
+            if (isNaN(this.minColumn) || column < this.minColumn) {
+                this.minColumn = column;
+            }
+            this.columnY[String(column)] = {
+                top: this.rowTop + (1 - bottom) * (this.rowHeight + this.stateSpacing),
+                bottom: this.rowTop - this.stateSpacing + (1 - top) * (this.rowHeight + this.stateSpacing)
+            };
+        };
+        StateRenderer.prototype.render = function (element) {
+            if (isNaN(this.maxColumn) || isNaN(this.minColumn)) {
+                return element;
+            }
+
+            var area = this.chart.getArea(this.row, this.minColumn);
+            if (area.empty) {
+                throw new Error("No area for row " + this.row + ", column " + this.minColumn + ".");
+            }
+            var columnY = this.columnY[String(this.minColumn)];
+            var d = 'M' + [area.left, columnY.top + this.cornerRadius].join(' ') + 'Q' + [area.left, columnY.top, area.left + this.cornerRadius, columnY.top].join(' ') + 'H' + (area.right - this.cornerRadius);
+            if (this.minColumn !== this.maxColumn) {
+                for (var column = this.minColumn + 1; column <= this.maxColumn; ++column) {
+                    var lastTop = columnY.top;
+                    var lastArea = area;
+                    columnY = this.columnY[String(column)];
+                    area = this.chart.getArea(this.row, column);
+                    if (lastTop !== columnY.top) {
+                        if (Math.abs(lastTop - columnY.top) <= this.cornerRadius * 2) {
+                            d += 'Q' + [lastArea.right, lastTop, lastArea.right, (lastTop + columnY.top) / 2].join(' ');
+                        } else if (lastTop < columnY.top) {
+                            d += 'Q' + [lastArea.right, lastTop, lastArea.right, lastTop + this.cornerRadius].join(' ') + 'V' + (columnY.top - this.cornerRadius);
+                        } else {
+                            d += 'Q' + [lastArea.right, lastTop, lastArea.right, lastTop - this.cornerRadius].join(' ') + 'V' + (columnY.top + this.cornerRadius);
+                        }
+                        d += 'Q' + [lastArea.right, columnY.top, lastArea.right + this.cornerRadius, columnY.top].join(' ');
+                    }
+                    d += 'H' + (area.right - this.cornerRadius);
+                }
+            }
+            d += 'Q' + [area.right, columnY.top, area.right, columnY.top + this.cornerRadius].join(' ') + 'V' + (columnY.bottom - this.cornerRadius);
+
+            d += 'Q' + [area.right, columnY.bottom, area.right - this.cornerRadius, columnY.bottom].join(' ') + 'H' + (area.left + this.cornerRadius);
+            if (this.minColumn !== this.maxColumn) {
+                for (column = this.maxColumn - 1; column >= this.minColumn; --column) {
+                    var lastBottom = columnY.bottom;
+                    lastArea = area;
+                    columnY = this.columnY[String(column)];
+                    area = this.chart.getArea(this.row, column);
+                    if (lastBottom !== columnY.bottom) {
+                        if (Math.abs(lastBottom - columnY.bottom) <= this.cornerRadius * 2) {
+                            d += 'Q' + [lastArea.left, lastBottom, lastArea.left, (lastBottom + columnY.bottom) / 2].join(' ');
+                        } else if (lastBottom < columnY.bottom) {
+                            d += 'Q' + [lastArea.left, lastBottom, lastArea.left, lastBottom + this.cornerRadius].join(' ') + 'V' + (columnY.bottom - this.cornerRadius);
+                        } else {
+                            d += 'Q' + [lastArea.left, lastBottom, lastArea.left, lastBottom - this.cornerRadius].join(' ') + 'V' + (columnY.bottom + this.cornerRadius);
+                        }
+                        d += 'Q' + [lastArea.left, columnY.bottom, lastArea.left - this.cornerRadius, columnY.bottom].join(' ');
+                    }
+                    d += 'H' + (area.left + this.cornerRadius);
+                }
+            }
+            d += 'Q' + [area.left, columnY.bottom, area.left, columnY.bottom - this.cornerRadius].join(' ') + 'V' + (columnY.top + this.cornerRadius) + 'Z';
+
+            return element.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', d).attrs(Haeckel.SVG_NS, this.chart.stateStyler(this.state, this.totalStates));
+        };
+        return StateRenderer;
+    })();
+
+    var CharacterMatrixChart = (function () {
+        function CharacterMatrixChart() {
+            this.area = Haeckel.EMPTY_SET;
+            this.characters = [];
+            this.matrix = Haeckel.EMPTY_CHARACTER_MATRIX;
+            this.spacingH = 8;
+            this.spacingV = 16;
+            this.stateSpacing = 8;
+            this.stateStyler = DEFAULT_STATE_STYLER;
+            this.taxa = [];
+        }
+        CharacterMatrixChart.prototype.getArea = function (a, b) {
+            if (typeof a === 'number' && typeof b === 'number') {
+                if (!(a >= 0) || !(b >= 0) || a >= this.characters.length || b >= this.taxa.length) {
+                    return Haeckel.EMPTY_SET;
+                }
+                return this._getArea(a, b);
+            }
+            var row = this.characters.indexOf(a);
+            if (row < 0) {
+                return Haeckel.EMPTY_SET;
+            }
+            var column = this.taxa.indexOf(b);
+            if (column < 0) {
+                return Haeckel.EMPTY_SET;
+            }
+            return this._getArea(row, column);
+        };
+
+        CharacterMatrixChart.prototype.render = function (parent) {
+            var g = parent.child(Haeckel.SVG_NS, 'g');
+            var n = this.characters.length;
+            if (n > 0) {
+                for (var i = 0; i < n; ++i) {
+                    var character = this.characters[i];
+                    this.renderCharacter(g, character, i);
+                }
+            }
+            return g;
+        };
+
+        CharacterMatrixChart.prototype._getArea = function (row, column) {
+            var rows = this.characters.length;
+            var columns = this.taxa.length;
+            if (rows === 0 || columns === 0) {
+                return Haeckel.EMPTY_SET;
+            }
+            var w = (this.area.width - this.spacingH * (columns - 1)) / columns;
+            var h = (this.area.height - this.spacingV * (rows - 1)) / rows;
+            var x = this.area.left + (w + this.spacingH) * column;
+            var y = this.area.top + (h + this.spacingV) * row;
+            return Haeckel.rec.createFromCoords(x, y, x + w, y + h);
+        };
+
+        CharacterMatrixChart.prototype.renderCharacter = function (element, character, row) {
+            var columns = this.taxa.length;
+            if (!(columns > 0)) {
+                return;
+            }
+            var g = element.child(Haeckel.SVG_NS, 'g');
+            var statesGroup = g.child(Haeckel.SVG_NS, 'g');
+            var numStates = Haeckel.bit.size(character.domain);
+            if (!(numStates > 0)) {
+                return;
+            }
+            var cells = new Array(columns);
+            var unknownsBuilder = new Haeckel.ExtSetBuilder();
+            for (var column = 0; column < columns; ++column) {
+                var taxon = this.taxa[column];
+                var states = Haeckel.chr.states(this.matrix, taxon, character);
+                if (states === null) {
+                    cells[column] = column === 0 ? [] : cells[column - 1];
+                    unknownsBuilder.add(column);
+                } else {
+                    var cell = [];
+                    for (var state = 0; state < numStates; ++state) {
+                        if (Haeckel.bit.contains(states, state)) {
+                            cell.push(state);
+                        }
+                    }
+                    cells[column] = cell;
+                }
+            }
+            var stateRendererLookup = {};
+            var stateRenderers = [];
+            for (column = 0; column < columns; ++column) {
+                taxon = this.taxa[column];
+                var cell = cells[column];
+                var stateLookup = {};
+                for (var i = 0; i < cell.length; ++i) {
+                    state = cell[i];
+                    stateLookup[String(state)] = true;
+                    var stateRenderer = stateRendererLookup[String(state)];
+                    if (!stateRenderer) {
+                        stateRendererLookup[String(state)] = stateRenderer = new StateRenderer(this, row, state, numStates, this.stateSpacing, this.spacingH);
+                        stateRenderers.push(stateRenderer);
+                    }
+                    stateRenderer.setRatio(column, i / cell.length, (i + 1) / cell.length);
+                }
+                for (var stateString in stateRendererLookup) {
+                    if (!stateLookup[stateString]) {
+                        delete stateRendererLookup[stateString];
+                    }
+                }
+            }
+            stateRenderers.forEach(function (renderer) {
+                return renderer.render(statesGroup);
+            });
+            var unknowns = unknownsBuilder.build();
+            if (!unknowns.empty) {
+                var unknownsGroup = g.child(Haeckel.SVG_NS, 'g');
+                for (column = 0; column < columns; ++column) {
+                    if (!Haeckel.ext.contains(unknowns, column)) {
+                        continue;
+                    }
+                    var start = column;
+                    while (column < columns && Haeckel.ext.contains(unknowns, column + 1)) {
+                        ++column;
+                    }
+                    var area = Haeckel.rec.combine([this._getArea(row, start), this._getArea(row, column)]);
+                    drawUnknown(unknownsGroup, area, this.spacingH);
+                }
+            }
+        };
+        return CharacterMatrixChart;
+    })();
+    Haeckel.CharacterMatrixChart = CharacterMatrixChart;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
     var ChronoChart = (function () {
         function ChronoChart() {
             this.area = Haeckel.EMPTY_SET;
@@ -2897,15 +3253,6 @@ var Haeckel;
         return ChronoChart;
     })();
     Haeckel.ChronoChart = ChronoChart;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    Haeckel.EMPTY_CHARACTER_MATRIX = Object.freeze({
-        characters: Haeckel.EMPTY_SET,
-        characterList: Object.freeze([]),
-        hashMap: Object.freeze({}),
-        taxon: Haeckel.EMPTY_SET
-    });
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -3264,16 +3611,6 @@ var Haeckel;
         chr.toDistanceMatrix = toDistanceMatrix;
     })(Haeckel.chr || (Haeckel.chr = {}));
     var chr = Haeckel.chr;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (rec) {
-        function createFromCoords(x1, y1, x2, y2) {
-            return Haeckel.rec.create(x1, y1, x2 - x1, y2 - y1);
-        }
-        rec.createFromCoords = createFromCoords;
-    })(Haeckel.rec || (Haeckel.rec = {}));
-    var rec = Haeckel.rec;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
@@ -4478,16 +4815,6 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    Haeckel.WHITE = Object.freeze({
-        b: 0xFF,
-        error: false,
-        g: 0xFF,
-        hex: '#FFFFFF',
-        r: 0xFF
-    });
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
     (function (dst) {
         function max(matrix) {
             var result = NaN, a, b;
@@ -5248,10 +5575,6 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
-    Haeckel.BIT_MEMBER_MAX = 31;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
     Haeckel.EMPTY_MAP = Object.freeze(function (value) {
         return undefined;
     });
@@ -5349,16 +5672,6 @@ var Haeckel;
 var Haeckel;
 (function (Haeckel) {
     (function (bit) {
-        function contains(s, n) {
-            return (s.bits & (1 << n)) !== 0;
-        }
-        bit.contains = contains;
-    })(Haeckel.bit || (Haeckel.bit = {}));
-    var bit = Haeckel.bit;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (bit) {
         function createFromBits(bits) {
             if (bits === 0) {
                 return Haeckel.EMPTY_SET;
@@ -5398,22 +5711,6 @@ var Haeckel;
             return Haeckel.bit.createFromBits(a.bits & b.bits);
         }
         bit.intersect = intersect;
-    })(Haeckel.bit || (Haeckel.bit = {}));
-    var bit = Haeckel.bit;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (bit) {
-        function size(s) {
-            var size = 0;
-            for (var i = 0; i <= Haeckel.BIT_MEMBER_MAX; ++i) {
-                if (s.bits & (1 << i)) {
-                    size++;
-                }
-            }
-            return size;
-        }
-        bit.size = size;
     })(Haeckel.bit || (Haeckel.bit = {}));
     var bit = Haeckel.bit;
 })(Haeckel || (Haeckel = {}));
@@ -5761,48 +6058,6 @@ var Haeckel;
         chr.createInt = createInt;
     })(Haeckel.chr || (Haeckel.chr = {}));
     var chr = Haeckel.chr;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (clr) {
-        function constrain(c) {
-            c = Math.floor(c);
-            if (!isFinite(c) || c < 0 || c >= 0x100) {
-                return -1;
-            }
-            return c;
-        }
-
-        function toHex(n) {
-            var s = n.toString(16);
-            while (s.length < 2) {
-                s = '0' + s;
-            }
-            return s;
-        }
-
-        function create(r, g, b) {
-            r = constrain(r);
-            g = constrain(g);
-            b = constrain(b);
-            var error = r < 0 || g < 0 || b < 0, hex;
-            if (error) {
-                r = g = b = -1;
-                hex = 'none';
-            } else {
-                hex = '#' + toHex(r) + toHex(g) + toHex(b);
-            }
-            return Object.freeze({
-                r: r,
-                g: g,
-                b: b,
-                error: error,
-                hex: hex
-            });
-        }
-        clr.create = create;
-    })(Haeckel.clr || (Haeckel.clr = {}));
-    var clr = Haeckel.clr;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {

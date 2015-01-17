@@ -622,15 +622,52 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    var BIT_MEMBER_MAX: number;
+}
+declare module Haeckel {
+    var EMPTY_CHARACTER_MATRIX: CharacterMatrix<Set>;
+}
+declare module Haeckel {
+    var WHITE: Color;
+}
+declare module Haeckel.bit {
+    function contains(s: Haeckel.BitSet, n: number): boolean;
+}
+declare module Haeckel.bit {
+    function size(s: Haeckel.BitSet): number;
+}
+declare module Haeckel.clr {
+    function create(r: number, g: number, b: number): Haeckel.Color;
+}
+declare module Haeckel.rec {
+    function createFromCoords(x1: number, y1: number, x2: number, y2: number): Haeckel.Rectangle;
+}
+declare module Haeckel {
+    class CharacterMatrixChart implements Haeckel.Renderer {
+        public area: Haeckel.Rectangle;
+        public characters: Haeckel.Character<Haeckel.BitSet>[];
+        public matrix: Haeckel.CharacterMatrix<Haeckel.BitSet>;
+        public spacingH: number;
+        public spacingV: number;
+        public stateSpacing: number;
+        public stateStyler: (state: number, totalStates: number) => {
+            [name: string]: string;
+        };
+        public taxa: Haeckel.Taxic[];
+        public getArea(character: Haeckel.Character<Haeckel.BitSet>, taxon: Haeckel.Taxic): Haeckel.Rectangle;
+        public getArea(row: number, column: number): Haeckel.Rectangle;
+        public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
+        private _getArea(row, column);
+        private renderCharacter(element, character, row);
+    }
+}
+declare module Haeckel {
     class ChronoChart {
         public area: Haeckel.Rectangle;
         public time: Haeckel.Range;
         public copyFrom(chart: ChronoChart): ChronoChart;
         public getTimeY(time: Haeckel.Range): Haeckel.Range;
     }
-}
-declare module Haeckel {
-    var EMPTY_CHARACTER_MATRIX: CharacterMatrix<Set>;
 }
 declare module Haeckel.chr {
     function initiate<S extends Haeckel.Set>(domain: S, label: string, labelStates: (s: S) => string, stateLabels: string[], type?: string): Haeckel.Character<S>;
@@ -677,9 +714,6 @@ declare module Haeckel.rng {
 }
 declare module Haeckel.chr {
     function toDistanceMatrix(matrix: Haeckel.CharacterMatrix<Haeckel.Set>, anchors?: Haeckel.Taxic): Haeckel.DistanceMatrix<Haeckel.Taxic>;
-}
-declare module Haeckel.rec {
-    function createFromCoords(x1: number, y1: number, x2: number, y2: number): Haeckel.Rectangle;
 }
 declare module Haeckel.rng {
     function add(r: Haeckel.Range, value: number): Haeckel.Range;
@@ -893,9 +927,6 @@ declare module Haeckel {
 declare module Haeckel {
     var EMPTY_DISTANCE_MATRIX: DistanceMatrix<any>;
 }
-declare module Haeckel {
-    var WHITE: Color;
-}
 declare module Haeckel.dst {
     function max<T>(matrix: Haeckel.DistanceMatrix<T>): number;
 }
@@ -1055,9 +1086,6 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
-    var BIT_MEMBER_MAX: number;
-}
-declare module Haeckel {
     var EMPTY_MAP: (value: any) => any;
 }
 declare module Haeckel {
@@ -1085,9 +1113,6 @@ declare module Haeckel.arr {
     function where<T>(list: T[], f: (element: T) => boolean, thisObject?: any): T[];
 }
 declare module Haeckel.bit {
-    function contains(s: Haeckel.BitSet, n: number): boolean;
-}
-declare module Haeckel.bit {
     function createFromBits(bits: number): Haeckel.BitSet;
 }
 declare module Haeckel.bit {
@@ -1095,9 +1120,6 @@ declare module Haeckel.bit {
 }
 declare module Haeckel.bit {
     function intersect(a: Haeckel.BitSet, b: Haeckel.BitSet): Haeckel.BitSet;
-}
-declare module Haeckel.bit {
-    function size(s: Haeckel.BitSet): number;
 }
 declare module Haeckel.bit {
     function distance(a: Haeckel.BitSet, b: Haeckel.BitSet): Haeckel.Range;
@@ -1153,9 +1175,6 @@ declare module Haeckel.ist {
 }
 declare module Haeckel.chr {
     function createInt<T>(criterion: (element: T) => boolean, combine?: (sets: Haeckel.IntSet<T>[]) => Haeckel.IntSet<T>, readStates?: (data: any) => Haeckel.IntSet<T>, writeStates?: (states: Haeckel.IntSet<T>) => any, label?: string, labelStates?: (s: Haeckel.IntSet<T>) => string, stateLabels?: string[]): Haeckel.Character<Haeckel.IntSet<T>>;
-}
-declare module Haeckel.clr {
-    function create(r: number, g: number, b: number): Haeckel.Color;
 }
 declare module Haeckel {
     interface Dating extends Haeckel.Model {
