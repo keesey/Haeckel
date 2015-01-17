@@ -2980,7 +2980,7 @@ var Haeckel;
         var color = Haeckel.BLACK;
         if (state > 0 && totalStates > 0) {
             totalStates = Math.max(state + 1, totalStates);
-            var value = 0xFF * state / (totalStates - 1);
+            var value = 0xE0 * state / (totalStates - 1);
             color = Haeckel.clr.create(value, value, value);
         }
         return {
@@ -2994,17 +2994,13 @@ var Haeckel;
 
     function drawUnknown(element, area, spacing) {
         element.child(Haeckel.SVG_NS, 'rect').attrs(Haeckel.SVG_NS, {
-            'x': area.left + 'px',
-            'y': area.top + 'px',
-            'rx': (area.height / 4) + 'px',
-            'ry': (area.height / 4) + 'px',
-            'width': area.width + 'px',
-            'height': area.height + 'px',
-            'fill': Haeckel.WHITE.hex,
-            'stroke': Haeckel.BLACK.hex,
-            'stroke-dasharray': '1,3',
-            'stroke-width': '1px'
+            'x': (area.left - 1) + 'px',
+            'y': (area.top - 1) + 'px',
+            'width': (area.width + 2) + 'px',
+            'height': (area.height + 2) + 'px',
+            'fill': Haeckel.WHITE.hex
         });
+
         element.child(Haeckel.SVG_NS, 'text').attrs(Haeckel.SVG_NS, {
             'x': area.centerX + 'px',
             'y': (area.centerY + area.height / 8) + 'px',
@@ -3106,9 +3102,9 @@ var Haeckel;
             this.area = Haeckel.EMPTY_SET;
             this.characters = [];
             this.matrix = Haeckel.EMPTY_CHARACTER_MATRIX;
-            this.spacingH = 8;
+            this.spacingH = 4;
             this.spacingV = 16;
-            this.stateSpacing = 8;
+            this.stateSpacing = 4;
             this.stateStyler = DEFAULT_STATE_STYLER;
             this.taxa = [];
         }
@@ -3172,7 +3168,7 @@ var Haeckel;
                 var taxon = this.taxa[column];
                 var states = Haeckel.chr.states(this.matrix, taxon, character);
                 if (states === null) {
-                    cells[column] = column === 0 ? [] : cells[column - 1];
+                    cells[column] = null;
                     unknownsBuilder.add(column);
                 } else {
                     var cell = [];
@@ -3184,6 +3180,32 @@ var Haeckel;
                     cells[column] = cell;
                 }
             }
+            cells = cells.map(function (cell, index, cells) {
+                function next() {
+                    for (var i = index + 1; i < cells.length; ++i) {
+                        if (cells[i]) {
+                            return cells[i];
+                        }
+                    }
+                    return [];
+                }
+
+                function prev() {
+                    for (var i = index - 1; i >= 0; --i) {
+                        if (cells[i]) {
+                            return cells[i];
+                        }
+                    }
+                    return [];
+                }
+
+                if (!cell) {
+                    return next().concat(prev()).filter(function (value, index, array) {
+                        return array.indexOf(value) === index;
+                    }).sort();
+                }
+                return cell;
+            });
             var stateRendererLookup = {};
             var stateRenderers = [];
             for (column = 0; column < columns; ++column) {

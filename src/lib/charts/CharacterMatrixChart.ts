@@ -26,7 +26,7 @@ module Haeckel
 		if (state > 0 && totalStates > 0)
 		{
 			totalStates = Math.max(state + 1, totalStates);
-			var value = 0xFF * state / (totalStates - 1);
+			var value = 0xE0 * state / (totalStates - 1);
 			color = clr.create(value, value, value);
 		}
 		return {
@@ -34,27 +34,44 @@ module Haeckel
 			stroke: BLACK.hex,
 			'stroke-opacity' : '1',
 			'stroke-width': '1px',
-			'fill-opacity' : '1'
+			'fill-opacity': '1'
 		};
 	}
 
 	function drawUnknown(element: ElementBuilder, area: Rectangle, spacing: number)
 	{
-		// :TODO: Customizable styles
+		// :TODO: Customizable renderer
+		/*
 		element
 			.child(SVG_NS, 'rect')
 			.attrs(SVG_NS, {
-				'x': area.left + 'px',
-				'y': area.top + 'px',
-				'rx': (area.height / 4) + 'px',
-				'ry': (area.height / 4) + 'px',
-				'width': area.width + 'px',
-				'height': area.height + 'px',
-				'fill': WHITE.hex,
-				'stroke': BLACK.hex,
-				'stroke-dasharray' : '1,3',
-				'stroke-width': '1px'
+				'x': (area.left - spacing * 2) + 'px',
+				'y': (area.top - 1) + 'px',
+				'width': (spacing * 2) + 'px',
+				'height': (area.height + 2) + 'px',
+				'fill': 'url(#leftFade)'
 			});
+		*/
+		element
+			.child(SVG_NS, 'rect')
+			.attrs(SVG_NS, {
+				'x': (area.left - 1) + 'px',
+				'y': (area.top - 1) + 'px',
+				'width': (area.width + 2) + 'px',
+				'height': (area.height + 2) + 'px',
+				'fill': WHITE.hex
+			});
+		/*
+		element
+			.child(SVG_NS, 'rect')
+			.attrs(SVG_NS, {
+				'x': area.right + 'px',
+				'y': (area.top - 1) + 'px',
+				'width': (spacing * 2) + 'px',
+				'height': (area.height + 2) + 'px',
+				'fill': 'url(#rightFade)'
+			});
+		*/
 		element
 			.child(SVG_NS, 'text')
 			.attrs(SVG_NS, {
@@ -211,11 +228,11 @@ module Haeckel
 
 		matrix = <CharacterMatrix<BitSet>> EMPTY_CHARACTER_MATRIX;
 
-		spacingH = 8;
+		spacingH = 4;
 
 		spacingV = 16;
 
-		stateSpacing = 8;
+		stateSpacing = 4;
 
 		stateStyler: (state: number, totalStates: number) => { [name: string]: string; } = DEFAULT_STATE_STYLER;
 
@@ -298,7 +315,7 @@ module Haeckel
 				var states = chr.states(this.matrix, taxon, character);
 				if (states === null)
 				{
-					cells[column] = column === 0 ? [] : cells[column - 1];
+					cells[column] = null;
 					unknownsBuilder.add(column);
 				}
 				else
@@ -314,6 +331,40 @@ module Haeckel
 					cells[column] = cell;
 				}
 			}
+			cells = cells.map((cell: number[], index: number, cells: number[][]) =>
+			{
+				function next()
+				{
+					for (var i = index + 1; i < cells.length; ++i)
+					{
+						if (cells[i])
+						{
+							return cells[i];
+						}
+					}
+					return [];
+				}
+
+				function prev()
+				{
+					for (var i = index - 1; i >= 0; --i)
+					{
+						if (cells[i])
+						{
+							return cells[i];
+						}
+					}
+					return [];
+				}
+
+				if (!cell)
+				{
+					return next().concat(prev())
+						.filter((value: number, index: number, array: number[]) => array.indexOf(value) === index)
+						.sort();
+				}
+				return cell;
+			});
 			var stateRendererLookup: { [state: string]: StateRenderer; } = {};
 			var stateRenderers: StateRenderer[] = [];
 			for (column = 0; column < columns; ++column)
