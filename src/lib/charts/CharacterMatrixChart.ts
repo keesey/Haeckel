@@ -190,20 +190,23 @@ module Haeckel
 						if (Math.abs(lastBottom - columnY.bottom) <= this.cornerRadius * 2)
 						{
 							d += 'Q' + [lastArea.left, lastBottom, lastArea.left, (lastBottom + columnY.bottom) / 2].join(' ');
+							d += 'Q' + [lastArea.left, columnY.bottom, lastArea.left - this.cornerRadius, columnY.bottom].join(' ');
 						}
 						else if (lastBottom < columnY.bottom)
 						{
 							d +=
-								'Q' + [lastArea.left, lastBottom, lastArea.left, lastBottom + this.cornerRadius].join(' ') +
+								'H' + lastArea.left +
+								'Q' + [lastArea.left - this.cornerRadius, lastBottom, lastArea.left - this.cornerRadius, lastBottom + this.cornerRadius].join(' ') +
 								'V' + (columnY.bottom - this.cornerRadius);
+							d += 'Q' + [lastArea.left - this.cornerRadius, columnY.bottom, lastArea.left - this.cornerRadius * 2, columnY.bottom].join(' ');
 						}
 						else
 						{
 							d +=
 								'Q' + [lastArea.left, lastBottom, lastArea.left, lastBottom - this.cornerRadius].join(' ') +
 								'V' + (columnY.bottom + this.cornerRadius);
+							d += 'Q' + [lastArea.left, columnY.bottom, lastArea.left - this.cornerRadius, columnY.bottom].join(' ');
 						}
-						d += 'Q' + [lastArea.left, columnY.bottom, lastArea.left - this.cornerRadius, columnY.bottom].join(' ');
 					}
 					d += 'H' + (area.left + this.cornerRadius);
 				}
