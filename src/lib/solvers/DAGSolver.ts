@@ -74,6 +74,37 @@ module Haeckel
 			return this._graph.vertices;
 		}
 
+		get verticesSorted(): T[]
+		{
+			var key = "verticesSorted";
+			var result = this._cache.get<T[]>(key);
+			if (result !== undefined)
+			{
+				return result;
+			}
+
+			result = [];
+			var added = new ExtSetBuilder<T>();
+			var solver = this;
+
+			function addVertices(vertices: T[])
+			{
+				vertices.forEach(vertex =>
+				{
+					if (!added.contains(vertex))
+					{
+						added.add(vertex);
+						result.push(vertex);
+						addVertices(ext.list(solver.imSucs(vertex)));
+					}
+				});
+			}
+
+			addVertices(ext.list(this.sources));
+			
+			return this._cache.set(key, Object.freeze(result));
+		}
+
 		constructor(graph: Digraph<T>)
 		{
 			this._graph = graph;
