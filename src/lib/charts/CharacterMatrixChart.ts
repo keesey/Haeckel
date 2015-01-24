@@ -7,6 +7,7 @@
 /// <reference path="../constants/SVG_NS.ts"/>
 /// <reference path="../constants/WHITE.ts"/>
 /// <reference path="../functions/bit/contains.ts"/>
+/// <reference path="../functions/bit/create.ts"/>
 /// <reference path="../functions/bit/size.ts"/>
 /// <reference path="../functions/chr/states.ts"/>
 /// <reference path="../functions/clr/create.ts"/>
@@ -38,9 +39,10 @@ module Haeckel
 		};
 	}
 
-	function drawUnknown(element: ElementBuilder, area: Rectangle, spacing: number)
+	function drawUnknown(element: ElementBuilder, area: Rectangle, spacingH: number, spacingV: number)
 	{
 		// :TODO: Customizable renderer
+		var group = element.child(SVG_NS, 'g');
 		/*
 		element
 			.child(SVG_NS, 'rect')
@@ -52,14 +54,34 @@ module Haeckel
 				'fill': 'url(#leftFade)'
 			});
 		*/
-		element
+		group
 			.child(SVG_NS, 'rect')
 			.attrs(SVG_NS, {
-				'x': (area.left - 1) + 'px',
-				'y': (area.top - 1) + 'px',
-				'width': (area.width + 2) + 'px',
-				'height': (area.height + 2) + 'px',
+				'x': (area.left + spacingH) + 'px',
+				'y': (area.top - spacingV + 1) + 'px',
+				'width': (area.width - spacingH * 2) + 'px',
+				'height': (area.height + spacingV * 2 - 2) + 'px',
 				'fill': WHITE.hex
+			});
+		group
+			.child(SVG_NS, 'line')
+			.attrs(SVG_NS, {
+				'x1': (area.left + spacingH) + 'px',
+				'y1': (area.top - spacingV) + 'px',
+				'x2': (area.left + spacingH) + 'px',
+				'y2': (area.bottom + spacingV) + 'px',
+				'stroke': BLACK.hex,
+				'stroke-dasharray': '2 2'
+			});
+		group
+			.child(SVG_NS, 'line')
+			.attrs(SVG_NS, {
+				'x1': (area.right - spacingH) + 'px',
+				'y1': (area.top - spacingV) + 'px',
+				'x2': (area.right - spacingH) + 'px',
+				'y2': (area.bottom + spacingV) + 'px',
+				'stroke': BLACK.hex,
+				'stroke-dasharray': '2 2'
 			});
 		/*
 		element
@@ -72,13 +94,14 @@ module Haeckel
 				'fill': 'url(#rightFade)'
 			});
 		*/
-		element
+		group
 			.child(SVG_NS, 'text')
 			.attrs(SVG_NS, {
 				'x': area.centerX + 'px',
-				'y': (area.centerY + area.height / 8) + 'px',
+				'y': (area.centerY + 5.5) + 'px',
 				'fill': BLACK.hex,
-				'font-size': (area.height / 4) + 'px',
+				'font-size': '11px',
+				'font-weight': 'bold',
 				'text-anchor': 'middle',
 				'font-family': "Myriad Pro"
 			})
@@ -95,17 +118,19 @@ module Haeckel
 		} = {};
 		private maxColumn = NaN;
 		private minColumn = NaN;
+		private minKnownColumn = NaN;
 		private rowHeight: number;
 		private rowTop: number;
 		constructor(private chart: CharacterMatrixChart, private row: number,
 			private state: number, private totalStates: number,
+			private label: string,
 			private stateSpacing: number, private cornerRadius: number)
 		{
 			var firstCell = chart.getArea(row, 0);
 			this.rowHeight = firstCell.height;
 			this.rowTop = firstCell.top;
 		}
-		setRatio(column: number, top: number, bottom: number)
+		setRatio(column: number, top: number, bottom: number, unknown: boolean)
 		{
 			if (isNaN(this.maxColumn) || column > this.maxColumn)
 			{
@@ -114,6 +139,13 @@ module Haeckel
 			if (isNaN(this.minColumn) || column < this.minColumn)
 			{
 				this.minColumn = column;
+			}
+			if (!unknown)
+			{
+				if (isNaN(this.minKnownColumn) || column < this.minKnownColumn)
+				{
+					this.minKnownColumn = column;
+				}
 			}
 			this.columnY[String(column)] = {
 				top: this.rowTop + (1 - bottom) * (this.rowHeight + this.stateSpacing),
@@ -133,6 +165,9 @@ module Haeckel
 			{
 				throw new Error("No area for row " + this.row + ", column " + this.minColumn + ".");
 			}
+
+			var group = element.child(Haeckel.SVG_NS, 'g');
+
 			var columnY = this.columnY[String(this.minColumn)];
 			var d =
 				'M' + [area.left, columnY.top + this.cornerRadius].join(' ') +
@@ -216,10 +251,31 @@ module Haeckel
 				'V' + (columnY.top + this.cornerRadius) +
 				'Z';
 			
-			return element
+			group
 				.child(SVG_NS, 'path')
 				.attr(SVG_NS, 'd', d)
 				.attrs(SVG_NS, this.chart.stateStyler(this.state, this.totalStates));
+
+			if (this.label)
+			{
+				area = this.chart.getArea(this.row, this.minKnownColumn);
+				columnY = this.columnY[String(this.minKnownColumn)];
+				group
+					.child(SVG_NS, 'text')
+					.attrs(SVG_NS, {
+						'x': (area.left + this.cornerRadius) + 'px',
+						'y': Math.min(columnY.top + this.cornerRadius + 11, columnY.bottom - this.cornerRadius) + 'px',
+						'fill': (this.state / (this.totalStates - 1) <= 0.5) ? WHITE.hex : BLACK.hex,
+						'font-size': '11px',
+						'text-anchor': 'start',
+						'font-weight': 'bold',
+						'font-family': "Myriad Pro"
+					})
+					.text(this.label);
+					// :TODO: custom style
+			}
+
+			return group;
 		}
 	}
 
@@ -383,10 +439,10 @@ module Haeckel
 					if (!stateRenderer)
 					{
 						stateRendererLookup[String(state)] = stateRenderer
-							= new StateRenderer(this, row, state, numStates, this.stateSpacing, this.spacingH);
+							= new StateRenderer(this, row, state, numStates, character.labelStates(bit.create([ state ])), this.stateSpacing, this.spacingH);
 						stateRenderers.push(stateRenderer);
 					}
-					stateRenderer.setRatio(column, i / cell.length, (i + 1) / cell.length);
+					stateRenderer.setRatio(column, i / cell.length, (i + 1) / cell.length, unknownsBuilder.contains(column));
 				}
 				for (var stateString in stateRendererLookup)
 				{
@@ -412,7 +468,7 @@ module Haeckel
 						++column;
 					}
 					var area = rec.combine([ this._getArea(row, start), this._getArea(row, column) ]);
-					drawUnknown(unknownsGroup, area, this.spacingH);
+					drawUnknown(unknownsGroup, area, this.spacingH, this.spacingV);
 				}
 			}
 		}
