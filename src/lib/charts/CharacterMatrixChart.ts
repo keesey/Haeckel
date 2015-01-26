@@ -71,6 +71,7 @@ module Haeckel
 				'x2': (area.left + spacingH) + 'px',
 				'y2': (area.bottom + spacingV) + 'px',
 				'stroke': BLACK.hex,
+				'stroke-width': '2px',
 				'stroke-dasharray': '2 2'
 			});
 		group
@@ -81,6 +82,7 @@ module Haeckel
 				'x2': (area.right - spacingH) + 'px',
 				'y2': (area.bottom + spacingV) + 'px',
 				'stroke': BLACK.hex,
+				'stroke-width': '2px',
 				'stroke-dasharray': '2 2'
 			});
 		/*
@@ -98,9 +100,9 @@ module Haeckel
 			.child(SVG_NS, 'text')
 			.attrs(SVG_NS, {
 				'x': area.centerX + 'px',
-				'y': (area.centerY + 5.5) + 'px',
+				'y': (area.centerY + 10) + 'px',
 				'fill': BLACK.hex,
-				'font-size': '11px',
+				'font-size': '20px',
 				'font-weight': 'bold',
 				'text-anchor': 'middle',
 				'font-family': "Myriad Pro"
