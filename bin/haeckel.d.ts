@@ -346,6 +346,7 @@ declare module Haeckel {
         public sinks : Haeckel.ExtSet<T>;
         public sources : Haeckel.ExtSet<T>;
         public vertices : Haeckel.ExtSet<T>;
+        public verticesSorted : T[];
         constructor(graph: Haeckel.Digraph<T>);
         public distance(x: T, y: T, traversedBuilder?: Haeckel.ExtSetBuilder<T>): number;
         public imPrcs(vertex: T): Haeckel.ExtSet<T>;
@@ -483,11 +484,25 @@ declare module Haeckel {
     }
 }
 declare module Haeckel {
+    var ORIGIN: Point;
+}
+declare module Haeckel.pt {
+    function create(x: number, y: number): Haeckel.Point;
+}
+declare module Haeckel {
+    function precisionEqual(a: number, b: number): boolean;
+}
+declare module Haeckel {
     class PathBuilder implements Haeckel.Builder<string> {
         private points;
+        public close: boolean;
+        public add(builder: PathBuilder): PathBuilder;
         public add(point: Haeckel.Point): PathBuilder;
+        public add(x: number, y: number): PathBuilder;
+        public empty(): boolean;
         public build(): string;
         public reset(): PathBuilder;
+        public reverse(): PathBuilder;
     }
 }
 declare module Haeckel.ext {
@@ -634,6 +649,12 @@ declare module Haeckel.bit {
     function contains(s: Haeckel.BitSet, n: number): boolean;
 }
 declare module Haeckel.bit {
+    function createFromBits(bits: number): Haeckel.BitSet;
+}
+declare module Haeckel.bit {
+    function create(members: number[]): Haeckel.BitSet;
+}
+declare module Haeckel.bit {
     function size(s: Haeckel.BitSet): number;
 }
 declare module Haeckel.clr {
@@ -649,11 +670,13 @@ declare module Haeckel {
         public matrix: Haeckel.CharacterMatrix<Haeckel.BitSet>;
         public spacingH: number;
         public spacingV: number;
+        public stateFontSize: number;
         public stateSpacing: number;
         public stateStyler: (state: number, totalStates: number) => {
             [name: string]: string;
         };
         public taxa: Haeckel.Taxic[];
+        public unknownFontSize: number;
         public getArea(character: Haeckel.Character<Haeckel.BitSet>, taxon: Haeckel.Taxic): Haeckel.Rectangle;
         public getArea(row: number, column: number): Haeckel.Rectangle;
         public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
@@ -730,12 +753,6 @@ declare module Haeckel {
         public getTaxonX(taxon: Haeckel.Taxic): Haeckel.Range;
         public useCharacterMatrixForHorizontal(leftTaxon: Haeckel.Taxic, rightTaxon: Haeckel.Taxic): ChronoCharChart;
     }
-}
-declare module Haeckel {
-    var ORIGIN: Point;
-}
-declare module Haeckel.pt {
-    function create(x: number, y: number): Haeckel.Point;
 }
 declare module Haeckel {
     interface GeoCoords extends Haeckel.Model {
@@ -846,11 +863,8 @@ declare module Haeckel.nom {
 }
 declare module Haeckel {
     class GeoPhyloChart implements Haeckel.Renderer {
-        public color: Haeckel.Color;
         public extensions: boolean;
-        public lineAttrs: (source: Haeckel.Taxic, target: Haeckel.Taxic, solver: Haeckel.DAGSolver<Haeckel.Taxic>) => {
-            [name: string]: string;
-        };
+        public fill: Haeckel.Color;
         public mapArea: Haeckel.Rectangle;
         public nomenclature: Haeckel.Nomenclature;
         public occurrenceMatrix: Haeckel.CharacterMatrix<Haeckel.Set>;
@@ -858,6 +872,7 @@ declare module Haeckel {
         public projector: (coords: Haeckel.GeoCoords) => Haeckel.Point;
         public rootRadius: number;
         public solver: Haeckel.DAGSolver<Haeckel.Taxic>;
+        public stroke: Haeckel.Color;
         public project(coords: Haeckel.GeoCoords): Haeckel.Point;
         public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
@@ -911,9 +926,6 @@ declare module Haeckel {
         private getIndividualPoint(plots, area);
         public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }
-}
-declare module Haeckel {
-    function precisionEqual(a: number, b: number): boolean;
 }
 declare module Haeckel {
     class PhyloChart extends Haeckel.ChronoCharChart implements Haeckel.Renderer {
@@ -1111,12 +1123,6 @@ declare module Haeckel.arr {
 }
 declare module Haeckel.arr {
     function where<T>(list: T[], f: (element: T) => boolean, thisObject?: any): T[];
-}
-declare module Haeckel.bit {
-    function createFromBits(bits: number): Haeckel.BitSet;
-}
-declare module Haeckel.bit {
-    function create(members: number[]): Haeckel.BitSet;
 }
 declare module Haeckel.bit {
     function intersect(a: Haeckel.BitSet, b: Haeckel.BitSet): Haeckel.BitSet;

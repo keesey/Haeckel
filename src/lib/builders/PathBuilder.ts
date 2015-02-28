@@ -10,6 +10,7 @@ module Haeckel
 
 		close: boolean = true;
 
+		add(builder: PathBuilder): PathBuilder;
 		add(point: Point): PathBuilder;
 		add(x: number, y: number): PathBuilder;
 		add(a: any, y?: number): PathBuilder
@@ -18,11 +19,20 @@ module Haeckel
 			{
 				this.points.push(pt.create(<number> a, y));
 			}
+			else if (a instanceof PathBuilder)
+			{
+				this.points = this.points.concat((<PathBuilder> a).points);
+			}
 			else
 			{
 				this.points.push(<Point> a);
 			}
 			return this;
+		}
+
+		empty()
+		{
+			return this.points.length === 0;
 		}
 
 		build(): string
@@ -73,6 +83,12 @@ module Haeckel
 		reset()
 		{
 			this.points = [];
+			return this;
+		}
+
+		reverse()
+		{
+			this.points.reverse();
 			return this;
 		}
 	}

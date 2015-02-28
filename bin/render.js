@@ -1315,6 +1315,36 @@ var Haeckel;
             configurable: true
         });
 
+        Object.defineProperty(DAGSolver.prototype, "verticesSorted", {
+            get: function () {
+                var key = "verticesSorted";
+                var result = this._cache.get(key);
+                if (result !== undefined) {
+                    return result;
+                }
+
+                result = [];
+                var added = new Haeckel.ExtSetBuilder();
+                var solver = this;
+
+                function addVertices(vertices) {
+                    vertices.forEach(function (vertex) {
+                        if (!added.contains(vertex)) {
+                            added.add(vertex);
+                            result.push(vertex);
+                            addVertices(Haeckel.ext.list(solver.imSucs(vertex)));
+                        }
+                    });
+                }
+
+                addVertices(Haeckel.ext.list(this.sources));
+
+                return this._cache.set(key, Object.freeze(result));
+            },
+            enumerable: true,
+            configurable: true
+        });
+
         DAGSolver.prototype.distance = function (x, y, traversedBuilder) {
             if (typeof traversedBuilder === "undefined") { traversedBuilder = null; }
             var _this = this;

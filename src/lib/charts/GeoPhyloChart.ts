@@ -1,8 +1,11 @@
+/// <reference path="../constants/BLACK.ts"/>
 /// <reference path="../constants/EMPTY_CHARACTER_MATRIX.ts"/>
 /// <reference path="../constants/EMPTY_DAG_SOLVER.ts"/>
 /// <reference path="../constants/EMPTY_NOMENCLATURE.ts"/>
 /// <reference path="../constants/GEO_CHARACTER.ts"/>
+/// <reference path="../constants/WHITE.ts"/>
 /// <reference path="../functions/equal.ts"/>
+/// <reference path="../functions/arr/each.ts"/>
 /// <reference path="../functions/chr/states.ts"/>
 /// <reference path="../functions/ext/each.ts"/>
 /// <reference path="../functions/ext/list.ts"/>
@@ -20,27 +23,32 @@
 /// <reference path="../solvers/DAGSolver.ts"/>
 module Haeckel
 {
+	/*
 	var DEFAULT_LINE_ATTRS_VALUE: { [name: string]: string; } =
 	{
-		'opacity': '0.5',
+		'fill': WHITE.hex,
+		'stroke': BLACK.hex,
 		'stroke-linecap': 'round',
 		'stroke-width': '3px'
 	};
+	*/
 
 	var DEFAULT_MAP_AREA = rec.create(0, 0, 360, 180);
 
+	/*
 	function DEFAULT_LINE_ATTRS(source: Taxic, target: Taxic, solver: DAGSolver<Taxic>): { [name: string]: string; }
 	{
 		return DEFAULT_LINE_ATTRS_VALUE;
 	};
+	*/
 
 	export class GeoPhyloChart implements Renderer
 	{
-		color = BLACK;
-
 		extensions = true;
 
-		lineAttrs: (source: Taxic, target: Taxic, solver: DAGSolver<Taxic>) => { [name: string]: string; } = DEFAULT_LINE_ATTRS;
+		fill = WHITE;
+
+		//lineAttrs: (source: Taxic, target: Taxic, solver: DAGSolver<Taxic>) => { [name: string]: string; } = DEFAULT_LINE_ATTRS;
 
 		mapArea = DEFAULT_MAP_AREA;
 
@@ -56,6 +64,8 @@ module Haeckel
 
 		solver: DAGSolver<Taxic> = EMPTY_DAG_SOLVER;
 
+		stroke = BLACK;
+
 		project(coords: GeoCoords): Point
 		{
 			var p = this.projector(coords),
@@ -66,16 +76,16 @@ module Haeckel
 
 		render(parent: ElementBuilder): ElementBuilder
 		{
-			function drawExtensions(coords: GeoCoords, taxon: Taxic, lineAttrs: { [name: string]: string; })
+			function drawExtensions(coords: GeoCoords, taxon: Taxic /*, lineAttrs: { [name: string]: string; }*/)
 			{
 				var regions = <ExtSet<GeoCoords[]>> chr.states(matrix, taxon, GEO_CHARACTER);
 				if (regions)
 				{
-					ext.each(regions, (region: GeoCoords[]) => drawLine(coords, geo.center(region), lineAttrs));
+					ext.each(regions, (region: GeoCoords[]) => drawLine(coords, geo.center(region), true/*, lineAttrs*/));
 				}
 			}
 
-			function drawLine(source: GeoCoords, target: GeoCoords, lineAttrs: { [name: string]: string; })
+			function drawLine(source: GeoCoords, target: GeoCoords, terminal: boolean/*, lineAttrs: { [name: string]: string; }*/)
 			{
 				function curve(x1: number, x2: number)
 				{
@@ -100,9 +110,25 @@ module Haeckel
 					{
 						cx -= mapWidth;
 					}
+					var d = "M" + x1 + " " + p1.y + "Q" + cx + " " + midp.y + " " + x2 + " " + p2.y;
 					g.child(SVG_NS, 'path')
-						.attr(SVG_NS, 'd', "M" + x1 + " " + p1.y + "Q" + cx + " " + midp.y + " " + x2 + " " + p2.y)
-						.attrs(SVG_NS, lineAttrs);
+						.attr(SVG_NS, 'd', d)
+						.attrs(SVG_NS, {
+							'stroke': '#000000',
+							'stroke-linecap': 'none',
+							'stroke-width': '4px',
+							'fill': 'none',
+							'marker-end': terminal ? "url(#arrowheadBlack)" : "url(#circleBlack)"
+						});
+					g.child(SVG_NS, 'path')
+						.attr(SVG_NS, 'd', d)
+						.attrs(SVG_NS, {
+							'stroke': '#ffffff',
+							'stroke-linecap': 'round',
+							'stroke-width': '3px',
+							'fill': 'none',
+							'marker-end': terminal ? "url(#arrowheadWhite)" : "url(#circleWhite)"
+						});
 				}
 
 				if (equal(source, target))
@@ -183,29 +209,42 @@ module Haeckel
 					}
 				});
 			}
-			ext.each(solver.vertices, (taxon: Taxic) =>
-			{
-				var coords = getTaxonCoords(taxon);
-				if (this.extensions)
-				{
-					drawExtensions(coords, taxon, this.lineAttrs(taxon, taxon, solver));
-				}
-				ext.each(solver.imSucs(taxon), (child: Taxic) =>
-				{
-					drawLine(coords, getTaxonCoords(child), this.lineAttrs(taxon, child, solver));
-				}, this);
-			}, this);
 			ext.each(solver.sources, (taxon: Taxic) =>
 			{
-				var p = this.project(getTaxonCoords(taxon)),
-					r = this.rootRadius + 'px';
+				var p = this.project(getTaxonCoords(taxon));
 				g.child(SVG_NS, 'circle')
 					.attrs(SVG_NS,
 						{
 							'cx': p.x + 'px',
 							'cy': p.y + 'px',
-							'r': r,
-							'fill': this.color.hex,
+							'r': (this.rootRadius + 1) + 'px',
+							'fill': this.stroke.hex,
+							'stroke': 'none'
+						});
+			}, this);
+			arr.each(solver.verticesSorted, taxon =>
+			{
+				var coords = getTaxonCoords(taxon);
+				if (this.extensions)
+				{
+					drawExtensions(coords, taxon/*, this.lineAttrs(taxon, taxon, solver)*/);
+				}
+				ext.each(solver.imSucs(taxon), child =>
+				{
+					var regions = <ExtSet<GeoCoords[]>> chr.states(matrix, taxon, GEO_CHARACTER);
+					drawLine(coords, getTaxonCoords(child), false/*, this.lineAttrs(taxon, child, solver)*/);
+				}, this);
+			}, this);
+			ext.each(solver.sources, (taxon: Taxic) =>
+			{
+				var p = this.project(getTaxonCoords(taxon));
+				g.child(SVG_NS, 'circle')
+					.attrs(SVG_NS,
+						{
+							'cx': p.x + 'px',
+							'cy': p.y + 'px',
+							'r': this.rootRadius + 'px',
+							'fill': this.fill.hex,
 							'stroke': 'none'
 						});
 			}, this);

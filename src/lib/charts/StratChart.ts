@@ -30,8 +30,7 @@ module Haeckel
 
 		render(parent: ElementBuilder): ElementBuilder
 		{
-			var strata: Stratum[] = [],
-				yRange = rng.create(this.area.top, this.area.bottom),
+			var yRange = rng.create(this.area.top, this.area.bottom),
 				boundaries = new ExtSetBuilder<Range>(),
 				y: Range;
 			ext.each(this.strata, (stratum: Stratum) =>
@@ -49,7 +48,7 @@ module Haeckel
 						boundaries.add(y);
 					}
 				}
-			}, this);
+			});
 			var g = parent.child(SVG_NS, 'g'),
 				boundaryList = ext.list(boundaries.build()).sort(rng.compare);
 			arr.each(boundaryList, (boundary: Range) =>
@@ -58,7 +57,7 @@ module Haeckel
 					.attr(SVG_NS, 'd', 'M' + this.area.left + " " + boundary.mean + "h" + this.area.width)
 					.attrs(SVG_NS, BAR_STYLE)
 					.attr(SVG_NS, 'stroke-width', Math.max(this.minStrokeWidth, boundary.size) + 'px');
-			}, this);
+			});
 			return g;
 		}
 	}

@@ -39,7 +39,7 @@ module Haeckel
 		};
 	}
 
-	function drawUnknown(element: ElementBuilder, area: Rectangle, spacingH: number, spacingV: number)
+	function drawUnknown(element: ElementBuilder, area: Rectangle, spacingH: number, spacingV: number, fontSize: number)
 	{
 		// :TODO: Customizable renderer
 		var group = element.child(SVG_NS, 'g');
@@ -100,9 +100,9 @@ module Haeckel
 			.child(SVG_NS, 'text')
 			.attrs(SVG_NS, {
 				'x': area.centerX + 'px',
-				'y': (area.centerY + 10) + 'px',
+				'y': (area.centerY + fontSize / 2) + 'px',
 				'fill': BLACK.hex,
-				'font-size': '20px',
+				'font-size': fontSize + 'px',
 				'font-weight': 'bold',
 				'text-anchor': 'middle',
 				'font-family': "Myriad Pro"
@@ -126,7 +126,8 @@ module Haeckel
 		constructor(private chart: CharacterMatrixChart, private row: number,
 			private state: number, private totalStates: number,
 			private label: string,
-			private stateSpacing: number, private cornerRadius: number)
+			private stateSpacing: number, private cornerRadius: number,
+			private fontSize: number)
 		{
 			var firstCell = chart.getArea(row, 0);
 			this.rowHeight = firstCell.height;
@@ -268,7 +269,7 @@ module Haeckel
 						'x': (area.left + this.cornerRadius) + 'px',
 						'y': Math.min(columnY.top + this.cornerRadius + 11, columnY.bottom - this.cornerRadius) + 'px',
 						'fill': (this.state / (this.totalStates - 1) <= 0.5) ? WHITE.hex : BLACK.hex,
-						'font-size': '11px',
+						'font-size': this.fontSize + 'px',
 						'text-anchor': 'start',
 						'font-weight': 'bold',
 						'font-family': "Myriad Pro"
@@ -293,11 +294,15 @@ module Haeckel
 
 		spacingV = 16;
 
+		stateFontSize = 11;
+
 		stateSpacing = 4;
 
 		stateStyler: (state: number, totalStates: number) => { [name: string]: string; } = DEFAULT_STATE_STYLER;
 
 		taxa: Taxic[] = [];
+
+		unknownFontSize = 22;
 
 		getArea(character: Character<BitSet>, taxon: Taxic): Rectangle;
 		getArea(row: number, column: number): Rectangle;
@@ -441,7 +446,8 @@ module Haeckel
 					if (!stateRenderer)
 					{
 						stateRendererLookup[String(state)] = stateRenderer
-							= new StateRenderer(this, row, state, numStates, character.labelStates(bit.create([ state ])), this.stateSpacing, this.spacingH);
+							= new StateRenderer(this, row, state, numStates, character.labelStates(bit.create([ state ])),
+								this.stateSpacing, this.spacingH, this.stateFontSize);
 						stateRenderers.push(stateRenderer);
 					}
 					stateRenderer.setRatio(column, i / cell.length, (i + 1) / cell.length, unknownsBuilder.contains(column));
@@ -470,7 +476,7 @@ module Haeckel
 						++column;
 					}
 					var area = rec.combine([ this._getArea(row, start), this._getArea(row, column) ]);
-					drawUnknown(unknownsGroup, area, this.spacingH, this.spacingV);
+					drawUnknown(unknownsGroup, area, this.spacingH, this.spacingV, this.unknownFontSize);
 				}
 			}
 		}
