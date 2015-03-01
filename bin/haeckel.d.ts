@@ -803,6 +803,7 @@ declare module Haeckel {
         public color: Haeckel.Color;
         public minThickness: number;
         public occurrences: Haeckel.ExtSet<Haeckel.Occurrence>;
+        public points: Haeckel.ExtSetBuilder<Haeckel.Point>;
         public projector: (coords: Haeckel.GeoCoords) => Haeckel.Point;
         public random: () => number;
         public project(coords: Haeckel.GeoCoords): Haeckel.Point;
@@ -1507,6 +1508,9 @@ declare module Haeckel.rec {
 }
 declare module Haeckel.rec {
     function createFromPoints(a: Haeckel.Point, b: Haeckel.Point): Haeckel.Rectangle;
+}
+declare module Haeckel.rec {
+    function includes(a: Haeckel.Rectangle, b: Haeckel.Rectangle): boolean;
 }
 declare module Haeckel.rng {
     function contains(r: Haeckel.Range, n: number): boolean;

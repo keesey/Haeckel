@@ -4190,13 +4190,20 @@ var Haeckel;
             this.random = Math.random;
         }
         GeoChart.prototype.project = function (coords) {
-            var p = this.projector(coords), area = this.area, result = Haeckel.pt.create(area.x + p.x * area.width, area.y + p.y * area.height);
-            return result;
+            var p = this.projector(coords);
+            var area = this.area;
+            return Haeckel.pt.create(area.x + p.x * area.width, area.y + p.y * area.height);
         };
 
         GeoChart.prototype.render = function (parent) {
             var _this = this;
+            var pointsBuilder = this.points;
+
             function createLine(a, b, occurrence) {
+                if (pointsBuilder) {
+                    pointsBuilder.add(a);
+                    pointsBuilder.add(b);
+                }
                 g.child(Haeckel.SVG_NS, 'path').attrs(Haeckel.SVG_NS, {
                     'd': 'M' + a.x + ' ' + a.y + 'L' + b.x + ' ' + b.y,
                     'stroke': color.hex,
@@ -4206,6 +4213,9 @@ var Haeckel;
             }
 
             function createPoint(p, occurrence) {
+                if (pointsBuilder) {
+                    pointsBuilder.add(p);
+                }
                 g.child(Haeckel.SVG_NS, 'circle').attrs(Haeckel.SVG_NS, {
                     'cx': p.x + 'px',
                     'cy': p.y + 'px',
@@ -4226,6 +4236,9 @@ var Haeckel;
                 Haeckel.arr.each(points, function (point) {
                     return pathBuilder.add(point);
                 });
+                if (pointsBuilder) {
+                    pointsBuilder.addList(points);
+                }
                 g.child(Haeckel.SVG_NS, 'path').attrs(Haeckel.SVG_NS, {
                     'd': pathBuilder.build(),
                     'fill': color.hex,
@@ -7544,6 +7557,16 @@ var Haeckel;
             return Haeckel.rec.create(x, y, width, height);
         }
         rec.createFromPoints = createFromPoints;
+    })(Haeckel.rec || (Haeckel.rec = {}));
+    var rec = Haeckel.rec;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
+    (function (rec) {
+        function includes(a, b) {
+            return Haeckel.rec.contains(a, Haeckel.pt.create(b.x, b.y)) && Haeckel.rec.contains(a, Haeckel.pt.create(b.x2, b.y2));
+        }
+        rec.includes = includes;
     })(Haeckel.rec || (Haeckel.rec = {}));
     var rec = Haeckel.rec;
 })(Haeckel || (Haeckel = {}));

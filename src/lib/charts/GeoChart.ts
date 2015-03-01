@@ -30,22 +30,30 @@ module Haeckel
 
 		occurrences: ExtSet<Occurrence> = EMPTY_SET;
 
+		points: ExtSetBuilder<Point>;
+
 		projector: (coords: GeoCoords) => Point = DEFAULT_PROJECTOR;
 
 		random: () => number = Math.random;
 
 		project(coords: GeoCoords): Point
 		{
-			var p = this.projector(coords),
-				area = this.area,
-				result = pt.create(area.x + p.x * area.width, area.y + p.y * area.height);
-			return result;
+			var p = this.projector(coords);
+			var area = this.area;
+			return pt.create(area.x + p.x * area.width, area.y + p.y * area.height);
 		}
 
 		render(parent: ElementBuilder): ElementBuilder
 		{
+			var pointsBuilder = this.points;
+
 			function createLine(a: Point, b: Point, occurrence: Occurrence)
 			{
+				if (pointsBuilder)
+				{
+					pointsBuilder.add(a);
+					pointsBuilder.add(b);
+				}
 				g.child(SVG_NS, 'path')
 					.attrs(SVG_NS, 
 						{
@@ -58,6 +66,10 @@ module Haeckel
 
 			function createPoint(p: Point, occurrence: Occurrence)
 			{
+				if (pointsBuilder)
+				{
+					pointsBuilder.add(p);
+				}
 				g.child(SVG_NS, 'circle')
 					.attrs(SVG_NS,
 						{
@@ -82,6 +94,10 @@ module Haeckel
 					pathBuilder.reset();
 				}
 				arr.each(points, (point: Point) => pathBuilder.add(point));
+				if (pointsBuilder)
+				{
+					pointsBuilder.addList(points);
+				}
 				g.child(SVG_NS, 'path')
 					.attrs(SVG_NS,
 						{
