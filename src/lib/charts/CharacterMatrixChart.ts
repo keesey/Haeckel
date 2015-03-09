@@ -267,7 +267,7 @@ module Haeckel
 					.child(SVG_NS, 'text')
 					.attrs(SVG_NS, {
 						'x': (area.left + this.cornerRadius) + 'px',
-						'y': Math.min(columnY.top + this.cornerRadius + 11, columnY.bottom - this.cornerRadius) + 'px',
+						'y': Math.min(columnY.top + this.cornerRadius + this.fontSize, columnY.bottom - this.cornerRadius) + 'px',
 						'fill': (this.state / (this.totalStates - 1) <= 0.5) ? WHITE.hex : BLACK.hex,
 						'font-size': this.fontSize + 'px',
 						'text-anchor': 'start',

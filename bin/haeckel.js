@@ -3270,7 +3270,7 @@ var Haeckel;
                 columnY = this.columnY[String(this.minKnownColumn)];
                 group.child(Haeckel.SVG_NS, 'text').attrs(Haeckel.SVG_NS, {
                     'x': (area.left + this.cornerRadius) + 'px',
-                    'y': Math.min(columnY.top + this.cornerRadius + 11, columnY.bottom - this.cornerRadius) + 'px',
+                    'y': Math.min(columnY.top + this.cornerRadius + this.fontSize, columnY.bottom - this.cornerRadius) + 'px',
                     'fill': (this.state / (this.totalStates - 1) <= 0.5) ? Haeckel.WHITE.hex : Haeckel.BLACK.hex,
                     'font-size': this.fontSize + 'px',
                     'text-anchor': 'start',
