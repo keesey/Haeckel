@@ -671,6 +671,7 @@ declare module Haeckel {
         public spacingH: number;
         public spacingV: number;
         public stateFontSize: number;
+        public stateSort: (row: number) => (a: number, b: number) => number;
         public stateSpacing: number;
         public stateStyler: (state: number, totalStates: number) => {
             [name: string]: string;

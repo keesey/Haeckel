@@ -189,20 +189,23 @@ module Haeckel
 						if (Math.abs(lastTop - columnY.top) <= this.cornerRadius * 2)
 						{
 							d += 'Q' + [lastArea.right, lastTop, lastArea.right, (lastTop + columnY.top) / 2].join(' ');
+							d += 'Q' + [lastArea.right, columnY.top, lastArea.right + this.cornerRadius, columnY.top].join(' ');
 						}
 						else if (lastTop < columnY.top)
 						{
 							d +=
 								'Q' + [lastArea.right, lastTop, lastArea.right, lastTop + this.cornerRadius].join(' ') +
 								'V' + (columnY.top - this.cornerRadius);
+							d += 'Q' + [lastArea.right, columnY.top, lastArea.right + this.cornerRadius, columnY.top].join(' ');
 						}
 						else
 						{
 							d +=
-								'Q' + [lastArea.right, lastTop, lastArea.right, lastTop - this.cornerRadius].join(' ') +
+								'h' + this.cornerRadius + 
+								'Q' + [lastArea.right + this.cornerRadius, lastTop, lastArea.right + this.cornerRadius, lastTop - this.cornerRadius].join(' ') +
 								'V' + (columnY.top + this.cornerRadius);
+							d += 'Q' + [lastArea.right + this.cornerRadius, columnY.top, lastArea.right + this.cornerRadius * 2, columnY.top].join(' ');
 						}
-						d += 'Q' + [lastArea.right, columnY.top, lastArea.right + this.cornerRadius, columnY.top].join(' ');
 					}
 					d += 'H' + (area.right - this.cornerRadius);
 				}
@@ -295,6 +298,8 @@ module Haeckel
 		spacingV = 16;
 
 		stateFontSize = 11;
+
+		stateSort: (row: number) => (a: number, b: number) => number;
 
 		stateSpacing = 4;
 
@@ -436,7 +441,7 @@ module Haeckel
 			for (column = 0; column < columns; ++column)
 			{
 				taxon = this.taxa[column];
-				var cell = cells[column];
+				var cell = cells[column].sort(this.stateSort(row));
 				var stateLookup: { [state: string]: boolean; } = {};
 				for (var i = 0; i < cell.length; ++i)
 				{
