@@ -867,14 +867,16 @@ declare module Haeckel {
     class GeoPhyloChart implements Haeckel.Renderer {
         public extensions: boolean;
         public fill: Haeckel.Color;
+        public lineWidth: number;
         public mapArea: Haeckel.Rectangle;
+        public nodeRadius: number;
         public nomenclature: Haeckel.Nomenclature;
         public occurrenceMatrix: Haeckel.CharacterMatrix<Haeckel.Set>;
         public paddingY: number;
         public projector: (coords: Haeckel.GeoCoords) => Haeckel.Point;
-        public rootRadius: number;
         public solver: Haeckel.DAGSolver<Haeckel.Taxic>;
         public stroke: Haeckel.Color;
+        public strokeWidth: number;
         public project(coords: Haeckel.GeoCoords): Haeckel.Point;
         public render(parent: Haeckel.ElementBuilder): Haeckel.ElementBuilder;
     }

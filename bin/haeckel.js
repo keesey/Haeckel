@@ -4515,14 +4515,16 @@ var Haeckel;
         function GeoPhyloChart() {
             this.extensions = true;
             this.fill = Haeckel.WHITE;
+            this.lineWidth = 3;
             this.mapArea = DEFAULT_MAP_AREA;
+            this.nodeRadius = 3;
             this.nomenclature = Haeckel.EMPTY_NOMENCLATURE;
             this.occurrenceMatrix = Haeckel.EMPTY_CHARACTER_MATRIX;
             this.paddingY = 6;
             this.projector = Haeckel.DEFAULT_PROJECTOR;
-            this.rootRadius = 3;
             this.solver = Haeckel.EMPTY_DAG_SOLVER;
             this.stroke = Haeckel.BLACK;
+            this.strokeWidth = 1;
         }
         GeoPhyloChart.prototype.project = function (coords) {
             var p = this.projector(coords), area = this.mapArea, result = Haeckel.pt.create(area.x + p.x * area.width, area.y + p.y * area.height);
@@ -4531,18 +4533,41 @@ var Haeckel;
 
         GeoPhyloChart.prototype.render = function (parent) {
             var _this = this;
-            function drawExtensions(coords, taxon) {
-                var regions = Haeckel.chr.states(matrix, taxon, Haeckel.GEO_CHARACTER);
-                if (regions) {
-                    Haeckel.ext.each(regions, function (region) {
-                        return drawLine(coords, Haeckel.geo.center(region), true);
-                    });
-                }
+            var fill = this.fill;
+            var g = parent.child(Haeckel.SVG_NS, 'g');
+            var lineWidth = this.lineWidth;
+            var mapWidth = this.mapArea.width;
+            var matrix = this.occurrenceMatrix;
+            var nodeRadius = this.nodeRadius;
+            var nomenclature = this.nomenclature;
+            var self = this;
+            var solver = this.solver;
+            var stroke = this.stroke;
+            var strokeWidth = this.strokeWidth;
+            var taxonToCoords = {};
+
+            function drawFillCircle(g, coords, root) {
+                if (typeof root === "undefined") { root = false; }
+                var p = self.project(coords);
+                g.child(Haeckel.SVG_NS, 'circle').attrs(Haeckel.SVG_NS, {
+                    'cx': p.x + 'px',
+                    'cy': p.y + 'px',
+                    'r': (nodeRadius * (root ? 2 : 1)) + 'px',
+                    'fill': fill.hex,
+                    'stroke': 'none'
+                });
             }
 
-            function drawLine(source, target, terminal) {
+            function drawLine(g, source, target, terminal, drawStroke) {
+                if (typeof drawStroke === "undefined") { drawStroke = true; }
+                var p1 = self.project(source);
+                var p2 = self.project(target);
+                var midp = self.project(Haeckel.geo.center([source, target]));
+
                 function curve(x1, x2) {
-                    var minX, maxX, cx = midp.x;
+                    var minX;
+                    var maxX;
+                    var cx = midp.x;
                     if (x1 < x2) {
                         minX = x1;
                         maxX = x2;
@@ -4557,26 +4582,29 @@ var Haeckel;
                         cx -= mapWidth;
                     }
                     var d = "M" + x1 + " " + p1.y + "Q" + cx + " " + midp.y + " " + x2 + " " + p2.y;
-                    g.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', d).attrs(Haeckel.SVG_NS, {
-                        'stroke': '#000000',
-                        'stroke-linecap': 'none',
-                        'stroke-width': '4px',
+                    var attrs = {
                         'fill': 'none',
-                        'marker-end': terminal ? "url(#arrowheadBlack)" : "url(#circleBlack)"
-                    });
-                    g.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', d).attrs(Haeckel.SVG_NS, {
-                        'stroke': '#ffffff',
-                        'stroke-linecap': 'round',
-                        'stroke-width': '3px',
-                        'fill': 'none',
-                        'marker-end': terminal ? "url(#arrowheadWhite)" : "url(#circleWhite)"
-                    });
+                        'stroke': stroke.hex,
+                        'stroke-width': (lineWidth + strokeWidth * 2) + 'px',
+                        'stroke-linecap': 'none'
+                    };
+                    if (terminal) {
+                        attrs['marker-end'] = 'url(#arrowhead-stroke)';
+                    }
+                    if (drawStroke) {
+                        g.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', d).attrs(Haeckel.SVG_NS, attrs);
+                    }
+                    attrs['stroke-width'] = lineWidth + 'px';
+                    attrs['stroke'] = fill.hex;
+                    if (terminal) {
+                        attrs['marker-end'] = 'url(#arrowhead-fill)';
+                    }
+                    g.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', d).attrs(Haeckel.SVG_NS, attrs);
                 }
 
                 if (Haeckel.equal(source, target)) {
                     return;
                 }
-                var p1 = self.project(source), p2 = self.project(target), midp = self.project(Haeckel.geo.center([source, target]));
                 if (Math.abs(p1.x - p2.x) > mapWidth / 2) {
                     if (p1.x < mapWidth / 2) {
                         curve(p1.x, p2.x - mapWidth);
@@ -4588,6 +4616,22 @@ var Haeckel;
                 } else {
                     curve(p1.x, p2.x);
                 }
+            }
+
+            function drawStrokeCircle(g, coords, root) {
+                if (typeof root === "undefined") { root = false; }
+                var p = self.project(coords);
+                g.child(Haeckel.SVG_NS, 'circle').attrs(Haeckel.SVG_NS, {
+                    'cx': p.x + 'px',
+                    'cy': p.y + 'px',
+                    'r': (nodeRadius * (root ? 2 : 1) + strokeWidth) + 'px',
+                    'fill': stroke.hex,
+                    'stroke': 'none'
+                });
+            }
+
+            function name(taxon) {
+                return Haeckel.ext.list(Haeckel.nom.forTaxon(nomenclature, taxon)).join('/');
             }
 
             function getTaxonCoords(taxon) {
@@ -4611,55 +4655,51 @@ var Haeckel;
                 return coords;
             }
 
-            function name(taxon) {
-                return Haeckel.ext.list(Haeckel.nom.forTaxon(nomenclature, taxon)).join('/');
-            }
-
-            var self = this, matrix = this.occurrenceMatrix, solver = this.solver, mapWidth = this.mapArea.width, nomenclature = this.nomenclature, taxonToCoords = {}, g = parent.child(Haeckel.SVG_NS, 'g');
-            Haeckel.ext.each(solver.vertices, getTaxonCoords);
-            if (this.extensions) {
-                Haeckel.ext.each(solver.vertices, function (taxon) {
-                    var regions = Haeckel.chr.states(matrix, taxon, Haeckel.GEO_CHARACTER);
-                    if (!regions || regions.size !== 1) {
-                        var parentCoords = [];
-                        Haeckel.ext.each(solver.imPrcs(taxon), function (parent) {
-                            return parentCoords.push(getTaxonCoords(parent));
-                        });
-                        parentCoords.push(getTaxonCoords(taxon));
-                        taxonToCoords[taxon.hash] = Haeckel.geo.center(parentCoords);
-                    }
+            var builder = new Haeckel.DAGBuilder();
+            var vertexGroups = {};
+            Haeckel.ext.each(solver.vertices, function (vertex) {
+                var coords = getTaxonCoords(vertex);
+                Haeckel.ext.each(_this.solver.imSucs(vertex), function (child) {
+                    return builder.addArc(coords, getTaxonCoords(child));
                 });
-            }
-            Haeckel.ext.each(solver.sources, function (taxon) {
-                var p = _this.project(getTaxonCoords(taxon));
-                g.child(Haeckel.SVG_NS, 'circle').attrs(Haeckel.SVG_NS, {
-                    'cx': p.x + 'px',
-                    'cy': p.y + 'px',
-                    'r': (_this.rootRadius + 1) + 'px',
-                    'fill': _this.stroke.hex,
-                    'stroke': 'none'
-                });
-            }, this);
-            Haeckel.arr.each(solver.verticesSorted, function (taxon) {
-                var coords = getTaxonCoords(taxon);
                 if (_this.extensions) {
-                    drawExtensions(coords, taxon);
+                    var regions = Haeckel.chr.states(matrix, vertex, Haeckel.GEO_CHARACTER);
+                    if (regions && regions.size > 1) {
+                        Haeckel.ext.each(regions, function (region) {
+                            return builder.addArc(coords, Haeckel.geo.center(region));
+                        });
+                    }
                 }
-                Haeckel.ext.each(solver.imSucs(taxon), function (child) {
-                    var regions = Haeckel.chr.states(matrix, taxon, Haeckel.GEO_CHARACTER);
-                    drawLine(coords, getTaxonCoords(child), false);
-                }, _this);
-            }, this);
-            Haeckel.ext.each(solver.sources, function (taxon) {
-                var p = _this.project(getTaxonCoords(taxon));
-                g.child(Haeckel.SVG_NS, 'circle').attrs(Haeckel.SVG_NS, {
-                    'cx': p.x + 'px',
-                    'cy': p.y + 'px',
-                    'r': _this.rootRadius + 'px',
-                    'fill': _this.fill.hex,
-                    'stroke': 'none'
-                });
-            }, this);
+            });
+            var geoSolver = new Haeckel.DAGSolver(builder.build());
+            var nonSinks = Haeckel.ext.setDiff(geoSolver.vertices, geoSolver.sinks);
+            var nonSinkGeoSolver = geoSolver.subgraphSolver(nonSinks);
+
+            Haeckel.arr.each(nonSinkGeoSolver.verticesSorted, function (vertex) {
+                return vertexGroups[Haeckel.hash(vertex)] = g.child(Haeckel.SVG_NS, 'g');
+            });
+            Haeckel.arr.each(nonSinkGeoSolver.verticesSorted, function (vertex) {
+                var group = vertexGroups[Haeckel.hash(vertex)];
+                var children = geoSolver.imSucs(vertex);
+                var parents = geoSolver.imPrcs(vertex);
+                if (!children.empty) {
+                    if (parents.empty) {
+                        drawStrokeCircle(group, vertex, true);
+                    }
+                    Haeckel.ext.each(children, function (child) {
+                        var childTerminal = geoSolver.imSucs(child).empty;
+                        if (!childTerminal) {
+                            drawStrokeCircle(group, child);
+                        }
+                        drawLine(group, vertex, child, childTerminal);
+                    });
+                    drawFillCircle(group, vertex, parents.empty);
+                    if (parents.empty) {
+                        drawStrokeCircle(group, vertex, false);
+                    }
+                }
+            });
+
             return g;
         };
         return GeoPhyloChart;

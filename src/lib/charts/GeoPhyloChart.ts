@@ -50,7 +50,11 @@ module Haeckel
 
 		//lineAttrs: (source: Taxic, target: Taxic, solver: DAGSolver<Taxic>) => { [name: string]: string; } = DEFAULT_LINE_ATTRS;
 
+		lineWidth = 3;
+
 		mapArea = DEFAULT_MAP_AREA;
+
+		nodeRadius = 3;
 
 		nomenclature = EMPTY_NOMENCLATURE;
 
@@ -60,11 +64,11 @@ module Haeckel
 
 		projector: (coords: GeoCoords) => Point = DEFAULT_PROJECTOR;
 
-		rootRadius = 3;
-
 		solver: DAGSolver<Taxic> = EMPTY_DAG_SOLVER;
 
 		stroke = BLACK;
+
+		strokeWidth = 1;
 
 		project(coords: GeoCoords): Point
 		{
@@ -76,16 +80,220 @@ module Haeckel
 
 		render(parent: ElementBuilder): ElementBuilder
 		{
-			function drawExtensions(coords: GeoCoords, taxon: Taxic /*, lineAttrs: { [name: string]: string; }*/)
+			var fill = this.fill;
+			var g = parent.child(SVG_NS, 'g');
+			var lineWidth = this.lineWidth;
+			var mapWidth = this.mapArea.width;
+			var matrix = this.occurrenceMatrix;
+			var nodeRadius = this.nodeRadius;
+			var nomenclature = this.nomenclature;
+			var self = this;
+			var solver = this.solver;
+			var stroke = this.stroke;
+			var strokeWidth = this.strokeWidth;
+			var taxonToCoords: { [taxonHash: string]: GeoCoords; } = {};
+
+			function drawFillCircle(g: ElementBuilder, coords: GeoCoords, root: boolean = false)
+			{
+				var p = self.project(coords);
+				g.child(SVG_NS, 'circle')
+					.attrs(SVG_NS,
+						{
+							'cx': p.x + 'px',
+							'cy': p.y + 'px',
+							'r': (nodeRadius * (root ? 2 : 1)) + 'px',
+							'fill': fill.hex,
+							'stroke': 'none'
+						});
+			}
+
+			function drawLine(g: ElementBuilder, source: GeoCoords, target: GeoCoords, terminal: boolean, drawStroke: boolean = true)
+			{
+				var p1 = self.project(source);
+				var p2 = self.project(target);
+				var midp = self.project(geo.center([ source, target ]));
+
+				function curve(x1: number, x2: number)
+				{
+					var minX: number;
+					var maxX: number;
+					var cx = midp.x;
+					if (x1 < x2)
+					{
+						minX = x1;
+						maxX = x2;
+					}
+					else
+					{
+						minX = x2;
+						maxX = x1;
+					}
+					while (cx < minX)
+					{
+						cx += mapWidth;
+					}
+					while (cx > maxX)
+					{
+						cx -= mapWidth;
+					}
+					var d = "M" + x1 + " " + p1.y + "Q" + cx + " " + midp.y + " " + x2 + " " + p2.y;
+					var attrs: { [ name: string]: string; } = {
+						'fill': 'none',
+						'stroke': stroke.hex,
+						'stroke-width': (lineWidth + strokeWidth * 2) + 'px',
+						'stroke-linecap': 'none'
+					};
+					if (terminal)
+					{
+						attrs['marker-end'] = 'url(#arrowhead-stroke)';
+					}
+					if (drawStroke)
+					{
+						g.child(SVG_NS, 'path')
+							.attr(SVG_NS, 'd', d)
+							.attrs(SVG_NS, attrs);
+					}
+					attrs['stroke-width'] = lineWidth + 'px';
+					attrs['stroke'] = fill.hex;
+					if (terminal)
+					{
+						attrs['marker-end'] = 'url(#arrowhead-fill)';
+					}
+					g.child(SVG_NS, 'path')
+						.attr(SVG_NS, 'd', d)
+						.attrs(SVG_NS, attrs);
+				}
+
+				if (equal(source, target))
+				{
+					return;
+				}
+				if (Math.abs(p1.x - p2.x) > mapWidth / 2)
+				{
+					if (p1.x < mapWidth / 2)
+					{
+						curve(p1.x, p2.x - mapWidth);
+						curve(p1.x + mapWidth, p2.x);
+					}
+					else
+					{
+						curve(p1.x, p2.x + mapWidth);
+						curve(p1.x - mapWidth, p2.x);
+					}
+				}
+				else
+				{
+					curve(p1.x, p2.x);
+				}
+			}
+
+			function drawStrokeCircle(g: ElementBuilder, coords: GeoCoords, root: boolean = false)
+			{
+				var p = self.project(coords);
+				g.child(SVG_NS, 'circle')
+					.attrs(SVG_NS,
+						{
+							'cx': p.x + 'px',
+							'cy': p.y + 'px',
+							'r': (nodeRadius * (root ? 2 : 1) + strokeWidth) + 'px',
+							'fill': stroke.hex,
+							'stroke': 'none'
+						});
+			}
+
+			function name(taxon: Taxic): string
+			{
+				return ext.list(nom.forTaxon(nomenclature, taxon)).join('/');
+			}
+
+			function getTaxonCoords(taxon: Taxic): GeoCoords
+			{
+				var coords = taxonToCoords[taxon.hash];
+				if (coords === undefined)
+				{
+					var regions = <ExtSet<GeoCoords[]>> chr.states(matrix, taxon, GEO_CHARACTER);
+					if (regions && !regions.empty)
+					{
+						taxonToCoords[taxon.hash] = coords = geo.center(regions);
+					}
+					else
+					{
+						var childCoords: GeoCoords[] = [];
+						ext.each(solver.imSucs(taxon), child => childCoords.push(getTaxonCoords(child)));
+						coords = geo.center(childCoords);
+						if (!coords)
+						{
+							throw new Error('No coordinates for taxon \"' + name(taxon) + '\".');
+						}
+					}
+					taxonToCoords[taxon.hash] = coords;
+				}
+				return coords;
+			}
+
+			var builder = new DAGBuilder<GeoCoords>();
+			var vertexGroups: { [vertexHash: string]: ElementBuilder; } = {};
+			ext.each(solver.vertices, vertex =>
+			{
+				var coords = getTaxonCoords(vertex);
+				ext.each(this.solver.imSucs(vertex), child => builder.addArc(coords, getTaxonCoords(child)));
+				if (this.extensions)
+				{
+					var regions = <ExtSet<GeoCoords[]>> chr.states(matrix, vertex, GEO_CHARACTER);
+					if (regions && regions.size > 1)
+					{
+						ext.each(regions, region => builder.addArc(coords, geo.center(region)));
+					}
+				}
+			});
+			var geoSolver = new DAGSolver(builder.build());
+			var nonSinks = ext.setDiff(geoSolver.vertices, geoSolver.sinks);
+			var nonSinkGeoSolver = geoSolver.subgraphSolver(nonSinks);
+
+			arr.each(nonSinkGeoSolver.verticesSorted, vertex => vertexGroups[hash(vertex)] = g.child(SVG_NS, 'g'));
+			arr.each(nonSinkGeoSolver.verticesSorted, vertex =>
+			{
+				var group = vertexGroups[hash(vertex)];
+				var children = geoSolver.imSucs(vertex);
+				var parents = geoSolver.imPrcs(vertex);
+				if (!children.empty)
+				{
+					if (parents.empty)
+					{
+						drawStrokeCircle(group, vertex, true);
+					}
+					ext.each(children, child => {
+						var childTerminal = geoSolver.imSucs(child).empty;
+						if (!childTerminal)
+						{
+							drawStrokeCircle(group, child);
+						}
+						drawLine(group, vertex, child, childTerminal);
+					});
+					drawFillCircle(group, vertex, parents.empty);
+					if (parents.empty)
+					{
+						drawStrokeCircle(group, vertex, false);
+					}
+				}
+			});
+
+			return g;
+		}
+
+		/*
+		render(parent: ElementBuilder): ElementBuilder
+		{
+			function drawExtensions(coords: GeoCoords, taxon: Taxic /*, lineAttrs: { [name: string]: string; }* /)
 			{
 				var regions = <ExtSet<GeoCoords[]>> chr.states(matrix, taxon, GEO_CHARACTER);
 				if (regions)
 				{
-					ext.each(regions, (region: GeoCoords[]) => drawLine(coords, geo.center(region), true/*, lineAttrs*/));
+					ext.each(regions, (region: GeoCoords[]) => drawLine(coords, geo.center(region), true/*, lineAttrs* /));
 				}
 			}
 
-			function drawLine(source: GeoCoords, target: GeoCoords, terminal: boolean/*, lineAttrs: { [name: string]: string; }*/)
+			function drawLine(source: GeoCoords, target: GeoCoords, terminal: boolean/*, lineAttrs: { [name: string]: string; }* /)
 			{
 				function curve(x1: number, x2: number)
 				{
@@ -225,15 +433,16 @@ module Haeckel
 			arr.each(solver.verticesSorted, taxon =>
 			{
 				var coords = getTaxonCoords(taxon);
-				if (this.extensions)
-				{
-					drawExtensions(coords, taxon/*, this.lineAttrs(taxon, taxon, solver)*/);
-				}
-				ext.each(solver.imSucs(taxon), child =>
+				var children = solver.imSucs(taxon);
+				ext.each(children, child =>
 				{
 					var regions = <ExtSet<GeoCoords[]>> chr.states(matrix, taxon, GEO_CHARACTER);
-					drawLine(coords, getTaxonCoords(child), false/*, this.lineAttrs(taxon, child, solver)*/);
+					drawLine(coords, getTaxonCoords(child), false/*, this.lineAttrs(taxon, child, solver)* /);
 				}, this);
+				if (this.extensions)
+				{
+					drawExtensions(coords, taxon/*, this.lineAttrs(taxon, taxon, solver)* /);
+				}
 			}, this);
 			ext.each(solver.sources, (taxon: Taxic) =>
 			{
@@ -250,5 +459,6 @@ module Haeckel
 			}, this);
 			return g;
 		}
+		*/
 	}
 }
