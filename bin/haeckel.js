@@ -2368,8 +2368,9 @@ var Haeckel;
                 return result;
             }
 
-            if (this.isCladogen(this.min(taxon))) {
-                result = taxon;
+            var min = this.min(taxon);
+            if (this.isCladogen(min)) {
+                result = min;
             } else {
                 result = this.max(this.prcIntersect(taxon));
             }

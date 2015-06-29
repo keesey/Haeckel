@@ -161,9 +161,10 @@ module Haeckel
 				return result;
 			}
 
-			if (this.isCladogen(this.min(taxon)))
+			var min = this.min(taxon);
+			if (this.isCladogen(min))
 			{
-				result = taxon;
+				result = min;
 			}
 			else
 			{
