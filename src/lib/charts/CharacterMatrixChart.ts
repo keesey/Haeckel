@@ -266,18 +266,29 @@ module Haeckel
 			{
 				area = this.chart.getArea(this.row, this.minKnownColumn);
 				columnY = this.columnY[String(this.minKnownColumn)];
-				group
-					.child(SVG_NS, 'text')
-					.attrs(SVG_NS, {
-						'x': (area.left + this.cornerRadius) + 'px',
-						'y': Math.min(columnY.top + this.cornerRadius + this.fontSize, columnY.bottom - this.cornerRadius) + 'px',
+				var label = group
+					.child(Haeckel.SVG_NS, 'text')
+					.attrs(Haeckel.SVG_NS, {
+						'x': (area.left + this.cornerRadius * 4) + 'px',
+						'y': Math.min(columnY.top + this.cornerRadius + this.fontSize, columnY.bottom - this.cornerRadius * 2) + 'px',
 						'fill': (this.state / (this.totalStates - 1) <= 0.5) ? WHITE.hex : BLACK.hex,
-						'font-size': this.fontSize + 'px',
 						'text-anchor': 'start',
-						'font-weight': 'bold',
-						'font-family': "Myriad Pro"
-					})
-					.text(this.label);
+						'font-size': this.fontSize + 'px',
+						'font-family': "Myriad Pro",
+						'font-weight': 'bold'
+					});
+				this.label
+					.split(/\n+/g)
+					.forEach((word: string, index: number) =>
+					{
+						label
+							.child(Haeckel.SVG_NS, 'tspan')
+							.text(word)
+							.attrs(Haeckel.SVG_NS, {
+								x: (area.left + this.cornerRadius * 4) + 'px',
+								dy: (index > 0) ? this.fontSize + 'px' : '0'
+							});
+					});
 					// :TODO: custom style
 			}
 
