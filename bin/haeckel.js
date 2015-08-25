@@ -3114,6 +3114,8 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    var STATE_LABEL_COLOR_CUTOFF = 2 / 3;
+
     function DEFAULT_STATE_STYLER(state, totalStates) {
         var color = Haeckel.BLACK;
         if (state > 0 && totalStates > 0) {
@@ -3275,7 +3277,7 @@ var Haeckel;
                 var label = group.child(Haeckel.SVG_NS, 'text').attrs(Haeckel.SVG_NS, {
                     'x': (area.left + this.cornerRadius * 4) + 'px',
                     'y': Math.min(columnY.top + this.cornerRadius + this.fontSize, columnY.bottom - this.cornerRadius * 2) + 'px',
-                    'fill': (this.state / (this.totalStates - 1) <= 0.5) ? Haeckel.WHITE.hex : Haeckel.BLACK.hex,
+                    'fill': (this.state / (this.totalStates - 1) <= STATE_LABEL_COLOR_CUTOFF) ? Haeckel.WHITE.hex : Haeckel.BLACK.hex,
                     'text-anchor': 'start',
                     'font-size': this.fontSize + 'px',
                     'font-family': "Myriad Pro",

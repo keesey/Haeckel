@@ -21,6 +21,8 @@
 
 module Haeckel
 {
+	var STATE_LABEL_COLOR_CUTOFF = 2 / 3;
+
 	function DEFAULT_STATE_STYLER(state: number, totalStates: number): { [name: string]: string; }
 	{
 		var color = BLACK;
@@ -271,7 +273,7 @@ module Haeckel
 					.attrs(Haeckel.SVG_NS, {
 						'x': (area.left + this.cornerRadius * 4) + 'px',
 						'y': Math.min(columnY.top + this.cornerRadius + this.fontSize, columnY.bottom - this.cornerRadius * 2) + 'px',
-						'fill': (this.state / (this.totalStates - 1) <= 0.5) ? WHITE.hex : BLACK.hex,
+						'fill': (this.state / (this.totalStates - 1) <= STATE_LABEL_COLOR_CUTOFF) ? WHITE.hex : BLACK.hex,
 						'text-anchor': 'start',
 						'font-size': this.fontSize + 'px',
 						'font-family': "Myriad Pro",
