@@ -11,6 +11,8 @@
 /// <reference path="../functions/bit/size.ts"/>
 /// <reference path="../functions/chr/states.ts"/>
 /// <reference path="../functions/clr/create.ts"/>
+/// <reference path="../functions/ext/contains.ts"/>
+/// <reference path="../functions/rec/combine.ts"/>
 /// <reference path="../functions/rec/createFromCoords.ts"/>
 /// <reference path="../interfaces/BitSet.ts"/>
 /// <reference path="../interfaces/CharacterMatrix.ts"/>
@@ -129,7 +131,8 @@ module Haeckel
 			private state: number, private totalStates: number,
 			private label: string,
 			private stateSpacing: number, private cornerRadius: number,
-			private fontSize: number)
+			private fontSize: number,
+			private columnOffset: number)
 		{
 			var firstCell = chart.getArea(row, 0);
 			this.rowHeight = firstCell.height;
@@ -266,7 +269,7 @@ module Haeckel
 
 			if (this.label)
 			{
-				area = this.chart.getArea(this.row, this.minKnownColumn);
+				area = this.chart.getArea(this.row, this.minKnownColumn + this.columnOffset);
 				columnY = this.columnY[String(this.minKnownColumn)];
 				var label = group
 					.child(Haeckel.SVG_NS, 'text')
@@ -311,6 +314,8 @@ module Haeckel
 		spacingV = 16;
 
 		stateFontSize = 11;
+		
+		stateLabelColumnOffsetter: (state: number) => number = () => 0;
 
 		stateSort: (row: number) => (a: number, b: number) => number;
 
@@ -465,7 +470,7 @@ module Haeckel
 					{
 						stateRendererLookup[String(state)] = stateRenderer
 							= new StateRenderer(this, row, state, numStates, character.labelStates(bit.create([ state ])),
-								this.stateSpacing, this.spacingH, this.stateFontSize);
+								this.stateSpacing, this.spacingH, this.stateFontSize, this.stateLabelColumnOffsetter(i));
 						stateRenderers.push(stateRenderer);
 					}
 					stateRenderer.setRatio(column, i / cell.length, (i + 1) / cell.length, unknownsBuilder.contains(column));

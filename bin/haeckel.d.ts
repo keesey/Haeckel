@@ -663,6 +663,9 @@ declare module Haeckel.clr {
 declare module Haeckel.rec {
     function createFromCoords(x1: number, y1: number, x2: number, y2: number): Haeckel.Rectangle;
 }
+declare module Haeckel.rec {
+    function combine(rectangles: Haeckel.Rectangle[]): Haeckel.Rectangle;
+}
 declare module Haeckel {
     class CharacterMatrixChart implements Haeckel.Renderer {
         public area: Haeckel.Rectangle;
@@ -671,6 +674,7 @@ declare module Haeckel {
         public spacingH: number;
         public spacingV: number;
         public stateFontSize: number;
+        public stateLabelColumnOffsetter: (state: number) => number;
         public stateSort: (row: number) => (a: number, b: number) => number;
         public stateSpacing: number;
         public stateStyler: (state: number, totalStates: number) => {
@@ -1005,9 +1009,6 @@ declare module Haeckel.ray {
 }
 declare module Haeckel.ray {
     function intersectSegments(ray: Haeckel.Ray, segments: Haeckel.Point[][]): Haeckel.Point[];
-}
-declare module Haeckel.rec {
-    function combine(rectangles: Haeckel.Rectangle[]): Haeckel.Rectangle;
 }
 declare module Haeckel.rec {
     function segments(rects: Haeckel.Rectangle[]): Haeckel.Point[][];

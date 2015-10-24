@@ -3114,6 +3114,36 @@ var Haeckel;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
+    (function (rec) {
+        function combine(rectangles) {
+            var n = rectangles.length;
+            if (n === 0) {
+                return Haeckel.EMPTY_SET;
+            }
+            if (n === 1) {
+                return rectangles[0];
+            }
+            var x = NaN, y = NaN, x2 = NaN, y2 = NaN;
+            for (var i = 0; i < n; ++i) {
+                var r = rectangles[i];
+                if (!r.empty) {
+                    x = isNaN(x) ? r.x : Math.min(x, r.x);
+                    y = isNaN(y) ? r.y : Math.min(y, r.y);
+                    x2 = isNaN(x2) ? r.x2 : Math.max(x2, r.x2);
+                    y2 = isNaN(y2) ? r.y2 : Math.max(y2, r.y2);
+                }
+            }
+            if (isNaN(x) || isNaN(y) || isNaN(x2) || isNaN(y2)) {
+                return Haeckel.EMPTY_SET;
+            }
+            return Haeckel.rec.createFromCoords(x, y, x2, y2);
+        }
+        rec.combine = combine;
+    })(Haeckel.rec || (Haeckel.rec = {}));
+    var rec = Haeckel.rec;
+})(Haeckel || (Haeckel = {}));
+var Haeckel;
+(function (Haeckel) {
     var STATE_LABEL_COLOR_CUTOFF = 2 / 3;
 
     function DEFAULT_STATE_STYLER(state, totalStates) {
@@ -3173,7 +3203,7 @@ var Haeckel;
     }
 
     var StateRenderer = (function () {
-        function StateRenderer(chart, row, state, totalStates, label, stateSpacing, cornerRadius, fontSize) {
+        function StateRenderer(chart, row, state, totalStates, label, stateSpacing, cornerRadius, fontSize, columnOffset) {
             this.chart = chart;
             this.row = row;
             this.state = state;
@@ -3182,6 +3212,7 @@ var Haeckel;
             this.stateSpacing = stateSpacing;
             this.cornerRadius = cornerRadius;
             this.fontSize = fontSize;
+            this.columnOffset = columnOffset;
             this.columnY = {};
             this.maxColumn = NaN;
             this.minColumn = NaN;
@@ -3272,7 +3303,7 @@ var Haeckel;
             group.child(Haeckel.SVG_NS, 'path').attr(Haeckel.SVG_NS, 'd', d).attrs(Haeckel.SVG_NS, this.chart.stateStyler(this.state, this.totalStates));
 
             if (this.label) {
-                area = this.chart.getArea(this.row, this.minKnownColumn);
+                area = this.chart.getArea(this.row, this.minKnownColumn + this.columnOffset);
                 columnY = this.columnY[String(this.minKnownColumn)];
                 var label = group.child(Haeckel.SVG_NS, 'text').attrs(Haeckel.SVG_NS, {
                     'x': (area.left + this.cornerRadius * 4) + 'px',
@@ -3304,6 +3335,9 @@ var Haeckel;
             this.spacingH = 4;
             this.spacingV = 16;
             this.stateFontSize = 11;
+            this.stateLabelColumnOffsetter = function () {
+                return 0;
+            };
             this.stateSpacing = 4;
             this.stateStyler = DEFAULT_STATE_STYLER;
             this.taxa = [];
@@ -3418,7 +3452,7 @@ var Haeckel;
                     stateLookup[String(state)] = true;
                     var stateRenderer = stateRendererLookup[String(state)];
                     if (!stateRenderer) {
-                        stateRendererLookup[String(state)] = stateRenderer = new StateRenderer(this, row, state, numStates, character.labelStates(Haeckel.bit.create([state])), this.stateSpacing, this.spacingH, this.stateFontSize);
+                        stateRendererLookup[String(state)] = stateRenderer = new StateRenderer(this, row, state, numStates, character.labelStates(Haeckel.bit.create([state])), this.stateSpacing, this.spacingH, this.stateFontSize, this.stateLabelColumnOffsetter(i));
                         stateRenderers.push(stateRenderer);
                     }
                     stateRenderer.setRatio(column, i / cell.length, (i + 1) / cell.length, unknownsBuilder.contains(column));
@@ -5414,36 +5448,6 @@ var Haeckel;
         ray.intersectSegments = intersectSegments;
     })(Haeckel.ray || (Haeckel.ray = {}));
     var ray = Haeckel.ray;
-})(Haeckel || (Haeckel = {}));
-var Haeckel;
-(function (Haeckel) {
-    (function (rec) {
-        function combine(rectangles) {
-            var n = rectangles.length;
-            if (n === 0) {
-                return Haeckel.EMPTY_SET;
-            }
-            if (n === 1) {
-                return rectangles[0];
-            }
-            var x = NaN, y = NaN, x2 = NaN, y2 = NaN;
-            for (var i = 0; i < n; ++i) {
-                var r = rectangles[i];
-                if (!r.empty) {
-                    x = isNaN(x) ? r.x : Math.min(x, r.x);
-                    y = isNaN(y) ? r.y : Math.min(y, r.y);
-                    x2 = isNaN(x2) ? r.x2 : Math.max(x2, r.x2);
-                    y2 = isNaN(y2) ? r.y2 : Math.max(y2, r.y2);
-                }
-            }
-            if (isNaN(x) || isNaN(y) || isNaN(x2) || isNaN(y2)) {
-                return Haeckel.EMPTY_SET;
-            }
-            return Haeckel.rec.createFromCoords(x, y, x2, y2);
-        }
-        rec.combine = combine;
-    })(Haeckel.rec || (Haeckel.rec = {}));
-    var rec = Haeckel.rec;
 })(Haeckel || (Haeckel = {}));
 var Haeckel;
 (function (Haeckel) {
