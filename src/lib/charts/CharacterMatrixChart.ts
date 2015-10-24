@@ -315,7 +315,7 @@ module Haeckel
 
 		stateFontSize = 11;
 		
-		stateLabelColumnOffsetter: (state: number) => number = () => 0;
+		stateLabelColumnOffsetter: (character: number, state: number) => number = () => 0;
 
 		stateSort: (row: number) => (a: number, b: number) => number;
 
@@ -470,7 +470,7 @@ module Haeckel
 					{
 						stateRendererLookup[String(state)] = stateRenderer
 							= new StateRenderer(this, row, state, numStates, character.labelStates(bit.create([ state ])),
-								this.stateSpacing, this.spacingH, this.stateFontSize, this.stateLabelColumnOffsetter(i));
+								this.stateSpacing, this.spacingH, this.stateFontSize, this.stateLabelColumnOffsetter(row, i));
 						stateRenderers.push(stateRenderer);
 					}
 					stateRenderer.setRatio(column, i / cell.length, (i + 1) / cell.length, unknownsBuilder.contains(column));

@@ -3452,7 +3452,7 @@ var Haeckel;
                     stateLookup[String(state)] = true;
                     var stateRenderer = stateRendererLookup[String(state)];
                     if (!stateRenderer) {
-                        stateRendererLookup[String(state)] = stateRenderer = new StateRenderer(this, row, state, numStates, character.labelStates(Haeckel.bit.create([state])), this.stateSpacing, this.spacingH, this.stateFontSize, this.stateLabelColumnOffsetter(i));
+                        stateRendererLookup[String(state)] = stateRenderer = new StateRenderer(this, row, state, numStates, character.labelStates(Haeckel.bit.create([state])), this.stateSpacing, this.spacingH, this.stateFontSize, this.stateLabelColumnOffsetter(row, i));
                         stateRenderers.push(stateRenderer);
                     }
                     stateRenderer.setRatio(column, i / cell.length, (i + 1) / cell.length, unknownsBuilder.contains(column));
